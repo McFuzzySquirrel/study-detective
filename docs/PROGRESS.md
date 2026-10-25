@@ -3,7 +3,7 @@
 ## Current State
 **Phase**: LOCAL-DATA-AND-CASE-SHELF-1
 **Status**: In Progress
-**Last Updated**: 2026-10-25T20:08:18.227Z
+**Last Updated**: 2026-10-25T20:18:05.470Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -23,12 +23,13 @@
   - Files: src/styles/tokens.css, src/styles/base.css, src/components/Button.tsx, src/components/IconButton.tsx, src/components/Dialog.tsx, src/components/Toast.tsx, src/components/Field.tsx, src/components/EmptyState.tsx, src/components/components.css, tests/components/primitives.test.tsx, tests/styles/tokens.test.ts, package-lock.json, package.json, src/app/AppShell.css, src/app/UpdatePrompt.css, tests/helpers/css-contract.ts
 - [x] Phase LOCAL-DATA-AND-CASE-SHELF-1, Task DATA-1: Define validated case domain records (@data-engineer)
   - Files: src/domain/model.ts, src/domain/validation.ts, src/domain/ids.ts, tests/domain/model.test.ts, tests/domain/validation.test.ts
+- [x] Phase LOCAL-DATA-AND-CASE-SHELF-1, Task DATA-2: Implement the Dexie schema and repositories (@data-engineer)
+  - Files: src/data/db.ts, src/data/mappers.ts, src/data/caseRepository.ts, src/data/attachmentStore.ts, tests/data/dbMigration.test.ts, tests/data/caseRepository.test.ts, tests/data/attachmentStore.test.ts, package-lock.json, package.json, src/data/errors.ts, src/data/transactions.ts, tests/data/testDatabase.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase LOCAL-DATA-AND-CASE-SHELF-1: Phase 1: Domain and persistence foundation
 - [ ] Phase LOCAL-DATA-AND-CASE-SHELF-2: Phase 2: Shelf and storage safety
 - [ ] Phase EVIDENCE-CAPTURE-1: Phase 1: Image pipeline
 - [ ] Phase EVIDENCE-CAPTURE-2: Phase 2: Capture and card detail
