@@ -3,7 +3,7 @@
 ## Current State
 **Phase**: APP-FOUNDATION-1
 **Status**: In Progress
-**Last Updated**: 2026-10-25T18:53:52.687Z
+**Last Updated**: 2026-10-25T18:59:27.833Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -13,12 +13,13 @@
   - Files: package.json, package-lock.json, .nvmrc, index.html, vite.config.ts, tsconfig.json, tsconfig.app.json, tsconfig.node.json, eslint.config.js, vitest.config.ts, playwright.config.ts, src/main.tsx, src/App.tsx, src/vite-env.d.ts, src/styles/base.css, tests/setup.ts, tests/app/smoke.test.tsx, .gitignore, .prettierignore, e2e/smoke.spec.ts
 - [x] Phase APP-FOUNDATION-1, Task FND-2: Add installable PWA manifest, icons, and update prompt (@foundation-engineer)
   - Files: vite.config.ts, src/pwaManifest.ts, src/pwa.ts, src/main.tsx, src/App.tsx, src/app/UpdatePrompt.tsx, src/app/UpdatePrompt.css, public/icons/icon.svg, public/icons/icon-192.png, public/icons/icon-512.png, public/icons/maskable-512.png, scripts/generate-icons.mjs, tests/pwa/manifest.test.ts, tests/pwa/UpdatePrompt.test.tsx, src/vite-env.d.ts, vitest.config.ts, tests/stubs/pwa-register.ts
+- [x] Phase APP-FOUNDATION-1, Task FND-3: Build the hash-routed shell with error and offline states (@foundation-engineer)
+  - Files: src/App.tsx, src/app/AppShell.tsx, src/app/AppShell.css, src/app/routes.tsx, src/app/placeholders.tsx, src/app/ErrorBoundary.tsx, src/app/OfflineNotice.tsx, tests/app/routing.test.tsx, tests/app/ErrorBoundary.test.tsx, tests/app/OfflineNotice.test.tsx, tests/app/smoke.test.tsx
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase APP-FOUNDATION-1: Phase 1: Runnable PWA shell
 - [ ] Phase APP-FOUNDATION-2: Phase 2: Visual direction
 - [ ] Phase APP-FOUNDATION-3: Phase 3: Design system
 - [ ] Phase LOCAL-DATA-AND-CASE-SHELF-1: Phase 1: Domain and persistence foundation

@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T18:53:52.687Z",
+  "lastUpdatedAt": "2026-10-25T18:59:27.832Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -94,10 +94,36 @@
     },
     "FND-3": {
       "taskId": "FND-3",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "foundation-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/App.tsx",
+        "src/app/AppShell.tsx",
+        "src/app/AppShell.css",
+        "src/app/routes.tsx",
+        "src/app/placeholders.tsx",
+        "src/app/ErrorBoundary.tsx",
+        "src/app/OfflineNotice.tsx",
+        "tests/app/routing.test.tsx",
+        "tests/app/ErrorBoundary.test.tsx",
+        "tests/app/OfflineNotice.test.tsx",
+        "tests/app/smoke.test.tsx"
+      ],
+      "startedAt": "2026-10-25T18:53:53.389Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/FND-3.2026-10-25T18-59-27-824Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T18:59:27.825Z",
+      "agentOutput": "I'll start by reading the execution file and understanding the task scope.\nNow I have the full picture. Let me implement the routing shell, placeholders, error boundary, offline notice, and styles.\nI found an interaction between hash routing and the skip link. Let me make the skip link focus the main landmark without letting the browser rewrite the hash route.\n## FND-3 completion report\n\nImplemented the hash-routed application shell with lazy route placeholders, route-level error recovery, offline status, and an accessible shared frame.\n\n### Files created\n\n- `src/app/AppShell.tsx`\n- `src/app/AppShell.css`\n- `src/app/routes.tsx`\n- `src/app/placeholders.tsx`\n- `src/app/ErrorBoundary.tsx`\n- `src/app/OfflineNotice.tsx`\n- `tests/app/routing.test.tsx`\n- `tests/app/ErrorBoundary.test.tsx`\n- `tests/app/OfflineNotice.test.tsx`\n\n### Files changed\n\n- `src/App.tsx` — now owns `HashRouter`, `AppShell`, `AppRoutes`, and the existing update prompt.\n- `tests/app/smoke.test.tsx` — updated to wait for the lazy shelf placeholder while keeping the original smoke assertions.\n\n### Validation\n\n| Command | Result |\n|---|---|\n| `npm ci` | Exit 0, 555 packages installed |\n| `npm test -- tests/app/routing.test.tsx tests/app/ErrorBoundary.test.tsx tests/app/OfflineNotice.test.tsx` | Exit 0 — 3 files, 17 tests passed |\n| `npm run typecheck` | Exit 0 |\n| `npm run lint` | Exit 0 |\n| `npm run build` | Exit 0 — separate lazy `placeholders-*.js` chunk emitted |\n| `npm test` | Exit 0 — 6 files, 32 tests passed |\n| `npm run format:check` | Exit 0 |\n| `npm run test:e2e -- e2e/smoke.spec.ts` | Exit 0 — desktop, tablet-landscape, and phone passed |\n\n### Evidence\n\n- `/`, `/case/:caseId`, `/case/:caseId/capture`, `/case/:caseId/recall`, and `/settings` each render their lazy placeholder; `*` renders a not-found screen whose action returns to the shelf.\n- A thrown route error is caught, shows fixed recovery copy with `Reload` and `Back to shelf`, exposes no error message or stack trace, and resets when the location changes.\n- `OfflineNotice` is mounted by the shell, appears on the `offline` event, clears on `online`, and initializes correctly when the page loads offline.\n- The shell has exactly one `main` landmark, a first-in-tab-order skip link, and CSS that reveals the skip link on focus. The skip link focuses `main` directly so it does not collide with `HashRouter`.\n- Initial shell payload excludes PixiJS and OCR code. `Case board` content appears only in the lazy `placeholders` chunk, not the entry chunk. Entry JS is 84.28 kB gzip.\n- `npm run test:e2e -- e2e/smoke.spec.ts` was run as an extra browser check and passed all three viewport projects.\n\n### Known gaps / handoff\n\n- All route screens are intentionally placeholders in `src/app/placeholders.tsx`; feature owners should replace their lazy import in `src/app/routes.tsx`.\n- `AppShell` accepts an optional `storageStatus` node for the storage-state owner; it currently renders only `OfflineNotice`.\n- No Pixi board, OCR assets, domain logic, Dexie access, or feature UI was added.\n- `docs/EXECUTION-AUDIT.jsonl` shows a one-line engine-generated modification; I did not edit or stage it.\n\n```forge-result\n{\"summary\":\"FND-3 complete: HashRouter shell, lazy placeholders, route-level error boundary, offline notice, accessible main/skip-link frame, and all required validations passing.\",\"unresolved\":[],\"decisions\":[\"Used HashRouter at the composition root and a MemoryRouter-compatible AppRoutes export.\",\"Kept one location-keyed route error boundary around the route outlet so shell chrome survives route failures and recovery remounts the view.\",\"Skip link intercepts fragment navigation and focuses main directly because HashRouter owns the URL hash.\",\"Kept feature screens in a shared lazy placeholders module so the initial shell stays free of route content.\"],\"interfaces\":[\"AppShell accepts children plus optional storageStatus for future storage state.\",\"AppRoutes is exported both named and default for MemoryRouter tests.\",\"ErrorBoundary accepts resetKey to clear its error state when the route changes.\"],\"tests\":[\"npm test -- tests/app/routing.test.tsx tests/app/ErrorBoundary.test.tsx tests/app/OfflineNotice.test.tsx: exit 0, 17 tests\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm run build: exit 0\",\"npm test: exit 0, 32 tests\",\"npm run format:check: exit 0\",\"npm run test:e2e -- e2e/smoke.spec.ts: exit 0, 3 viewport projects\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl has an engine-generated one-line change that I did not author.\",\"Feature routes still render placeholders until their owning specialists replace the lazy imports.\"]}\n```\n",
+      "artifactId": "work-fnd-3-001",
+      "inputArtifactIds": [
+        "work-fnd-1-001"
+      ]
     },
     "FND-4": {
       "taskId": "FND-4",
