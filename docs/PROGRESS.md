@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: BACKUP-AND-RESTORE-1
+**Phase**: BACKUP-AND-RESTORE-2
 **Status**: In Progress
-**Validation Gaps**: 11 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T21:44:24.183Z
+**Validation Gaps**: 12 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T21:55:00.625Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -44,9 +44,12 @@
   - Files: src/board/viewport.ts, src/board/boardStore.ts, tests/board/viewport.test.ts, tests/board/boardStore.test.ts
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
+- [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
+  - Files: src/features/backup/importValidation.ts, src/features/backup/importCase.ts, tests/backup/importCase.test.ts
 
 ## Current Task
-- None currently running
+- [ ] Phase CASE-BOARD-1, Task BOARD-2: Mount the lazy Pixi canvas and case board route (@board-engineer)
+  - Status: In progress
 
 ## Remaining
 - [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
@@ -61,7 +64,6 @@
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-1: Phase 1: Tags
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-2: Phase 2: Search and filters
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
-- [ ] Phase BACKUP-AND-RESTORE-2: Phase 2: Import and restore
 - [ ] Phase BACKUP-AND-RESTORE-3: Phase 3: UI and browser journey
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
 - [ ] Phase OPTIONAL-OCR-2: Phase 2: OCR experience
@@ -90,6 +92,7 @@
 - Task CAP-4: The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
+- Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
