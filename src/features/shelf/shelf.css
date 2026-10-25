@@ -1,0 +1,308 @@
+/*
+ * Case shelf styles. Every colour, size, and motion value comes from
+ * tokens.css; this file contains no palette literals so the locked Midnight
+ * Archive direction can change in one place.
+ */
+
+.shelf {
+  display: grid;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}
+
+.shelf__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-block-end: var(--space-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.shelf__heading {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.shelf__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.shelf__heading h2 {
+  margin: 0;
+}
+
+.shelf__intro {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.shelf__status {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Case grid and cards                                                        */
+/* ------------------------------------------------------------------------- */
+
+.shelf__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shelf__grid-item {
+  display: flex;
+  min-inline-size: 0;
+}
+
+.case-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-5);
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.case-card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.case-card[data-selected='true'] {
+  border-color: var(--color-accent-border);
+  border-width: var(--border-width-strong);
+}
+
+.case-card:focus-within {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.case-card__title {
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--font-size-xl);
+  overflow-wrap: anywhere;
+}
+
+.case-card__link {
+  display: inline-flex;
+  align-items: center;
+  min-inline-size: var(--target-min);
+  min-block-size: var(--target-min);
+  color: var(--color-heading-ink);
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+/* The stretched target makes the whole card pointer-clickable. Actions sit
+   above it with their own stacking context, so Edit is never covered. */
+.case-card__link::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  border-radius: var(--radius-lg);
+}
+
+.case-card__link:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.case-card__link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-card__badge {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-accent-ink);
+  background-color: var(--color-accent);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.case-card__subject {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.case-card__meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding-block: var(--space-3);
+  border-block: var(--border-width) solid var(--color-border);
+}
+
+.case-card__meta-item {
+  min-inline-size: 0;
+}
+
+.case-card__meta dt {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.case-card__meta dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.case-card__updated {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.case-card__actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-block-start: auto;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Recoverable error state                                                    */
+/* ------------------------------------------------------------------------- */
+
+.shelf__error {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-danger);
+  border-radius: var(--radius-md);
+}
+
+.shelf__error h3 {
+  margin: 0;
+}
+
+.shelf__error p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.shelf__error code {
+  color: var(--color-ink);
+}
+
+.shelf__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Create and edit form                                                       */
+/* ------------------------------------------------------------------------- */
+
+.case-form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.case-form__actions {
+  margin-block-start: var(--space-2);
+}
+
+.case-form__error {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-danger-text);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Responsive layout                                                          */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 37.5rem) {
+  .shelf__header {
+    align-items: stretch;
+  }
+
+  .shelf__header > .nd-button {
+    inline-size: 100%;
+  }
+
+  .case-card {
+    padding: var(--space-4);
+  }
+
+  .case-card__meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                             */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .case-card,
+  .case-card__link,
+  .shelf__grid,
+  .shelf__error {
+    transition: none !important;
+    animation: none !important;
+  }
+}

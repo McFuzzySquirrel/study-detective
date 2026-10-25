@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-**Phase**: LOCAL-DATA-AND-CASE-SHELF-1
+**Phase**: LOCAL-DATA-AND-CASE-SHELF-2
 **Status**: In Progress
-**Last Updated**: 2026-10-25T20:18:05.470Z
+**Last Updated**: 2026-10-25T20:27:59.532Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -25,6 +25,8 @@
   - Files: src/domain/model.ts, src/domain/validation.ts, src/domain/ids.ts, tests/domain/model.test.ts, tests/domain/validation.test.ts
 - [x] Phase LOCAL-DATA-AND-CASE-SHELF-1, Task DATA-2: Implement the Dexie schema and repositories (@data-engineer)
   - Files: src/data/db.ts, src/data/mappers.ts, src/data/caseRepository.ts, src/data/attachmentStore.ts, tests/data/dbMigration.test.ts, tests/data/caseRepository.test.ts, tests/data/attachmentStore.test.ts, package-lock.json, package.json, src/data/errors.ts, src/data/transactions.ts, tests/data/testDatabase.ts
+- [x] Phase LOCAL-DATA-AND-CASE-SHELF-2, Task DATA-3: Build the case shelf with create and edit (@ui-engineer)
+  - Files: src/features/shelf/CaseShelfPage.tsx, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, src/features/shelf/CaseFormDialog.tsx, src/features/shelf/shelf.css, src/app/routes.tsx, tests/shelf/CaseShelf.test.tsx, tests/shelf/CaseFormDialog.test.tsx
 
 ## Current Task
 - None currently running
