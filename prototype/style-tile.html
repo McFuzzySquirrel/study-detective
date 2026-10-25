@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Notes Detective — Three visual directions</title>
+    <link rel="stylesheet" href="./style-tile.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#directions">Skip to the three directions</a>
+
+    <header class="page-header">
+      <p class="page-kicker">Visual direction study &middot; FND-4</p>
+      <h1>Which case file should Notes Detective open?</h1>
+      <p class="page-intro">
+        Three candidate looks for the cork board, its pins and strings, and the type that frames
+        them. Compare the same evidence scene in each direction, then choose one. This page is a
+        decision aid, not the production theme.
+      </p>
+    </header>
+
+    <main id="main">
+      <section class="legend" data-testid="legend" aria-labelledby="legend-title">
+        <h2 id="legend-title">What to judge</h2>
+        <ul class="legend-list">
+          <li>
+            <strong>Cork tone and texture.</strong> Does it feel like a working evidence board
+            without competing with the notes?
+          </li>
+          <li>
+            <strong>Pins.</strong> Each direction shows a domed pin, a flat matte pin, and a flanged
+            tack. Do the finishes read at a glance and stay clear of app chrome?
+          </li>
+          <li>
+            <strong>Strings.</strong> A solid red association string and a dashed amber provenance
+            string. Judge weight, sag, and whether the two meanings remain distinct without labels.
+          </li>
+          <li>
+            <strong>Type.</strong> A period heading over system body text. The heading may wear the
+            costume; the reading text must stay neutral and effortless.
+          </li>
+          <li>
+            <strong>Control.</strong> One 44&nbsp;&times;&nbsp;44&nbsp;CSS&nbsp;px action. Judge
+            size, contrast, and the focus ring.
+          </li>
+          <li>
+            <strong>Density.</strong> Imagine 150 cards. Does the direction stay legible, or does it
+            turn into noise?
+          </li>
+        </ul>
+        <p class="legend-note">
+          Open this file directly from disk. It makes no network requests and uses no external
+          fonts, images, or scripts. Record the chosen direction in
+          <code>docs/reviews/style-direction.json</code>.
+        </p>
+      </section>
+
+      <section id="directions" class="directions" aria-label="Three visual directions">
+        <article
+          class="direction direction--ledger"
+          data-direction="ledger"
+          aria-labelledby="direction-ledger-title"
+        >
+          <header class="direction-header">
+            <p class="direction-label" data-direction-label>Direction A &middot; Reading room</p>
+            <h2 id="direction-ledger-title">The Reading Room Ledger</h2>
+            <p class="direction-blurb">
+              Warm oak cork, cream index cards, and oxblood ink. Familiar and scholarly, with the
+              softest pins and a generous string sag.
+            </p>
+          </header>
+
+          <div class="cork" data-surface="cork">
+            <span class="cork-stamp" aria-hidden="true">Case 04 &middot; Open</span>
+            <svg
+              class="strings"
+              viewBox="0 0 400 250"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                class="string string--association"
+                data-string="association"
+                d="M 100 57 C 145 98, 218 108, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                class="string string--provenance"
+                data-string="provenance"
+                d="M 132 190 C 164 158, 204 120, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+
+            <div class="note note--a">
+              <span class="pin pin--dome" aria-hidden="true"></span>
+              <p class="note-kicker">Witness list</p>
+              <p class="note-title">Saw a light at 2 a.m.</p>
+            </div>
+
+            <div class="note note--b">
+              <span class="pin pin--flat" aria-hidden="true"></span>
+              <p class="note-kicker">Lab report</p>
+              <p class="note-title">Soil is alkaline.</p>
+            </div>
+
+            <div class="source">
+              <span class="pin pin--tack" aria-hidden="true"></span>
+              <p class="source-kicker">Source &middot; p. 12</p>
+              <p class="source-title">Garden diary, 3 March</p>
+            </div>
+          </div>
+          <p class="sr-only">
+            Board sample: two pinned notes joined by a solid red association string, plus a source
+            clipping connected to the right-hand note by a dashed amber provenance string.
+          </p>
+
+          <ul class="pin-tray" aria-label="Three pin styles">
+            <li class="pin-sample">
+              <span class="pin pin--dome" data-pin="dome" aria-hidden="true"></span>Dome
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--flat" data-pin="flat" aria-hidden="true"></span>Flat
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--tack" data-pin="tack" aria-hidden="true"></span>Tack
+            </li>
+          </ul>
+
+          <div class="type-sample">
+            <p class="type-label">Period heading &middot; system body</p>
+            <h3 class="period-heading" data-type-sample="period-heading">
+              The Adventure of the Speckled Band
+            </h3>
+            <p class="system-body" data-type-sample="system-body">
+              A confidential case file, read on a tablet at midnight. The body stays in the system
+              face so long notes remain effortless; only the heading wears the period costume.
+            </p>
+          </div>
+
+          <div class="direction-footer">
+            <button type="button" class="tile-control" data-control="44">Pin this card</button>
+            <span class="control-note">44 &times; 44 px minimum</span>
+          </div>
+        </article>
+
+        <article
+          class="direction direction--midnight"
+          data-direction="midnight"
+          aria-labelledby="direction-midnight-title"
+        >
+          <header class="direction-header">
+            <p class="direction-label" data-direction-label>Direction B &middot; After hours</p>
+            <h2 id="direction-midnight-title">The Midnight Archive</h2>
+            <p class="direction-blurb">
+              Dark walnut cork and charred paper. A nocturnal, high-contrast board with bright
+              thread, heavier pins, and small-caps Baskerville headings.
+            </p>
+          </header>
+
+          <div class="cork" data-surface="cork">
+            <span class="cork-stamp" aria-hidden="true">Case 04 &middot; Open</span>
+            <svg
+              class="strings"
+              viewBox="0 0 400 250"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                class="string string--association"
+                data-string="association"
+                d="M 100 57 C 140 112, 214 116, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                class="string string--provenance"
+                data-string="provenance"
+                d="M 132 190 C 158 150, 206 118, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+
+            <div class="note note--a">
+              <span class="pin pin--dome" aria-hidden="true"></span>
+              <p class="note-kicker">Witness list</p>
+              <p class="note-title">Saw a light at 2 a.m.</p>
+            </div>
+
+            <div class="note note--b">
+              <span class="pin pin--flat" aria-hidden="true"></span>
+              <p class="note-kicker">Lab report</p>
+              <p class="note-title">Soil is alkaline.</p>
+            </div>
+
+            <div class="source">
+              <span class="pin pin--tack" aria-hidden="true"></span>
+              <p class="source-kicker">Source &middot; p. 12</p>
+              <p class="source-title">Garden diary, 3 March</p>
+            </div>
+          </div>
+          <p class="sr-only">
+            Board sample: two pinned notes joined by a solid red association string, plus a source
+            clipping connected to the right-hand note by a dashed amber provenance string.
+          </p>
+
+          <ul class="pin-tray" aria-label="Three pin styles">
+            <li class="pin-sample">
+              <span class="pin pin--dome" data-pin="dome" aria-hidden="true"></span>Dome
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--flat" data-pin="flat" aria-hidden="true"></span>Flat
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--tack" data-pin="tack" aria-hidden="true"></span>Tack
+            </li>
+          </ul>
+
+          <div class="type-sample">
+            <p class="type-label">Period heading &middot; system body</p>
+            <h3 class="period-heading" data-type-sample="period-heading">
+              The Hound of the Baskervilles
+            </h3>
+            <p class="system-body" data-type-sample="system-body">
+              A confidential case file, read on a tablet at midnight. The body stays in the system
+              face so long notes remain effortless; only the heading wears the period costume.
+            </p>
+          </div>
+
+          <div class="direction-footer">
+            <button type="button" class="tile-control" data-control="44">Open the case</button>
+            <span class="control-note">44 &times; 44 px minimum</span>
+          </div>
+        </article>
+
+        <article
+          class="direction direction--fieldnotes"
+          data-direction="fieldnotes"
+          aria-labelledby="direction-fieldnotes-title"
+        >
+          <header class="direction-header">
+            <p class="direction-label" data-direction-label>Direction C &middot; Field desk</p>
+            <h2 id="direction-fieldnotes-title">The Field Notes Case</h2>
+            <p class="direction-blurb">
+              Pale straw cork and bright manila. A cooler, lighter desk with steel and oxblood pins,
+              crisp typewriter headings, and taut strings.
+            </p>
+          </header>
+
+          <div class="cork" data-surface="cork">
+            <span class="cork-stamp" aria-hidden="true">Case 04 &middot; Open</span>
+            <svg
+              class="strings"
+              viewBox="0 0 400 250"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                class="string string--association"
+                data-string="association"
+                d="M 100 57 C 152 88, 220 94, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+              <path
+                class="string string--provenance"
+                data-string="provenance"
+                d="M 132 190 C 172 164, 214 112, 304 86"
+                vector-effect="non-scaling-stroke"
+              />
+            </svg>
+
+            <div class="note note--a">
+              <span class="pin pin--dome" aria-hidden="true"></span>
+              <p class="note-kicker">Witness list</p>
+              <p class="note-title">Saw a light at 2 a.m.</p>
+            </div>
+
+            <div class="note note--b">
+              <span class="pin pin--flat" aria-hidden="true"></span>
+              <p class="note-kicker">Lab report</p>
+              <p class="note-title">Soil is alkaline.</p>
+            </div>
+
+            <div class="source">
+              <span class="pin pin--tack" aria-hidden="true"></span>
+              <p class="source-kicker">Source &middot; p. 12</p>
+              <p class="source-title">Garden diary, 3 March</p>
+            </div>
+          </div>
+          <p class="sr-only">
+            Board sample: two pinned notes joined by a solid red association string, plus a source
+            clipping connected to the right-hand note by a dashed amber provenance string.
+          </p>
+
+          <ul class="pin-tray" aria-label="Three pin styles">
+            <li class="pin-sample">
+              <span class="pin pin--dome" data-pin="dome" aria-hidden="true"></span>Dome
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--flat" data-pin="flat" aria-hidden="true"></span>Flat
+            </li>
+            <li class="pin-sample">
+              <span class="pin pin--tack" data-pin="tack" aria-hidden="true"></span>Tack
+            </li>
+          </ul>
+
+          <div class="type-sample">
+            <p class="type-label">Period heading &middot; system body</p>
+            <h3 class="period-heading" data-type-sample="period-heading">
+              The Murders in the Rue Morgue
+            </h3>
+            <p class="system-body" data-type-sample="system-body">
+              A confidential case file, read on a tablet at midnight. The body stays in the system
+              face so long notes remain effortless; only the heading wears the period costume.
+            </p>
+          </div>
+
+          <div class="direction-footer">
+            <button type="button" class="tile-control" data-control="44">File this note</button>
+            <span class="control-note">44 &times; 44 px minimum</span>
+          </div>
+        </article>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <p>
+        FND-4 visual-direction study. Inline SVG and local CSS only; no external fonts, images, or
+        scripts. Period type is limited to headings and case-file chrome.
+      </p>
+    </footer>
+  </body>
+</html>

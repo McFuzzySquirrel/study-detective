@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T18:59:27.832Z",
+  "lastUpdatedAt": "2026-10-25T19:08:35.833Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "APP-FOUNDATION-1",
+  "currentPhase": "APP-FOUNDATION-2",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -127,10 +127,31 @@
     },
     "FND-4": {
       "taskId": "FND-4",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "ui-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "prototype/style-tile.html",
+        "prototype/style-tile.css",
+        "e2e/style-tile.spec.ts",
+        "tsconfig.node.json"
+      ],
+      "startedAt": "2026-10-25T18:59:28.580Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/FND-4.2026-10-25T19-08-35-831Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T19:08:35.832Z",
+      "agentOutput": "I'll start by reading the execution file.\nI'll examine the project structure and referenced documentation.\nNow I have the full contract. Let me create the prototype page.\n## FND-4 complete — visual-direction style tile\n\n### Files created or changed\n| File | Change |\n|---|---|\n| `prototype/style-tile.html` | **Created.** Standalone three-direction tile with reviewer legend, cork boards, three pin finishes, inline-SVG strings, type pairings, and controls. |\n| `prototype/style-tile.css` | **Created.** Local-only responsive styling, direction-specific tokens, focus rings, 44 px targets, pin/string treatments, reduced-motion fallback. |\n| `e2e/style-tile.spec.ts` | **Created.** File-URL Playwright suite for structure, strings, type samples, 44 px controls, no network requests, no horizontal overflow, keyboard focus, contrast, distinct directions, and reduced motion. |\n| `tsconfig.node.json` | **Changed.** Added the `DOM` library so Playwright browser-context `page.evaluate` assertions typecheck under the strict e2e config. No app-runtime change. |\n\nShared-file note for `foundation-engineer`: preserve `\"lib\": [\"ES2023\", \"DOM\"]` in `tsconfig.node.json`; it is required for browser-evaluate code in e2e specs. `tsconfig.app.json` and application routes were not touched.\n\n### What the prototype contains\nThree clearly labeled directions:\n\n- **A · The Reading Room Ledger** — warm oak cork, cream cards, Iowan/Palatino heading, oxblood control.\n- **B · The Midnight Archive** — dark walnut cork, charred cards, uppercase Baskerville heading, light-blue focus ring on the dark surface.\n- **C · The Field Notes Case** — pale straw cork, bright manila cards, italic typewriter heading, squared control.\n\nEvery direction includes a cork surface; domed, flat, and flanged-tack pins; a solid red inline-SVG association string; a dashed amber inline-SVG provenance string; a period heading over system body text; and exactly one ≥44×44 control. The page also has a “What to judge” legend, skip link, landmarks, descriptive text alternatives for the decorative boards, and no scripts, images, external fonts, or external URLs.\n\n### Verification\nRequired command:\n```text\nnpm run test:e2e -- e2e/style-tile.spec.ts\n→ 15 passed (5.3s)\n```\nThe 15 runs are the five logical tests executed across the desktop, tablet-landscape, and phone Playwright projects; the two required sizes are explicitly set in the suite.\n\nAdditional checks:\n```text\nnpm run lint          → pass\nnpm run typecheck     → pass\nnpm test              → 32 passed\nnpx prettier --check  → pass\n```\n\n### Acceptance criteria\n| Criterion | Result | Evidence |\n|---|---|---|\n| Three visually distinct, labeled directions with all required elements | **Pass** | Three unique labels/names; unique cork background, control background, and heading font signatures; every direction has 3 pins, both strings, both type samples, and one control. |\n| Loads from `file://` with zero network requests | **Pass** | `page.url()` protocol asserted as `file:`; zero `http(s)` page requests, resource timings, or external `src`/`href` values; zero `script` elements. |\n| No horizontal page overflow at 1280×800 or 390×844 | **Pass** | Document and body `scrollWidth` ≤ `clientWidth` at both explicit viewports. |\n| Test fails if a direction, pin, string type, type sample, or 44 px control is missing | **Pass** | Counts, unique pin names, SVG path lengths, computed stroke/dash styles, visible type samples, font-family checks, and bounding-box assertions all fail loudly. |\n\n### Accessibility evidence\n- **Keyboard:** Tab order is `Skip to the three directions` → control A → control B → control C; each control receives focus in sequence.\n- **Focus:** Every control shows a 3 px outline with offset; dark direction uses a light-blue ring for contrast.\n- **Targets:** Measured control boxes are ≥44×44 CSS px.\n- **Contrast:** Runtime-computed body and control text ≥4.5:1; heading text ≥3:1 against its panel.\n- **Reduced motion:** `pin-settle` animation is present by default and becomes `none`; control transitions become `0s`; final pin state remains opacity 1.\n- **Text:** All sample notes, labels, and legend content are plain text; no user content is injected as HTML.\n\n### Known gaps / human gate\n- Direction selection remains the human review gate **FND-HR-1**; no direction was chosen or recorded here. This page is a decision aid, and its palette/type values are intentionally local prototype values, not the FND-5 production token contract.\n- Font rendering depends on each host’s installed system faces, by design (no external fonts).\n- The tile demonstrates the pinned-card/string language but does not prove 150-card board feel; that stays with the human board-feel gate.\n\n```forge-result\n{\"summary\":\"FND-4 complete: standalone three-direction style tile with cork surfaces, three pin finishes, red association and dashed amber provenance strings, period/system type samples, 44 px controls, and a reviewer legend. The file:// Playwright suite passes 15/15 across projects with explicit 1280x800 and 390x844 checks, zero network requests, no overflow, keyboard focus, contrast, and reduced-motion coverage.\",\"unresolved\":[],\"decisions\":[\"Added DOM to tsconfig.node lib so strict Playwright browser-context evaluate assertions typecheck; no app-runtime change.\",\"Kept the prototype dependency-free with no scripts, images, external fonts, or remote URLs.\",\"Prototype-only palette/type values are intentionally local; FND-5 owns production tokens after the human direction decision.\"],\"interfaces\":[\"prototype/style-tile.html exposes data-direction, data-surface=\\\"cork\\\", data-pin, data-string, data-type-sample, and data-control hooks for browser evidence.\",\"e2e/style-tile.spec.ts resolves the prototype through a file URL rather than the preview server.\"],\"tests\":[\"npm run test:e2e -- e2e/style-tile.spec.ts: 15 passed\",\"npm run lint: pass\",\"npm run typecheck: pass\",\"npm test: 32 passed\",\"npx prettier --check prototype/style-tile.html prototype/style-tile.css e2e/style-tile.spec.ts tsconfig.node.json: pass\"],\"warnings\":[\"Direction selection remains human gate FND-HR-1; the tile does not record a chosen direction.\",\"System font fallback varies by host because external fonts are prohibited.\",\"docs/EXECUTION-AUDIT.jsonl shows an engine-generated modification that I did not author.\"]}\n```\n",
+      "artifactId": "work-fnd-4-001",
+      "inputArtifactIds": [
+        "work-fnd-1-001",
+        "work-fnd-2-001",
+        "work-fnd-3-001"
+      ]
     },
     "FND-HR-1": {
       "taskId": "FND-HR-1",
