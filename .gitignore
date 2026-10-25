@@ -1,3 +1,9 @@
 node_modules/
 docs/engine-run.log
 docs/artifacts/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.local
+.DS_Store
