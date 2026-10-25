@@ -1,0 +1,192 @@
+/*
+ * Crop and rotate editor.
+ *
+ * The stage is a dark mat; the crop frame carries the only bright edge so the
+ * student sees exactly what will be kept. Every value comes from tokens.css so
+ * this file never introduces a palette literal.
+ */
+
+.nd-crop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  inline-size: 100%;
+  color: var(--color-ink);
+}
+
+.nd-crop__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nd-crop__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-xl);
+}
+
+.nd-crop__hint {
+  margin: 0;
+  max-inline-size: var(--measure-narrow);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.nd-crop__stage {
+  position: relative;
+  overflow: hidden;
+  block-size: clamp(280px, 52vh, 560px);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-canvas-deep);
+  background-image: radial-gradient(circle at 50% 45%, var(--color-canvas-glow), transparent 68%);
+  box-shadow: var(--shadow-panel);
+  isolation: isolate;
+}
+
+.nd-crop__cropper {
+  border-radius: inherit;
+}
+
+.nd-crop__area {
+  color: var(--color-scrim);
+  border: var(--border-width-strong) solid var(--color-paper);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 9999em currentColor;
+  cursor: move;
+  touch-action: none;
+}
+
+/* Corner marks read as touch handles while the library owns pinch and drag. */
+.nd-crop__area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--color-paper), var(--color-paper)) left top / 22px
+      var(--border-width-strong) no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) left top / var(--border-width-strong)
+      22px no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) right top / 22px
+      var(--border-width-strong) no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) right top / var(--border-width-strong)
+      22px no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) left bottom / 22px
+      var(--border-width-strong) no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) left bottom / var(--border-width-strong)
+      22px no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) right bottom / 22px
+      var(--border-width-strong) no-repeat,
+    linear-gradient(var(--color-paper), var(--color-paper)) right bottom /
+      var(--border-width-strong) 22px no-repeat;
+}
+
+.nd-crop__area:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.nd-crop__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nd-crop .nd-button,
+.nd-crop .nd-icon-button {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.nd-crop button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.nd-crop__nudge {
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-sunken);
+}
+
+.nd-crop__nudge legend {
+  padding-inline: var(--space-2);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.nd-crop__nudge-pad {
+  display: grid;
+  grid-template-areas:
+    '. up .'
+    'left down right';
+  grid-template-columns: repeat(3, var(--target-min));
+  grid-template-rows: repeat(2, var(--target-min));
+  gap: var(--space-1);
+  inline-size: max-content;
+}
+
+.nd-crop__nudge--up {
+  grid-area: up;
+}
+
+.nd-crop__nudge--left {
+  grid-area: left;
+}
+
+.nd-crop__nudge--down {
+  grid-area: down;
+}
+
+.nd-crop__nudge--right {
+  grid-area: right;
+}
+
+.nd-crop__nudge-hint {
+  margin: var(--space-2) 0 0;
+  max-inline-size: var(--measure-narrow);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.nd-crop__summary {
+  margin: 0;
+  padding: var(--space-3);
+  border-inline-start: var(--border-width-strong) solid var(--color-accent-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.nd-crop__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@media (max-width: 40rem) {
+  .nd-crop__stage {
+    block-size: clamp(240px, 46vh, 420px);
+  }
+
+  .nd-crop__actions .nd-button {
+    flex: 1 1 10rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-crop *,
+  .nd-crop *::before,
+  .nd-crop *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

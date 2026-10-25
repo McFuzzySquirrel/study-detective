@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: EVIDENCE-CAPTURE-1
 **Status**: In Progress
-**Validation Gaps**: 3 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T20:59:00.801Z
+**Validation Gaps**: 5 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T21:11:53.796Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -34,12 +34,13 @@
   - Files: src/features/shelf/DeleteCaseDialog.tsx, src/data/deleteCase.ts, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, tests/shelf/DeleteCaseDialog.test.tsx, tests/data/deleteCase.test.ts, src/data/caseRepository.ts, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/shelf.css
 - [x] Phase EVIDENCE-CAPTURE-1, Task CAP-1: Implement validated image import and atomic card creation (@capture-engineer)
   - Files: src/features/capture/imageValidation.ts, src/features/capture/imagePipeline.ts, src/features/capture/cardImport.ts, src/data/caseRepository.ts, tests/capture/imageValidation.test.ts, tests/capture/imagePipeline.test.ts, tests/capture/cardImport.test.ts
+- [x] Phase EVIDENCE-CAPTURE-1, Task CAP-2: Build the touch and keyboard crop/rotate editor (@capture-engineer)
+  - Files: src/features/capture/cropMath.ts, src/features/capture/CropRotateEditor.tsx, src/features/capture/crop.css, tests/capture/cropMath.test.ts, tests/capture/CropRotateEditor.test.tsx
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase EVIDENCE-CAPTURE-1: Phase 1: Image pipeline
 - [ ] Phase EVIDENCE-CAPTURE-2: Phase 2: Capture and card detail
 - [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
 - [ ] Phase CASE-BOARD-2: Phase 2: Scale and non-spatial path
@@ -75,6 +76,8 @@
 - Task CAP-1: No real-browser image decode or EXIF fixture journey was run in CAP-1; the capture route/UI is out of scope.
 - Task CAP-1: Cancellation cannot interrupt an IndexedDB transaction once saving begins; the UI should disable cancel at the saving stage.
 - Task CAP-1: UI-created preview object URLs must be revoked by the UI on unmount/cancel; the pipeline owns only its internal fallback URL.
+- Task CAP-2: No real-browser or Playwright crop exercise was run because CAP-2 is not wired into a route; CAP-3/CAP-4 own that integration.
+- Task CAP-2: The editor's live summary updates during selection changes; screen-reader nudge and rotation paths were tested with keyboard events in jsdom.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

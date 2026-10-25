@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T20:59:00.801Z",
+  "lastUpdatedAt": "2026-10-25T21:11:53.795Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -409,10 +409,38 @@
     },
     "CAP-2": {
       "taskId": "CAP-2",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "capture-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/features/capture/cropMath.ts",
+        "src/features/capture/CropRotateEditor.tsx",
+        "src/features/capture/crop.css",
+        "tests/capture/cropMath.test.ts",
+        "tests/capture/CropRotateEditor.test.tsx"
+      ],
+      "startedAt": "2026-10-25T20:59:01.524Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/CAP-2.2026-10-25T21-11-53-792Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T21:11:53.793Z",
+      "agentOutput": "I'll start by reading the execution file to understand the task.\nI'll read the referenced docs and existing capture code first.\nNow I have the context I need. Let me implement the pure crop math module first.\nNow the crop math tests.\nNow the component test with a controlled `react-easy-crop` mock.\n## CAP-2 Result Report\n\n### Task\nBuilt the touch and keyboard crop/rotate editor on `react-easy-crop`, with pure, tested crop math and no persistence or image processing inside the component.\n\n### Files created\n- `src/features/capture/cropMath.ts`\n- `src/features/capture/CropRotateEditor.tsx`\n- `src/features/capture/crop.css`\n- `tests/capture/cropMath.test.ts`\n- `tests/capture/CropRotateEditor.test.tsx`\n\nNo existing source files were changed. `docs/EXECUTION-AUDIT.jsonl` shows a pre-existing engine modification I did not author or touch. `docs/artifacts/` was neither modified nor committed.\n\n### What was implemented\n**`cropMath.ts` — pure, renderer-neutral helpers**\n- Normalized source-frame crop rectangles with containment and millionth precision.\n- `normalizeCropRect` mirrors the image pipeline’s edge-clamping semantics.\n- `clampCropRect` clamps arbitrary rectangles while preserving their aspect ratio.\n- Integer quarter-turn rotation: `normalizeRotation`, `rotateLeft`, `rotateRight`, `rotateBy`.\n- Rotation-aware dimensions and aspect: `rotatedDimensions`, `rotatedAspectRatio`, `previewDimensions`, `fitWithin`.\n- Rotated-frame conversion: `cropToRotated`, `cropFromRotated`.\n- Movement and keyboard nudges: `translateCropRect`, `nudgeCropRect`.\n- Output geometry: `computeOutputBounds` matching the pipeline’s integer crop floor.\n- Reset, equality, and accessible description: `resetCropState`, `cropRectsEqual`, `describeCrop`.\n- Every helper returns new objects and does not mutate frozen inputs.\n\n**`CropRotateEditor.tsx` — editor**\n- `react-easy-crop` stage with a dark mat and visible corner frame marks.\n- Touch pan and pinch/scroll zoom.\n- Rotate left/right in exact 90° steps.\n- Rotation-aware crop-frame aspect, with an optional pinned `aspect` (for example square).\n- Keyboard nudge pad and native arrow-key panning on the focusable crop area.\n- Reset, Cancel, and Save; no storage, repository, network, object-URL, or pipeline calls.\n- Polite, atomic live summary of crop percentages and rotation.\n- 44px controls, visible focus rings, semantic fieldset/legend, and reduced-motion handling.\n\n### UI handoff contract\n```ts\n<CropRotateEditor\n  imageSrc={previewUrl}\n  sourceWidth={orientedWidth}\n  sourceHeight={orientedHeight}\n  initialCrop={card?.crop}              // source-frame, normalized 0-1\n  initialRotation={card?.rotation}      // 0 | 90 | 180 | 270\n  aspect={undefined}                    // omit for free rotation-aware frame, or 1 for square\n  nudgeStep={0.02}\n  title=\"Crop and rotate\"\n  imageAlt=\"Photo to crop and rotate\"\n  saveLabel=\"Save crop\"\n  onSave={(result) => { /* result.crop, result.rotation */ }}\n  onCancel={() => { /* return to capture or card detail */ }}\n/>\n```\n\n`onSave` receives exactly:\n```ts\n{\n  crop: { x: number; y: number; width: number; height: number }; // source-frame, 0-1\n  rotation: 0 | 90 | 180 | 270;\n}\n```\n\nThe editor is synchronous and has no abort state. The parent owns the preview object URL, the retained original, source dimensions, pipeline execution, and persistence. Invalid crop/rotation props fall back safely rather than throwing; pure-helper callers receive `RangeError` for invalid values. Reset restores the selection the editor opened with: full/upright at import, stored crop on card detail.\n\n### Validation evidence\nCommands run from the project root:\n\n- `npm test -- tests/capture/cropMath.test.ts tests/capture/CropRotateEditor.test.tsx` → **49 tests passed, exit 0**\n- `npm run typecheck` → **exit 0**\n- `npm test` (full suite) → **379 tests passed, 26 files, exit 0**\n- `npm run lint` → **exit 0**\n- Prettier check on the five deliverables → **clean**\n- `npm run build` → **exit 0**, Vite production build completed\n\nBoundary and failure evidence:\n- Rotation cycles exact through `0 → 90 → 180 → 270 → 0`; 1,001 right turns ends at exactly `90`; negative rotations normalize correctly; fractional quarter turns throw.\n- Crop clamping: `x=-0.5, width=2` clamps to `{x:0,width:1}`; an oversized 2:1 crop becomes `1 × 0.5` with the ratio preserved; full-frame selection cannot be nudged.\n- Output bounds example: a 4000×3000 source with crop `{0.1,0.2,0.4,0.5}` yields `1600×1500` source pixels and `1500×1600` at 90°; the far-edge crop yields the one-pixel-floor `4×3` result at `x=3996,y=2997`.\n- Failure injections: NaN/Infinity, zero/negative extents, non-overlapping crops, non-positive source/bounds, and zero nudge steps all raise `RangeError`; frozen inputs remain unchanged.\n- Save/cancel: Save returns a fresh normalized crop and rotation; Cancel never saves; no source object is mutated and no URL or storage handle is created.\n- CAP-2 creates no image bytes or derivatives; derivative byte sizes and 4096/2048/320 dimensions remain CAP-1 evidence.\n\n### Shared files\nNone. `src/domain/model.ts`, `src/data/mappers.ts`, and `src/data/caseRepository.ts` were not touched, so no new `data-engineer` review is needed.\n\n### Known risks / browser checks\n- The component tests mock `react-easy-crop`; the real library’s DOM measurement, image load, pinch feel, and crop-frame geometry still need a real-browser or human tablet check.\n- Pointer resizing is implemented through the library’s touch pan and pinch/scroll zoom; the corner marks are visual frame handles. If the human review expects draggable corner resizing, that is a follow-up.\n- The live summary updates while the selection changes; the nudge buttons and arrow keys are the deliberate keyboard path.\n- The editor is not yet wired into a route; CapturePage/CardDetailPage integration belongs to CAP-3/CAP-4.\n\n```forge-result\n{\"summary\":\"Implemented pure crop/rotation math and an accessible react-easy-crop editor with rotation-aware aspect, keyboard nudges, reset, cancel, and normalized save; 49 targeted tests, full suite 379, typecheck, lint, formatting, and production build pass.\",\"unresolved\":[],\"decisions\":[\"Reset restores the crop and rotation the editor opened with: full/upright at import, stored crop on card detail.\",\"The default frame aspect follows the initial crop and swaps for 90/270 turns unless the caller pins an aspect such as square.\",\"clampCropRect preserves aspect ratio for arbitrary rectangles; normalizeCropRect mirrors the image pipeline's edge-clamping semantics.\",\"The editor owns no persistence, object URL, pipeline, network, or storage side effects.\"],\"interfaces\":[\"CropRotateEditor({ imageSrc, sourceWidth, sourceHeight, initialCrop?, initialRotation?, aspect?, nudgeStep?, title?, imageAlt?, saveLabel?, onSave, onCancel })\",\"onSave({ crop: { x, y, width, height }, rotation: 0 | 90 | 180 | 270 }) with a source-frame normalized crop\",\"cropMath exports normalizeCropRect, clampCropRect, isCropContained, translateCropRect, nudgeCropRect, cropToRotated, cropFromRotated, computeOutputBounds, previewDimensions, rotatedAspectRatio, rotateLeft, rotateRight, rotateBy, rotatedDimensions, resetCropState, describeCrop, and cropRectsEqual\"],\"tests\":[\"npm test -- tests/capture/cropMath.test.ts tests/capture/CropRotateEditor.test.tsx: 49 passed, exit 0 (engine-verified)\",\"npm run typecheck: exit 0 (engine-verified)\",\"npm test: 379 passed across 26 files, exit 0\",\"npm run lint: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification I did not author or touch.\",\"Component tests use a controllable react-easy-crop mock; real image measurement and touch feel remain for browser or human review.\",\"Corner marks are visual handles; touch resizing uses the cropper's pan and pinch/scroll zoom rather than draggable corners.\"],\"validationLimitations\":[\"No real-browser or Playwright crop exercise was run because CAP-2 is not wired into a route; CAP-3/CAP-4 own that integration.\",\"The editor's live summary updates during selection changes; screen-reader nudge and rotation paths were tested with keyboard events in jsdom.\"]}\n```\n",
+      "validationLimitations": [
+        "No real-browser or Playwright crop exercise was run because CAP-2 is not wired into a route; CAP-3/CAP-4 own that integration.",
+        "The editor's live summary updates during selection changes; screen-reader nudge and rotation paths were tested with keyboard events in jsdom."
+      ],
+      "artifactId": "work-cap-2-001",
+      "inputArtifactIds": [
+        "work-cap-1-001",
+        "work-fnd-5-001",
+        "work-data-3-001",
+        "work-data-4-001",
+        "work-data-5-001"
+      ]
     },
     "CAP-3": {
       "taskId": "CAP-3",
