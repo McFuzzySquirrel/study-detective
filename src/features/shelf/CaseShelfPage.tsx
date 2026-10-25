@@ -7,11 +7,18 @@ import type { ToastTone } from '../../components/Toast';
 import { CaseRepository, compareCaseSummaries } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
+import { createPersistenceClient, UNSUPPORTED_PERSISTENCE } from '../../data/persistence';
+import type { PersistenceClient, PersistenceResult } from '../../data/persistence';
+import { readStorageEstimate, UNKNOWN_STORAGE_ESTIMATE } from '../../data/storageEstimate';
+import type { StorageEstimateSnapshot } from '../../data/storageEstimate';
 import type { CaseSummary } from '../../domain/model';
 
 import CaseFormDialog from './CaseFormDialog';
 import type { CaseFormMode, CaseFormValues } from './CaseFormDialog';
 import CaseShelf from './CaseShelf';
+import StorageStatus from './StorageStatus';
+import { useBroadcastSync } from './useBroadcastSync';
+import type { BroadcastChannelFactory } from './useBroadcastSync';
 import './shelf.css';
 
 export type CaseRepositoryLoader = () => Promise<CaseRepositoryPort>;
@@ -21,6 +28,12 @@ export interface CaseShelfPageProps {
   readonly repository?: CaseRepositoryPort | undefined;
   /** Injected opener used by the route table and failure-state tests. */
   readonly loadRepository?: CaseRepositoryLoader | undefined;
+  /** Injected persistence client; defaults to the real navigator.storage API. */
+  readonly persistenceClient?: PersistenceClient | undefined;
+  /** Injected estimate reader; defaults to navigator.storage.estimate(). */
+  readonly loadStorageEstimate?: (() => Promise<StorageEstimateSnapshot>) | undefined;
+  /** Injected BroadcastChannel factory so tests can simulate another tab. */
+  readonly syncChannelFactory?: BroadcastChannelFactory | undefined;
 }
 
 type LoadStatus = 'loading' | 'ready' | 'error';
@@ -63,7 +76,13 @@ function orderCases(summaries: readonly CaseSummary[]): CaseSummary[] {
  * create/edit orchestration, selection, and the recoverable database error.
  * All writes go through the repository boundary; no Dexie call lives here.
  */
-export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps) {
+export function CaseShelfPage({
+  repository,
+  loadRepository,
+  persistenceClient,
+  loadStorageEstimate,
+  syncChannelFactory,
+}: CaseShelfPageProps) {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
@@ -71,9 +90,19 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [persistence, setPersistence] = useState<PersistenceResult | null>(null);
+  const [storageEstimate, setStorageEstimate] = useState<StorageEstimateSnapshot | null>(null);
+  const [defaultPersistenceClient] = useState(() => createPersistenceClient());
   const focusAfterLoadRef = useRef(false);
   const pendingFocusCaseIdRef = useRef<string | null>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const persistenceRequestedRef = useRef(false);
+  const remoteRefreshTokenRef = useRef(0);
+  const activePersistenceClient = persistenceClient ?? defaultPersistenceClient;
+  const loadEstimate = useCallback(
+    () => (loadStorageEstimate ?? readStorageEstimate)(),
+    [loadStorageEstimate],
+  );
 
   const resolveRepository = useCallback<CaseRepositoryLoader>(() => {
     if (repository !== undefined) {
@@ -135,6 +164,98 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
     document.getElementById(`case-open-${pendingId}`)?.focus();
   }, [cases]);
 
+  // Report the browser's current persistence answer and storage usage before
+  // the first case exists. Both readers resolve to an explicit unsupported
+  // state rather than rejecting, so the shelf always renders.
+  useEffect(() => {
+    let cancelled = false;
+
+    void activePersistenceClient
+      .read()
+      .then((result) => {
+        // A first-case request may have started while this read was in flight;
+        // its answer is newer than the pre-creation snapshot.
+        if (!cancelled && !persistenceRequestedRef.current) {
+          setPersistence(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled && !persistenceRequestedRef.current) {
+          setPersistence(UNSUPPORTED_PERSISTENCE);
+        }
+      });
+
+    void loadEstimate()
+      .then((result) => {
+        if (!cancelled) {
+          setStorageEstimate(result);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStorageEstimate(UNKNOWN_STORAGE_ESTIMATE);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activePersistenceClient, loadEstimate]);
+
+  /**
+   * A mutation in another tab invalidates this tab's derived reads. Re-reading
+   * the repository keeps IndexedDB authoritative; the response is applied only
+   * if a newer refresh has not superseded it. Dialog state is deliberately
+   * untouched, so an unsaved draft survives the background refresh.
+   */
+  const refreshFromRemote = useCallback(async (): Promise<void> => {
+    const target = activeRepository;
+    if (target === null) {
+      return;
+    }
+
+    const token = remoteRefreshTokenRef.current + 1;
+    remoteRefreshTokenRef.current = token;
+
+    try {
+      const summaries = await target.listCaseSummaries();
+      if (token !== remoteRefreshTokenRef.current) {
+        return;
+      }
+      setCases(orderCases(summaries));
+    } catch {
+      // A silent background refresh must never replace an open form with an
+      // error. The next foreground action or Retry still reports failures.
+    }
+
+    void loadEstimate()
+      .then((result) => setStorageEstimate(result))
+      .catch(() => setStorageEstimate(UNKNOWN_STORAGE_ESTIMATE));
+  }, [activeRepository, loadEstimate]);
+
+  const { broadcastMutation } = useBroadcastSync({
+    onMutation: () => {
+      void refreshFromRemote();
+    },
+    ...(syncChannelFactory !== undefined ? { createChannel: syncChannelFactory } : {}),
+  });
+
+  const requestPersistenceForFirstCase = useCallback((): void => {
+    if (persistenceRequestedRef.current) {
+      return;
+    }
+
+    persistenceRequestedRef.current = true;
+
+    void activePersistenceClient
+      .request()
+      .then((result) => setPersistence(result))
+      .catch(() => setPersistence(UNSUPPORTED_PERSISTENCE));
+    void loadEstimate()
+      .then((result) => setStorageEstimate(result))
+      .catch(() => setStorageEstimate(UNKNOWN_STORAGE_ESTIMATE));
+  }, [activePersistenceClient, loadEstimate]);
+
   const openCreate = (): void => {
     setDialog({ mode: 'create' });
   };
@@ -169,11 +290,21 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
     target: CaseRepositoryPort,
     values: CaseFormValues,
   ): Promise<void> => {
+    const wasFirstCase = cases.length === 0;
     const record = await target.createCase({
       title: values.title,
       ...(values.subject !== null ? { subject: values.subject } : {}),
       ...(values.examDate !== null ? { examDate: values.examDate } : {}),
     });
+
+    // Cancel any remote refresh that read before this commit: the local
+    // summary below is now the newer persisted truth for this tab.
+    remoteRefreshTokenRef.current += 1;
+    broadcastMutation(record.id, 'created');
+    if (wasFirstCase) {
+      requestPersistenceForFirstCase();
+    }
+
     const summary = await target.getCaseSummary(record.id).catch(() => null);
 
     if (!applySummary(summary)) {
@@ -199,6 +330,10 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
       subject: values.subject,
       examDate: values.examDate,
     });
+
+    remoteRefreshTokenRef.current += 1;
+    broadcastMutation(updated.id, 'updated');
+
     const summary = await target.getCaseSummary(updated.id).catch(() => null);
 
     if (!applySummary(summary)) {
@@ -230,6 +365,11 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
 
     await handleCreate(target, values);
   };
+
+  const storageStatus =
+    status === 'ready' ? (
+      <StorageStatus persistence={persistence} estimate={storageEstimate} />
+    ) : null;
 
   return (
     <section className="shelf" aria-labelledby="shelf-title" aria-busy={status === 'loading'}>
@@ -284,20 +424,28 @@ export function CaseShelfPage({ repository, loadRepository }: CaseShelfPageProps
       ) : null}
 
       {status === 'ready' && cases.length === 0 ? (
-        <EmptyState
-          title="No case files yet"
-          description="Create a case for your next exam. Notes, sources, and topics get pinned to it once the case is open."
-          headingLevel={3}
-          action={
-            <Button variant="primary" size="lg" onClick={openCreate}>
-              Create your first case
-            </Button>
-          }
-        />
+        <>
+          {storageStatus}
+          <EmptyState
+            title="No case files yet"
+            description="Create a case for your next exam. Notes, sources, and topics get pinned to it once the case is open."
+            headingLevel={3}
+            action={
+              <Button variant="primary" size="lg" onClick={openCreate}>
+                Create your first case
+              </Button>
+            }
+          />
+        </>
       ) : null}
 
       {status === 'ready' && cases.length > 0 ? (
-        <CaseShelf cases={cases} selectedCaseId={selectedCaseId} onEdit={openEdit} />
+        <CaseShelf
+          cases={cases}
+          selectedCaseId={selectedCaseId}
+          onEdit={openEdit}
+          storageStatus={storageStatus}
+        />
       ) : null}
 
       {dialog !== null ? (

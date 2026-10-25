@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 import type { CaseSummary } from '../../domain/model';
 
 import CaseCard from './CaseCard';
@@ -8,20 +10,30 @@ export interface CaseShelfProps {
   readonly cases: readonly CaseSummary[];
   readonly selectedCaseId: string | null;
   readonly onEdit: (summary: CaseSummary) => void;
+  /** Storage strip rendered above the grid. The shelf page owns its data. */
+  readonly storageStatus?: ReactNode | undefined;
 }
 
 /**
  * The case grid. It is a real list so a screen reader announces the number of
  * case files and each card keeps its own link and edit control.
  */
-export default function CaseShelf({ cases, selectedCaseId, onEdit }: CaseShelfProps) {
+export default function CaseShelf({
+  cases,
+  selectedCaseId,
+  onEdit,
+  storageStatus,
+}: CaseShelfProps) {
   return (
-    <ul className="shelf__grid" aria-label="Case files">
-      {cases.map((summary) => (
-        <li key={summary.id} className="shelf__grid-item">
-          <CaseCard summary={summary} selected={selectedCaseId === summary.id} onEdit={onEdit} />
-        </li>
-      ))}
-    </ul>
+    <>
+      {storageStatus}
+      <ul className="shelf__grid" aria-label="Case files">
+        {cases.map((summary) => (
+          <li key={summary.id} className="shelf__grid-item">
+            <CaseCard summary={summary} selected={selectedCaseId === summary.id} onEdit={onEdit} />
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
