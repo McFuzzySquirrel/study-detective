@@ -1,0 +1,13 @@
+{
+  "taskId": "FND-HR-1",
+  "taskDigest": "44aa647fecf8686db0fbaca7d470b2f9b0d06564e5a8d40df69a474a9d54c052",
+  "reviewer": "McFuzzySquirrel",
+  "reviewedAt": "2026-10-25T19:53:42.319Z",
+  "decision": "approved",
+  "evidence": [
+    {
+      "path": "docs/reviews/FND-HR-1-console-review.md",
+      "sha256": "920b027e31cb595dd9bed46f0c09bacb3f3b88346afed3f0d5c7fcfe2b21ce2a"
+    }
+  ]
+}
