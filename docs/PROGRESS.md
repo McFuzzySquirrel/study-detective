@@ -1,9 +1,9 @@
 # Project Progress
 
 ## Current State
-**Phase**: APP-FOUNDATION-2
+**Phase**: APP-FOUNDATION-3
 **Status**: In Progress
-**Last Updated**: 2026-10-25T19:53:44.760Z
+**Last Updated**: 2026-10-25T20:02:32.376Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -19,12 +19,13 @@
   - Files: prototype/style-tile.html, prototype/style-tile.css, e2e/style-tile.spec.ts, tsconfig.node.json
 - [x] Phase APP-FOUNDATION-2, Task FND-HR-1: Review and record the visual direction
   - Files: docs/reviews/style-direction.json
+- [x] Phase APP-FOUNDATION-3, Task FND-5: Implement theme tokens and accessible shared primitives (@ui-engineer)
+  - Files: src/styles/tokens.css, src/styles/base.css, src/components/Button.tsx, src/components/IconButton.tsx, src/components/Dialog.tsx, src/components/Toast.tsx, src/components/Field.tsx, src/components/EmptyState.tsx, src/components/components.css, tests/components/primitives.test.tsx, tests/styles/tokens.test.ts, package-lock.json, package.json, src/app/AppShell.css, src/app/UpdatePrompt.css, tests/helpers/css-contract.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase APP-FOUNDATION-3: Phase 3: Design system
 - [ ] Phase LOCAL-DATA-AND-CASE-SHELF-1: Phase 1: Domain and persistence foundation
 - [ ] Phase LOCAL-DATA-AND-CASE-SHELF-2: Phase 2: Shelf and storage safety
 - [ ] Phase EVIDENCE-CAPTURE-1: Phase 1: Image pipeline

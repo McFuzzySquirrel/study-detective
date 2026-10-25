@@ -1,0 +1,155 @@
+/*
+ * Notes Detective — locked design tokens.
+ *
+ * Visual direction: B, "The Midnight Archive" (docs/reviews/style-direction.json).
+ * Dark walnut cork and charred paper, sepia reading surfaces, and oxblood
+ * actions. Period faces are reserved for headings and case-file chrome; body
+ * copy, controls, menus, and toasts keep the system UI stack.
+ *
+ * This is the only file allowed to contain palette values. Components consume
+ * semantic tokens so a later theme change never edits a component.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Type families ---------------------------------------------------- */
+  --font-family-body:
+    system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-family-heading: Baskerville, 'Libre Baskerville', 'Times New Roman', Times, serif;
+  --font-family-mono: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  /* ---- Surfaces --------------------------------------------------------- */
+  --color-canvas: #1b1410;
+  --color-canvas-deep: #120d09;
+  --color-canvas-glow: #3a2a1f;
+  --color-surface: #2b241f;
+  --color-surface-raised: #342b23;
+  --color-surface-sunken: #221b16;
+  --color-paper: #e9ddc2;
+  --color-paper-edge: #b8a482;
+  --color-cork: #5b4535;
+  --color-cork-edge: #33241a;
+  --color-cork-grain-light: rgb(255 214 170 / 16%);
+  --color-cork-grain-dark: rgb(15 8 4 / 38%);
+  --color-scrim: rgb(9 6 4 / 72%);
+
+  /* ---- Text ------------------------------------------------------------- */
+  --color-ink: #f1e4ca;
+  --color-ink-muted: #c9b89d;
+  --color-ink-disabled: #9a8a74;
+  --color-heading-ink: #f6ead2;
+  --color-paper-ink: #201810;
+  --color-paper-ink-muted: #5c4a36;
+  --color-paper-heading-ink: #1c140d;
+  --color-link: #f0c286;
+
+  /* ---- Lines and boundaries -------------------------------------------- */
+  --color-border: #5b4a39;
+  --color-border-strong: #8b7358;
+  --color-control-border: #a58f72;
+  --color-focus-ring: #8fd3ff;
+
+  /* ---- Actions and status ---------------------------------------------- */
+  --color-accent: #8c2a2a;
+  --color-accent-hover: #a33330;
+  --color-accent-active: #782020;
+  --color-accent-ink: #fff4df;
+  --color-accent-border: #c9a15a;
+  --color-control-surface: #3d332a;
+  --color-control-surface-hover: #4a3d31;
+  --color-control-surface-active: #332b24;
+  --color-danger: #b23a30;
+  --color-danger-hover: #bc4038;
+  --color-danger-ink: #fff4df;
+  --color-danger-border: #e6b0a6;
+  --color-danger-text: #f0b6ab;
+  --color-success: #2f5d46;
+  --color-success-hover: #386b51;
+  --color-success-ink: #f1e4ca;
+  --color-warning: #e8aa3c;
+  --color-warning-ink: #201810;
+  --color-selection-bg: #8c2a2a;
+  --color-selection-ink: #fff4df;
+
+  /* ---- Board material (renderer-neutral) ------------------------------- */
+  --color-pin-dome: #c9a15a;
+  --color-pin-flat: #5b656b;
+  --color-pin-tack: #d8cdb5;
+  --color-string-association: #cf3d2f;
+  --color-string-provenance: #e8aa3c;
+  --color-board-stamp-ink: #e6cf9f;
+
+  /* ---- Type scale ------------------------------------------------------- */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: 1.75rem;
+  --font-size-3xl: 2.25rem;
+  --font-size-display: clamp(2.25rem, 5vw, 3.5rem);
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.15;
+  --line-height-heading: 1.2;
+  --line-height-body: 1.6;
+  --line-height-control: 1.2;
+  --letter-spacing-heading: 0.04em;
+  --letter-spacing-caps: 0.08em;
+  --letter-spacing-body: 0;
+
+  /* ---- Spacing (4 px rhythm) ------------------------------------------- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-inline: clamp(1rem, 4vw, 2.5rem);
+
+  /* ---- Radius ----------------------------------------------------------- */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* ---- Motion ----------------------------------------------------------- */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 180ms;
+  --motion-duration-slow: 320ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --motion-lift: -1px;
+  --motion-scale-press: 0.98;
+  --motion-dialog-offset: 8px;
+  --motion-toast-offset: 12px;
+
+  /* ---- Layering, targets, measure ------------------------------------- */
+  --z-dialog: 400;
+  --z-toast: 500;
+  --z-skip-link: 600;
+  --target-min: 44px;
+  --border-width: 1px;
+  --border-width-strong: 2px;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --measure-body: 68ch;
+  --measure-narrow: 46ch;
+
+  /* ---- Elevation -------------------------------------------------------- */
+  --shadow-panel: 0 18px 48px -24px rgb(0 0 0 / 70%);
+  --shadow-toast: 0 12px 32px -18px rgb(0 0 0 / 70%);
+
+  /* ---- Device insets ---------------------------------------------------- */
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+}
