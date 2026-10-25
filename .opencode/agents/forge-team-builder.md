@@ -26,6 +26,15 @@ Run **`forge-build-agent-team`** against canonical vision and features, for init
 
 ---
 
+## Responsibilities
+
+- Generate or extend the project agent team from canonical vision and feature documents.
+- Preserve unaffected specialist ownership during feature or plan increments.
+- Keep every responsibility with one primary owner and a documented handoff.
+- Write the immutable `docs/SKILL-CANDIDATES.json` handoff with create, extend, reuse, or omit decisions.
+- Validate frontmatter, ownership boundaries, collaboration sections, and candidate consumers before reporting.
+- Hand the finished team to `project-orchestrator`; do not author skill packages, an execution manifest, or build state.
+
 ## Collaboration
 
 - **forge-build-prd**, **forge-decompose-prd**, **forge-build-feature-prd** skills - Upstream authoring skills that produce the inputs I consume.

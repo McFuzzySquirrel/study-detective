@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "candidates": [
+    {
+      "name": "case-domain-integrity",
+      "description": "Pure domain schemas, graph invariants, normalized tags, deterministic search and filter selectors, readiness and lifecycle derivation, and transactional IndexedDB repository rules for a single-case evidence board.",
+      "consumers": [
+        "data-engineer",
+        "capture-engineer",
+        "board-engineer",
+        "ui-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "The same correctness rules repeat across local data, connections, closure, recall, search, capture, and backup: UUID and ISO validation, unordered pair keys, provenance eligibility, tag normalization, AND/OR filter semantics, cascade plans, derived readiness, and one transaction per mutation. No existing package covers this project-specific graph, query, and storage contract."
+    },
+    {
+      "name": "atomic-media-storage",
+      "description": "Validated image ingestion, EXIF-aware derivative generation, attachment replacement, and failure-safe multi-table Blob transactions in local IndexedDB.",
+      "consumers": [
+        "capture-engineer",
+        "data-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "Evidence Capture, OCR, and Backup all depend on atomic card and attachment writes, replacement-before-delete ordering, object URL cleanup, and zero orphan Blobs. This is a fragile repeated process with no suitable existing package."
+    },
+    {
+      "name": "pixi-case-board",
+      "description": "PixiJS 8 case-board rendering, viewport math, card gestures, culling, texture release, string geometry, recall scratch rendering, and teardown for a 150-card tablet target.",
+      "consumers": [
+        "board-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "Project rules such as 0.25 to 2.5 zoom, 500 ms touch lift, 6 px tap tolerance, 12 px string sag, 200 resident textures, 150-card culling, recall scratch mode, and complete teardown are not covered by the generic PixiJS API package."
+    },
+    {
+      "name": "pixijs",
+      "description": "Upstream PixiJS v8 API guidance for Application setup, scene graph, events, assets, ticker, performance, and teardown.",
+      "consumers": [
+        "board-engineer"
+      ],
+      "action": "reuse",
+      "reason": "The global PixiJS skill package already satisfies the library API learning need. Do not vendor a local copy; the project-specific board behavior lives in pixi-case-board."
+    },
+    {
+      "name": "accessible-case-ui",
+      "description": "React DOM patterns for the case-file UI: semantic dialogs and sheets, focus restoration, live announcements, 44 px targets, keyboard paths, and reduced motion.",
+      "consumers": [
+        "ui-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "Accessibility is implemented per feature and audited later. Repeated focus-trap, restore, target, announcement, sheet, shortcut, and reduced-motion rules need a project-local checklist rather than a generic component guide."
+    },
+    {
+      "name": "local-first-backup-archive",
+      "description": "Versioned .ndcase ZIP export and hardened import validation with checksums, path-safety, ID remapping, copy-versus-replace semantics, and rollback.",
+      "consumers": [
+        "data-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "Backup is the product's main data-loss mitigation and carries repeated security and transaction rules: traversal rejection, duplicate and oversized entries, checksums, manifest versions, ID remapping, replace confirmation, and failure rollback. No existing package covers this archive contract."
+    },
+    {
+      "name": "offline-pwa-release",
+      "description": "Offline-first PWA release process for GitHub Pages: relative base paths, service-worker precache, same-origin asset audits, bundle budgets, and update prompts.",
+      "consumers": [
+        "foundation-engineer",
+        "release-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "GitHub Pages, hash routing, bundled OCR wasm and traineddata, no third-party requests, and the 300 KB initial and 25 MB precache budgets create a fragile release path repeated across foundation, release, and verification tasks."
+    },
+    {
+      "name": "browser-evidence-journeys",
+      "description": "Playwright browser evidence for real IndexedDB, file input, downloads, offline reload, viewport matrices, axe scans, and performance floors.",
+      "consumers": [
+        "ui-engineer",
+        "board-engineer",
+        "qa-engineer",
+        "release-engineer"
+      ],
+      "action": "create",
+      "reason": "The PRD rejects mock-only or build-only evidence. Repeated journeys must exercise real persistence, native file input, real archives, offline contexts, viewport-specific overflow, axe scans, and measured frame performance."
+    },
+    {
+      "name": "ocr-worker-lifecycle",
+      "description": "Bundled tesseract.js worker lifecycle with same-origin assets, a single job at a time, timeout and cancel cleanup, and non-destructive title suggestions.",
+      "consumers": [
+        "capture-engineer",
+        "ui-engineer",
+        "qa-engineer"
+      ],
+      "action": "create",
+      "reason": "OCR is optional but fragile: worker, wasm, and English traineddata must be copied, precached, and resolved same-origin; only one job may run; cancel and timeout must terminate cleanly; and OCR must never overwrite an edited title. No existing package covers this lifecycle."
+    },
+    {
+      "name": "demo-case-seeding",
+      "description": "Locally generated, clearly marked demo case fixture and one-time seed and removal behavior that is isolated from user cases.",
+      "consumers": [
+        "data-engineer",
+        "ui-engineer"
+      ],
+      "action": "omit",
+      "reason": "The demo is a single, mostly one-off content fixture. The domain, media, and transactional seeding guidance already covers the implementation, so a dedicated package is not justified."
+    },
+    {
+      "name": "human-acceptance-review",
+      "description": "Structured human review gates for visual direction, board feel, accessibility spot checks, and final field acceptance.",
+      "consumers": [
+        "project-orchestrator",
+        "qa-engineer"
+      ],
+      "action": "omit",
+      "reason": "These gates must be executed by a person and cannot be encoded as agent instructions. The review JSON files and checklists already live in the feature tasks and orchestrator gates."
+    },
+    {
+      "name": "tdd",
+      "description": "Test-first red-green-refactor workflow for unit, component, and integration work.",
+      "consumers": [
+        "foundation-engineer",
+        "ui-engineer",
+        "data-engineer",
+        "capture-engineer",
+        "board-engineer",
+        "qa-engineer",
+        "release-engineer"
+      ],
+      "action": "reuse",
+      "reason": "A generic TDD package already satisfies the workflow need. Project-specific evidence requirements are covered by browser-evidence-journeys and the feature acceptance criteria."
+    }
+  ]
+}
