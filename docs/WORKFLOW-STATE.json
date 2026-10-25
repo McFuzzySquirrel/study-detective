@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T21:55:00.624Z",
+  "lastUpdatedAt": "2026-10-25T22:06:40.088Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -552,11 +552,48 @@
     },
     "BOARD-2": {
       "taskId": "BOARD-2",
-      "status": "running",
+      "status": "complete",
       "ownerAgent": "board-engineer",
       "attempt": 1,
-      "outputFiles": [],
-      "startedAt": "2026-10-25T21:44:24.900Z"
+      "outputFiles": [
+        "src/board/BoardCanvas.tsx",
+        "src/board/BoardScene.ts",
+        "src/board/usePixiApp.ts",
+        "src/board/textureCache.ts",
+        "src/features/case/CaseBoardPage.tsx",
+        "src/features/case/CaseBoardPage.css",
+        "src/data/caseRepository.ts",
+        "src/app/routes.tsx",
+        "tests/board/BoardCanvas.test.tsx",
+        "e2e/board.spec.ts",
+        "src/board/BoardCanvas.css",
+        "src/board/boardInput.ts",
+        "tests/board/textureCache.test.ts"
+      ],
+      "startedAt": "2026-10-25T21:44:24.900Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/BOARD-2.2026-10-25T22-06-40-079Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T22:06:40.081Z",
+      "agentOutput": "I'll start by reading the execution file to understand the task scope.\nNow I understand the scope. Let me start building the board pieces.\nBOARD-2 is implemented and verified.\n\n## Outcome\n\nMounted the lazy PixiJS case-board route for `BOARD-FR-01`, `BOARD-FR-07`, `BOARD-CON-02`, `BOARD-CON-03`, and `FND-CON-01`.\n\n- `CaseBoardPage` loads the case and cards, builds a plain `BoardSnapshot`, mounts `BoardCanvas` lazily, restores the stored camera, and debounces viewport writes by 500 ms.\n- The canvas renders a procedural cork background and card containers, with pointer drag pan, two-pointer pinch zoom, wheel/trackpad pointer-anchored zoom, and DOM zoom/reset controls.\n- `usePixiApp` owns renderer setup, resize, single-canvas mounting, context-loss recovery, and full teardown of ticker, textures, listeners, app, and canvas.\n- `BoardScene` emits no writes and reads only the snapshot; it culls cards outside the viewport plus a 200 px screen-space margin.\n- `textureCache` enforces a 200-resident cap and releases offscreen entries.\n\n## Files created or changed\n\nCreated:\n- `src/board/BoardCanvas.tsx`\n- `src/board/BoardCanvas.css`\n- `src/board/BoardScene.ts`\n- `src/board/usePixiApp.ts`\n- `src/board/boardInput.ts`\n- `src/board/textureCache.ts`\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/case/CaseBoardPage.css`\n- `tests/board/BoardCanvas.test.tsx`\n- `tests/board/textureCache.test.ts`\n- `e2e/board.spec.ts`\n\nChanged:\n- `src/app/routes.tsx` — replaces the case placeholder with the lazy `CaseBoardPage`; adds `boardRepository` / `loadBoardRepository` injection.\n\nNot changed:\n- `src/data/caseRepository.ts` — the existing `CaseRepositoryPort.saveViewport` contract already covers this task, and repository edits are outside the task constraints.\n\n## Evidence\n\nViewport and gestures:\n- A synthetic 120 px / 80 px background drag changed the rendered camera and persisted the final position after the debounce.\n- Wheel zoom stayed pointer-anchored and clamped at `2.5` and `0.25`; pinch math is covered in the unit test.\n- Reset applied `{ x: 0, y: 0, scale: 1 }` as a temporary camera; the stored viewport remained unchanged after 900 ms.\n- A subsequent pan persisted; reload restored the saved camera within test tolerance.\n- Two route-away/back cycles left exactly one canvas and no console errors.\n\nContext loss:\n- `WEBGL_lose_context` produced the recoverable fallback on desktop, tablet, and phone; “Restore board” recreated the renderer and returned to `ready`.\n\nBundle boundary:\n- Initial shell entry: `index-BVWFUYgW.js` at 84.60 kB gzip, 0 pixi references; `rolldown-runtime` also 0.\n- Separate board chunk: `BoardCanvas-FaLLyXnd.js` at 92.62 kB gzip, pixi references present.\n- `CaseBoardPage-DKZOZL-J.js` at 3.01 kB gzip, no pixi; the page chunk is separate from the canvas chunk.\n\nValidation:\n- `npm test -- tests/board/BoardCanvas.test.tsx` — 8 tests passed.\n- `npm run test:e2e -- e2e/board.spec.ts` — 6 tests passed across desktop, tablet-landscape, and phone.\n- `npm run build` — passed.\n- Full `npm test` — 505 tests across 35 files passed.\n- `npm run lint`, `npm run typecheck`, and `npm run format:check` — passed.\n\nShared-contract note: `CaseBoardPage.tsx` and `routes.tsx` are shared with `ui-engineer`, `foundation-engineer`, and later BOARD-3/4/5 work. Preserve the lazy `BoardCanvas` import, the 500 ms serialized viewport debounce, and the temporary reset semantics.\n\n```forge-result\n{\n  \"summary\": \"BOARD-2 implemented the lazy PixiJS board route with pan, pinch and wheel zoom, 500 ms viewport persistence, resize and WebGL context-loss recovery, 200 px culling, a bounded texture cache, and complete teardown; targeted unit, Playwright, lint, typecheck, format, and build checks pass.\",\n  \"unresolved\": [],\n  \"decisions\": [\n    \"CaseBoardPage lazily imports BoardCanvas; only BoardCanvas, usePixiApp, and BoardScene import pixi.js, keeping the initial shell free of PixiJS.\",\n    \"usePixiApp creates one Application, keeps the ticker stopped, and renders only on camera or snapshot changes through requestAnimationFrame.\",\n    \"Reset view applies DEFAULT_BOARD_VIEWPORT through applyTemporaryViewport and never schedules a write; a later reload restores the stored camera.\",\n    \"Viewport writes are debounced 500 ms and serialized through a promise chain so an older async write cannot land after a newer one.\",\n    \"Card containers are placeholder paper, pin, title, and type art; BOARD-3 owns photo sprites, drag, and lift.\"\n  ],\n  \"interfaces\": [\n    \"BoardCanvas({ snapshot: BoardSnapshot, store?: BoardStoreApi })\",\n    \"BoardSnapshot { caseId, caseTitle, cards: { id, title, type, position }[] }\",\n    \"usePixiApp({ hostRef, snapshot, viewport, canvasLabel }) -> { status, error, contextLost, viewportSize, retry, recover }\",\n    \"BoardScene(app, { snapshot, viewport }) with setSnapshot, setViewport, resize, rebuildAfterContextLoss, and destroy\",\n    \"BoardTextureCache<T extends DestroyableTexture>({ maxTextures }) with acquire, touch, setVisible, release, releaseCard, releaseOffscreen, and destroy\",\n    \"attachBoardInput(host, { onPan, onZoom, onZoomTo, getScale })\",\n    \"CaseBoardPage({ repository?, loadRepository?, store? })\",\n    \"AppRoutes gains boardRepository and loadBoardRepository; /case/:caseId lazy-loads CaseBoardPage.\"\n  ],\n  \"tests\": [\n    \"npm test -- tests/board/BoardCanvas.test.tsx: exit 0, 8 tests\",\n    \"npm test -- tests/board/textureCache.test.ts: exit 0, 5 tests\",\n    \"npm run test:e2e -- e2e/board.spec.ts: exit 0, 6 tests across desktop, tablet-landscape, and phone\",\n    \"npm test: exit 0, 505 tests across 35 files\",\n    \"npm run lint: exit 0\",\n    \"npm run typecheck: exit 0\",\n    \"npm run format:check: exit 0\",\n    \"npm run build: exit 0\"\n  ],\n  \"warnings\": [\n    \"docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification that was not authored or touched.\",\n    \"The Open card list link points at /case/:caseId/list, whose dedicated route remains BOARD-5 work.\",\n    \"Card photos are intentionally placeholders in BOARD-2; texture upgrade and drag belong to BOARD-3.\"\n  ],\n  \"validationLimitations\": [\n    \"Culling uses the required 200 px viewport margin and the texture cache enforces 200 residents with recovery tests, but the 150-card culling assertion and FPS harness belong to BOARD-4 and QA. Tablet 45 FPS still needs human verification.\",\n    \"Playwright covers Chromium desktop, tablet, and phone only; Firefox and WebKit are not exercised here.\",\n    \"The context-loss journey tests the explicit Restore action; the automatic browser-restore branch is implemented but not separately exercised.\"\n  ]\n}\n```\n",
+      "validationLimitations": [
+        "Culling uses the required 200 px viewport margin and the texture cache enforces 200 residents with recovery tests, but the 150-card culling assertion and FPS harness belong to BOARD-4 and QA. Tablet 45 FPS still needs human verification.",
+        "Playwright covers Chromium desktop, tablet, and phone only; Firefox and WebKit are not exercised here.",
+        "The context-loss journey tests the explicit Restore action; the automatic browser-restore branch is implemented but not separately exercised."
+      ],
+      "artifactId": "work-board-2-001",
+      "inputArtifactIds": [
+        "work-board-1-001",
+        "work-cap-3-001",
+        "work-data-3-001",
+        "work-data-4-001",
+        "work-data-5-001",
+        "work-cap-4-001"
+      ]
     },
     "BOARD-3": {
       "taskId": "BOARD-3",

@@ -1,0 +1,141 @@
+/*
+ * Case-board page layout.
+ *
+ * The header keeps the case identity and the keyboard escape hatch visible
+ * above a stage that fills the remaining reading area. Every colour, target,
+ * and spacing value comes from tokens.css.
+ */
+
+.case-board-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.case-board-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.case-board-page__heading {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.case-board-page__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.case-board-page__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-heading);
+}
+
+.case-board-page__summary {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.case-board-page__back,
+.case-board-page__text-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.case-board-page__back:focus-visible,
+.case-board-page__text-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-board-page__stage {
+  position: relative;
+  display: grid;
+  min-block-size: clamp(24rem, calc(100dvh - 21rem), 52rem);
+  min-inline-size: 0;
+}
+
+.case-board-page__status {
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+}
+
+.case-board-page__error {
+  align-self: start;
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 40rem;
+  padding: var(--space-4);
+  border: var(--border-width-strong) solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.case-board-page__error h3 {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-lg);
+}
+
+.case-board-page__error p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.case-board-page__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 40rem) {
+  .case-board-page__header {
+    align-items: stretch;
+  }
+
+  .case-board-page__stage {
+    min-block-size: clamp(22rem, calc(100dvh - 18rem), 44rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-board-page__back,
+  .case-board-page__text-link {
+    transition: none;
+  }
+}

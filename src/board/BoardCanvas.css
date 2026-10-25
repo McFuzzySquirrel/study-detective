@@ -1,0 +1,197 @@
+/*
+ * Pixi board canvas chrome.
+ *
+ * The canvas fills its host; all colours, spacing, and motion values come from
+ * tokens.css. This file ships in the lazy board chunk with the canvas.
+ */
+
+.board-canvas {
+  position: relative;
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  min-block-size: 24rem;
+  overflow: hidden;
+  border: var(--border-width-strong) solid var(--color-cork-edge);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-cork-edge);
+  isolation: isolate;
+}
+
+.board-canvas__host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.board-canvas__host:active {
+  cursor: grabbing;
+}
+
+.board-canvas__host:focus-within {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: calc(var(--focus-ring-offset) * -1);
+}
+
+.board-canvas__surface {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  outline: none;
+}
+
+.board-canvas__controls {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-start: var(--space-4);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: calc(100% - var(--space-8));
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-scrim);
+  backdrop-filter: blur(6px);
+}
+
+.board-canvas__zoom-button {
+  min-inline-size: var(--target-min);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.board-canvas__zoom-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 4rem;
+  min-block-size: var(--target-min);
+  color: var(--color-ink);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-canvas__links {
+  position: absolute;
+  inset-block-end: var(--space-4);
+  inset-inline-end: var(--space-4);
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  max-inline-size: calc(100% - var(--space-8));
+}
+
+.board-canvas__link,
+.board-canvas__fallback-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  background-color: var(--color-control-surface);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  text-decoration: none;
+}
+
+.board-canvas__link:hover,
+.board-canvas__fallback-link:hover {
+  background-color: var(--color-control-surface-hover);
+}
+
+.board-canvas__link:focus-visible,
+.board-canvas__fallback-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.board-canvas__notice {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: 3;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  transform: translate(-50%, -50%);
+}
+
+.board-canvas__fallback {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  z-index: 4;
+  display: grid;
+  gap: var(--space-3);
+  inline-size: min(28rem, calc(100% - var(--space-8)));
+  padding: var(--space-5);
+  border: var(--border-width-strong) solid var(--color-warning);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  color: var(--color-ink);
+  transform: translate(-50%, -50%);
+}
+
+.board-canvas__fallback h3 {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-lg);
+}
+
+.board-canvas__fallback p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.board-canvas__fallback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 40rem) {
+  .board-canvas__controls {
+    inset-block-end: var(--space-2);
+    inset-inline: var(--space-2);
+    justify-content: flex-start;
+  }
+
+  .board-canvas__links {
+    inset-block-end: calc(var(--space-2) * 2 + var(--target-min));
+    inset-inline-start: var(--space-2);
+    inset-inline-end: auto;
+    justify-content: flex-start;
+  }
+
+  .board-canvas__zoom-value {
+    min-inline-size: 3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-canvas__link,
+  .board-canvas__fallback-link,
+  .board-canvas__fallback {
+    transition: none;
+  }
+}

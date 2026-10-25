@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: BACKUP-AND-RESTORE-2
 **Status**: In Progress
-**Validation Gaps**: 12 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T21:55:00.625Z
+**Validation Gaps**: 15 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T22:06:40.089Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -42,14 +42,15 @@
   - Files: src/features/cards/CardDetailPage.tsx, src/features/cards/CardDetail.css, src/app/routes.tsx, tests/cards/CardDetailPage.test.tsx, e2e/capture.spec.ts, e2e/fixtures/note.png, e2e/fixtures/source.png, src/data/caseRepository.ts, src/domain/model.ts, src/features/capture/cardImport.ts, src/features/cards/cardReplace.ts, tests/data/caseRepositoryReplace.test.ts
 - [x] Phase CASE-BOARD-1, Task BOARD-1: Implement viewport math and board state (@board-engineer)
   - Files: src/board/viewport.ts, src/board/boardStore.ts, tests/board/viewport.test.ts, tests/board/boardStore.test.ts
+- [x] Phase CASE-BOARD-1, Task BOARD-2: Mount the lazy Pixi canvas and case board route (@board-engineer)
+  - Files: src/board/BoardCanvas.tsx, src/board/BoardScene.ts, src/board/usePixiApp.ts, src/board/textureCache.ts, src/features/case/CaseBoardPage.tsx, src/features/case/CaseBoardPage.css, src/data/caseRepository.ts, src/app/routes.tsx, tests/board/BoardCanvas.test.tsx, e2e/board.spec.ts, src/board/BoardCanvas.css, src/board/boardInput.ts, tests/board/textureCache.test.ts
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
   - Files: src/features/backup/importValidation.ts, src/features/backup/importCase.ts, tests/backup/importCase.test.ts
 
 ## Current Task
-- [ ] Phase CASE-BOARD-1, Task BOARD-2: Mount the lazy Pixi canvas and case board route (@board-engineer)
-  - Status: In progress
+- None currently running
 
 ## Remaining
 - [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
@@ -90,6 +91,9 @@
 - Task CAP-3: Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification.
 - Task CAP-4: Browser rotation/crop behavior was verified in Chromium only.
 - Task CAP-4: The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey.
+- Task BOARD-2: Culling uses the required 200 px viewport margin and the texture cache enforces 200 residents with recovery tests, but the 150-card culling assertion and FPS harness belong to BOARD-4 and QA. Tablet 45 FPS still needs human verification.
+- Task BOARD-2: Playwright covers Chromium desktop, tablet, and phone only; Firefox and WebKit are not exercised here.
+- Task BOARD-2: The context-loss journey tests the explicit Restore action; the automatic browser-restore branch is implemented but not separately exercised.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).

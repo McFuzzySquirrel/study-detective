@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router';
 
 import type { CaseRepositoryPort } from '../data/caseRepository';
 import type { CardDetailRepositoryLoader } from '../features/cards/CardDetailPage';
+import type { CaseBoardRepositoryLoader } from '../features/case/CaseBoardPage';
 import type { CaptureRepositoryLoader } from '../features/capture/CapturePage';
 import type { CaseRepositoryLoader } from '../features/shelf/CaseShelfPage';
 
@@ -14,7 +15,9 @@ const ShelfScreen = lazy(() =>
   })),
 );
 const CaseBoardScreen = lazy(() =>
-  import('./placeholders').then((module) => ({ default: module.CaseBoardPlaceholder })),
+  import('../features/case/CaseBoardPage').then((module) => ({
+    default: module.CaseBoardPage,
+  })),
 );
 const CaptureScreen = lazy(() =>
   import('../features/capture/CapturePage').then((module) => ({
@@ -49,6 +52,10 @@ export interface AppRoutesProps {
   readonly cardRepository?: CaseRepositoryPort | undefined;
   /** Replaces the card-detail route's repository opener, including its failure path. */
   readonly loadCardRepository?: CardDetailRepositoryLoader | undefined;
+  /** Replaces the board route's repository in tests and future composition. */
+  readonly boardRepository?: CaseRepositoryPort | undefined;
+  /** Replaces the board route's repository opener, including its failure path. */
+  readonly loadBoardRepository?: CaseBoardRepositoryLoader | undefined;
 }
 
 /**
@@ -63,6 +70,8 @@ export function AppRoutes({
   loadCaptureRepository,
   cardRepository,
   loadCardRepository,
+  boardRepository,
+  loadBoardRepository,
 }: AppRoutesProps = {}) {
   const location = useLocation();
 
@@ -82,7 +91,12 @@ export function AppRoutes({
               <ShelfScreen repository={shelfRepository} loadRepository={loadShelfRepository} />
             }
           />
-          <Route path="/case/:caseId" element={<CaseBoardScreen />} />
+          <Route
+            path="/case/:caseId"
+            element={
+              <CaseBoardScreen repository={boardRepository} loadRepository={loadBoardRepository} />
+            }
+          />
           <Route
             path="/case/:caseId/card/:cardId"
             element={
