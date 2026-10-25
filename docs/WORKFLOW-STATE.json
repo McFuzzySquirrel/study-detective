@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T20:37:11.068Z",
+  "lastUpdatedAt": "2026-10-25T20:43:57.932Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -339,10 +339,36 @@
     },
     "DATA-5": {
       "taskId": "DATA-5",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "data-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/features/shelf/DeleteCaseDialog.tsx",
+        "src/data/deleteCase.ts",
+        "src/features/shelf/CaseShelf.tsx",
+        "src/features/shelf/CaseCard.tsx",
+        "tests/shelf/DeleteCaseDialog.test.tsx",
+        "tests/data/deleteCase.test.ts",
+        "src/data/caseRepository.ts",
+        "src/features/shelf/CaseShelfPage.tsx",
+        "src/features/shelf/shelf.css"
+      ],
+      "startedAt": "2026-10-25T20:37:11.816Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/DATA-5.2026-10-25T20-43-57-929Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T20:43:57.930Z",
+      "agentOutput": "I'll start by reading the execution file to understand the task scope.\nNow I have a clear picture. Let me implement the data-layer cascade deletion first.\nImplemented DATA-5: confirmed cascade deletion of a case.\n\n## Result report\n\n**Scope delivered**\n- `deleteCase` removes the case, all its cards, its connections (including any string that points at one of those cards), and every attachment Blob inside one `rw` transaction across all four tables.\n- `readCaseDeletionPreview` supplies authoritative confirmation counts; an image is counted as one card with image Blobs (an original/display/thumbnail set counts as one image).\n- `DeleteCaseDialog` names the case, shows Cards / Connections / Images counts, states deletion is permanent and cannot be undone, focuses Cancel, and relies on the shared Dialog to restore focus to the trigger. There is no undo or archive path.\n- Delete actions are wired through `CaseShelfPage` → `CaseShelf` → `CaseCard`, with shelf state, selection, feedback, and cross-tab invalidation updated after a confirmed delete.\n\n**Invariants and failures covered**\n- Data test verifies the full cascade and isolation from another case's rows/Blobs.\n- Injected failure on the final `cases.delete` rejects after attachment/connection/card deletes were attempted; fake-indexeddb rolls all of them back and restores the Blob bytes.\n- Component tests verify exact counts, permanent-deletion wording, Cancel default focus, Escape/Cancel focus restoration, single confirmation, failed-transaction recovery, and no undo/restore control.\n- Integration tests confirm a cancelled prompt leaves repository data untouched and a confirmed prompt removes the case from the shelf.\n\n**Interfaces added**\n- `readCaseDeletionPreview(db, caseId): Promise<CaseDeletionPreview | null>`\n- `deleteCase(db, caseId): Promise<boolean>`\n- `CaseRepositoryPort.getCaseDeletionPreview(caseId)` and `CaseRepositoryPort.deleteCase(caseId)`\n- `DeleteCaseDialog({ preview, onClose, onConfirm })`\n- `CaseShelfProps.onDelete` and `CaseCardProps.onDelete`\n\n**Validation**\n- `npm test -- tests/shelf/DeleteCaseDialog.test.tsx tests/data/deleteCase.test.ts`: 16 passed.\n- `npm run typecheck`: passed.\n- Full suite: 278 passed; `npm run lint`: passed; Prettier check: passed.\n- Coverage: `src/data` 95.23% lines; `src/domain` 97.95% lines.\n\n**Files created**\n- `src/data/deleteCase.ts`\n- `src/features/shelf/DeleteCaseDialog.tsx`\n- `tests/data/deleteCase.test.ts`\n- `tests/shelf/DeleteCaseDialog.test.tsx`\n\n**Files changed**\n- `src/data/caseRepository.ts`\n- `src/features/shelf/CaseCard.tsx`\n- `src/features/shelf/CaseShelf.tsx`\n- `src/features/shelf/CaseShelfPage.tsx`\n- `src/features/shelf/shelf.css`\n\n`docs/EXECUTION-AUDIT.jsonl` already had an engine-generated modification; I did not touch it.\n\n```forge-result\n{\"summary\":\"Implemented confirmed cascade case deletion: a single-transaction deleteCase cascade, authoritative deletion preview counts, accessible DeleteCaseDialog with Cancel-first focus and focus restoration, and shelf/card delete wiring; required tests, typecheck, full suite, lint, formatting, and coverage checks pass.\",\"unresolved\":[],\"decisions\":[\"Image count is the number of cards that own at least one attachment Blob, so one original/display/thumbnail image set counts as one image.\",\"The owning case row is schema-validated before preview/deletion; dependent rows are selected by index and deleted without schema validation so a malformed child cannot make a case undeletable.\",\"The standalone deleteCase returns a boolean for consistency with deleteCard/deleteAttachment; the repository exposes the same boolean plus getCaseDeletionPreview for counts.\"],\"interfaces\":[\"readCaseDeletionPreview(db, caseId): Promise<CaseDeletionPreview | null>\",\"deleteCase(db, caseId): Promise<boolean>\",\"CaseRepositoryPort.getCaseDeletionPreview(caseId): Promise<CaseDeletionPreview | null>\",\"CaseRepositoryPort.deleteCase(caseId): Promise<boolean>\",\"DeleteCaseDialog({ preview, onClose, onConfirm })\",\"CaseShelfProps.onDelete / CaseCardProps.onDelete\"],\"tests\":[\"npm test -- tests/shelf/DeleteCaseDialog.test.tsx tests/data/deleteCase.test.ts: 16 passed\",\"npm run typecheck: passed\",\"npm test: 278 passed\",\"npm run lint: passed\",\"npx prettier --check on changed files: passed\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.\",\"Coverage measured before the final empty-case test was added: src/data 95.23% lines, src/domain 97.95% lines; the added test only increases data coverage.\"]}\n```\n",
+      "artifactId": "work-data-5-001",
+      "inputArtifactIds": [
+        "work-data-4-001",
+        "work-data-1-001",
+        "work-data-2-001"
+      ]
     },
     "CAP-1": {
       "taskId": "CAP-1",

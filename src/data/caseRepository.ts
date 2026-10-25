@@ -24,6 +24,8 @@ import {
 import type { NewAttachment } from './attachmentStore';
 import { assertDistinctAttachmentKinds, buildAttachmentRecord } from './attachmentStore';
 import type { NotesDetectiveDatabase } from './db';
+import { deleteCase as deleteCaseTransaction, readCaseDeletionPreview } from './deleteCase';
+import type { CaseDeletionCounts, CaseDeletionPreview } from './deleteCase';
 import { RecordNotFoundError, readStored } from './errors';
 import { fromCardRow, toAttachmentRow, toCardRow, toCaseRow } from './mappers';
 import { latestTimestamp, markCaseUpdated, readCaseRow, saveTouchedCase } from './transactions';
@@ -102,6 +104,14 @@ export interface CaseRepositoryPort {
   listCards(caseId: string): Promise<CardRecord[]>;
   updateCard(cardId: string, patch: CardPatch): Promise<CardRecord>;
   deleteCard(cardId: string): Promise<boolean>;
+  /** Counts a destructive confirmation must name before deleting a case. */
+  getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null>;
+  /**
+   * Delete the case, its cards, its connections, and every attachment Blob in
+   * one transaction. Returns false when the case was already gone. There is no
+   * undo path.
+   */
+  deleteCase(caseId: string): Promise<boolean>;
 }
 
 export type CaseRepositoryOptions = {
@@ -447,6 +457,14 @@ export class CaseRepository implements CaseRepositoryPort {
       },
     );
   }
+
+  async getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null> {
+    return readCaseDeletionPreview(this.db, caseId);
+  }
+
+  async deleteCase(caseId: string): Promise<boolean> {
+    return deleteCaseTransaction(this.db, caseId);
+  }
 }
 
 export type InMemoryCaseSeed = {
@@ -634,6 +652,76 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     this.cards.delete(cardId);
     this.cases.set(card.caseId, markCaseUpdated(this.requireCase(card.caseId), this.clock));
     return true;
+  }
+
+  async getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null> {
+    const record = this.cases.get(caseId);
+    if (record === undefined) {
+      return null;
+    }
+
+    return {
+      caseId,
+      title: record.title,
+      ...this.countDependents(caseId),
+    };
+  }
+
+  async deleteCase(caseId: string): Promise<boolean> {
+    const record = this.cases.get(caseId);
+    if (record === undefined) {
+      return false;
+    }
+
+    const cardIds = new Set(
+      [...this.cards.values()].filter((card) => card.caseId === caseId).map((card) => card.id),
+    );
+
+    for (const [connectionId, connection] of [...this.connections]) {
+      if (
+        connection.caseId === caseId ||
+        cardIds.has(connection.fromCardId) ||
+        cardIds.has(connection.toCardId)
+      ) {
+        this.connections.delete(connectionId);
+      }
+    }
+
+    for (const [attachmentId, attachment] of [...this.attachments]) {
+      if (cardIds.has(attachment.cardId)) {
+        this.attachments.delete(attachmentId);
+      }
+    }
+
+    for (const cardId of cardIds) {
+      this.cards.delete(cardId);
+    }
+    this.cases.delete(caseId);
+    return true;
+  }
+
+  /**
+   * The in-memory fake has no transaction guarantee; it mirrors the row
+   * selection of the Dexie cascade so component tests see the same counts.
+   */
+  private countDependents(caseId: string): CaseDeletionCounts {
+    const cards = [...this.cards.values()].filter((card) => card.caseId === caseId);
+    const cardIds = new Set(cards.map((card) => card.id));
+    const connections = [...this.connections.values()].filter(
+      (connection) =>
+        connection.caseId === caseId ||
+        cardIds.has(connection.fromCardId) ||
+        cardIds.has(connection.toCardId),
+    );
+    const attachments = [...this.attachments.values()].filter((attachment) =>
+      cardIds.has(attachment.cardId),
+    );
+
+    return {
+      cardCount: cards.length,
+      connectionCount: connections.length,
+      imageCount: new Set(attachments.map((attachment) => attachment.cardId)).size,
+    };
   }
 
   private requireCase(caseId: string): CaseRecord {

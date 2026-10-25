@@ -7,6 +7,7 @@ import type { ToastTone } from '../../components/Toast';
 import { CaseRepository, compareCaseSummaries } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
+import type { CaseDeletionPreview } from '../../data/deleteCase';
 import { createPersistenceClient, UNSUPPORTED_PERSISTENCE } from '../../data/persistence';
 import type { PersistenceClient, PersistenceResult } from '../../data/persistence';
 import { readStorageEstimate, UNKNOWN_STORAGE_ESTIMATE } from '../../data/storageEstimate';
@@ -16,6 +17,7 @@ import type { CaseSummary } from '../../domain/model';
 import CaseFormDialog from './CaseFormDialog';
 import type { CaseFormMode, CaseFormValues } from './CaseFormDialog';
 import CaseShelf from './CaseShelf';
+import DeleteCaseDialog from './DeleteCaseDialog';
 import StorageStatus from './StorageStatus';
 import { useBroadcastSync } from './useBroadcastSync';
 import type { BroadcastChannelFactory } from './useBroadcastSync';
@@ -88,6 +90,7 @@ export function CaseShelfPage({
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState | null>(null);
+  const [deletePreview, setDeletePreview] = useState<CaseDeletionPreview | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [persistence, setPersistence] = useState<PersistenceResult | null>(null);
@@ -264,6 +267,37 @@ export function CaseShelfPage({
     setDialog({ mode: 'edit', summary });
   };
 
+  /**
+   * Read the authoritative dependent counts before showing the destructive
+   * prompt, so the dialog never names stale numbers. Nothing is deleted here.
+   */
+  const openDelete = (summary: CaseSummary): void => {
+    const target = activeRepository;
+    if (target === null) {
+      return;
+    }
+
+    void target
+      .getCaseDeletionPreview(summary.id)
+      .then((preview) => {
+        if (preview === null) {
+          setFeedback({
+            message: `That case is already gone: ${summary.title}.`,
+            tone: 'info',
+          });
+          void refreshFromRemote();
+          return;
+        }
+        setDeletePreview(preview);
+      })
+      .catch(() => {
+        setFeedback({
+          message: 'The case contents could not be read. Nothing was deleted.',
+          tone: 'error',
+        });
+      });
+  };
+
   const handleRetry = (): void => {
     focusAfterLoadRef.current = true;
     setStatus('loading');
@@ -346,6 +380,34 @@ export function CaseShelfPage({
 
     setSelectedCaseId(updated.id);
     setFeedback({ message: `Case updated: ${updated.title}.`, tone: 'success' });
+  };
+
+  /**
+   * Called only by the confirmed dialog. The repository commits the cascade in
+   * one transaction; this handler updates derived shelf state afterwards.
+   */
+  const handleDeleteConfirmed = async (): Promise<void> => {
+    const target = activeRepository;
+    const preview = deletePreview;
+
+    if (target === null || preview === null) {
+      throw new Error('The case repository is not open.');
+    }
+
+    const deleted = await target.deleteCase(preview.caseId);
+
+    remoteRefreshTokenRef.current += 1;
+    broadcastMutation(preview.caseId, 'deleted');
+    setCases((current) => current.filter((summary) => summary.id !== preview.caseId));
+    setSelectedCaseId((current) => (current === preview.caseId ? null : current));
+    setDeletePreview(null);
+
+    setFeedback({
+      message: deleted
+        ? `Case deleted: ${preview.title}.`
+        : `The case was already deleted: ${preview.title}.`,
+      tone: 'success',
+    });
   };
 
   const handleDialogSubmit = async (values: CaseFormValues): Promise<void> => {
@@ -444,6 +506,7 @@ export function CaseShelfPage({
           cases={cases}
           selectedCaseId={selectedCaseId}
           onEdit={openEdit}
+          onDelete={openDelete}
           storageStatus={storageStatus}
         />
       ) : null}
@@ -454,6 +517,14 @@ export function CaseShelfPage({
           {...(dialog.mode === 'edit' ? { initialCase: dialog.summary } : {})}
           onClose={() => setDialog(null)}
           onSubmit={handleDialogSubmit}
+        />
+      ) : null}
+
+      {deletePreview !== null ? (
+        <DeleteCaseDialog
+          preview={deletePreview}
+          onClose={() => setDeletePreview(null)}
+          onConfirm={handleDeleteConfirmed}
         />
       ) : null}
     </section>

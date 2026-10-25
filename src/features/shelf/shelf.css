@@ -272,6 +272,79 @@
 }
 
 /* ------------------------------------------------------------------------- */
+/* Delete confirmation                                                        */
+/* ------------------------------------------------------------------------- */
+
+.delete-case {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.delete-case__lead {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.delete-case__counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.delete-case__count {
+  min-inline-size: 0;
+}
+
+.delete-case__count dt {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.delete-case__count dd {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.delete-case__warning {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-danger-text);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.delete-case__warning strong {
+  color: var(--color-heading-ink);
+}
+
+.delete-case__error {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-danger-text);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------------- */
 /* Storage status strip                                                       */
 /* ------------------------------------------------------------------------- */
 

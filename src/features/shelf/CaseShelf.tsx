@@ -10,6 +10,8 @@ export interface CaseShelfProps {
   readonly cases: readonly CaseSummary[];
   readonly selectedCaseId: string | null;
   readonly onEdit: (summary: CaseSummary) => void;
+  /** Opens the destructive confirmation owned by the shelf page. */
+  readonly onDelete: (summary: CaseSummary) => void;
   /** Storage strip rendered above the grid. The shelf page owns its data. */
   readonly storageStatus?: ReactNode | undefined;
 }
@@ -22,6 +24,7 @@ export default function CaseShelf({
   cases,
   selectedCaseId,
   onEdit,
+  onDelete,
   storageStatus,
 }: CaseShelfProps) {
   return (
@@ -30,7 +33,12 @@ export default function CaseShelf({
       <ul className="shelf__grid" aria-label="Case files">
         {cases.map((summary) => (
           <li key={summary.id} className="shelf__grid-item">
-            <CaseCard summary={summary} selected={selectedCaseId === summary.id} onEdit={onEdit} />
+            <CaseCard
+              summary={summary}
+              selected={selectedCaseId === summary.id}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
           </li>
         ))}
       </ul>

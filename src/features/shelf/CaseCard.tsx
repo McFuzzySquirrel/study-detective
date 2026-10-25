@@ -9,6 +9,8 @@ export interface CaseCardProps {
   readonly summary: CaseSummary;
   readonly selected: boolean;
   readonly onEdit: (summary: CaseSummary) => void;
+  /** Opens the destructive confirmation; it never deletes on its own. */
+  readonly onDelete: (summary: CaseSummary) => void;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -36,12 +38,12 @@ function formatUpdatedAt(value: string): string {
 }
 
 /**
- * One case in the shelf grid. The title is a link to the board; the edit
- * control is a sibling, never nested inside the link. The link's stretched
- * pseudo-element makes the whole card pointer-clickable while the actions stay
- * on top and keyboard reachable on their own.
+ * One case in the shelf grid. The title is a link to the board; the edit and
+ * delete controls are siblings, never nested inside the link. The link's
+ * stretched pseudo-element makes the whole card pointer-clickable while the
+ * actions stay on top and keyboard reachable on their own.
  */
-export default function CaseCard({ summary, selected, onEdit }: CaseCardProps) {
+export default function CaseCard({ summary, selected, onEdit, onDelete }: CaseCardProps) {
   const titleId = `case-title-${summary.id}`;
   const linkId = `case-open-${summary.id}`;
 
@@ -108,6 +110,14 @@ export default function CaseCard({ summary, selected, onEdit }: CaseCardProps) {
           onClick={() => onEdit(summary)}
         >
           Edit
+        </Button>
+        <Button
+          variant="danger"
+          size="md"
+          aria-label={`Delete ${summary.title}`}
+          onClick={() => onDelete(summary)}
+        >
+          Delete
         </Button>
       </div>
     </article>
