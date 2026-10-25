@@ -1,0 +1,358 @@
+/*
+ * Card detail styles.
+ *
+ * The screen reads like one open case-file page: a wide photo leaf and a narrow
+ * action column. Every colour, target, and spacing value comes from tokens.css,
+ * so this file never introduces a palette literal.
+ */
+
+.card-detail {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.card-detail__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.card-detail__back:focus-visible,
+.card-detail__text-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.card-detail__status {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Header                                                                     */
+/* ------------------------------------------------------------------------- */
+
+.card-detail__header {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding-block-end: var(--space-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.card-detail__eyebrow {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.card-detail__type {
+  justify-self: start;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-paper-ink);
+  background-color: var(--color-paper);
+  border: var(--border-width) solid var(--color-paper-edge);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  line-height: var(--line-height-control);
+  text-transform: uppercase;
+}
+
+.card-detail__title {
+  max-inline-size: 100%;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.card-detail__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.card-detail__summary {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Photo and sidebar                                                          */
+/* ------------------------------------------------------------------------- */
+
+.card-detail__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(18rem, 0.8fr);
+  gap: var(--space-5);
+  align-items: start;
+  min-inline-size: 0;
+}
+
+.card-detail__photo,
+.card-detail__sidebar {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card-detail__photo h3,
+.card-detail__actions h3,
+.card-detail__tags h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.card-detail__photo {
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.card-detail__image {
+  display: block;
+  inline-size: auto;
+  max-inline-size: 100%;
+  block-size: auto;
+  max-block-size: min(70vh, 42rem);
+  margin-inline: auto;
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-cork-edge);
+  border-radius: var(--radius-sm);
+}
+
+.card-detail__no-photo,
+.card-detail__muted {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.card-detail__meta {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-detail__sidebar {
+  padding: var(--space-4);
+  background-color: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.card-detail__actions {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.card-detail__action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: var(--space-2);
+}
+
+.card-detail__action {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.card-detail__hint {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.card-detail__file {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.card-detail__tags {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.card-detail__tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-detail__tag {
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-2);
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.card-detail__record {
+  max-inline-size: 100%;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.card-detail__record code {
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Progress, errors, dialogs                                                  */
+/* ------------------------------------------------------------------------- */
+
+.card-detail__progress,
+.card-detail__replace-error,
+.card-detail__error {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.card-detail__progress {
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+}
+
+.card-detail__progress h3,
+.card-detail__replace-error h3,
+.card-detail__error h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+}
+
+.card-detail__progress p,
+.card-detail__replace-error p,
+.card-detail__error p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.card-detail__progress-meter {
+  inline-size: min(100%, 28rem);
+  block-size: var(--space-3);
+  accent-color: var(--color-accent);
+}
+
+.card-detail__progress-actions,
+.card-detail__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.card-detail__replace-error,
+.card-detail__error {
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-danger);
+}
+
+.card-detail__text-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+}
+
+.card-detail-form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card-detail-form__error,
+.card-detail__dialog-error {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Narrow screens                                                             */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 50rem) {
+  .card-detail__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 37.5rem) {
+  .card-detail__photo,
+  .card-detail__sidebar {
+    padding: var(--space-3);
+    padding-block-end: calc(var(--space-3) + var(--safe-area-bottom));
+  }
+
+  .card-detail__action-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card-detail__error-actions,
+  .card-detail__progress-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .card-detail__error-actions .nd-button,
+  .card-detail__progress-actions .nd-button {
+    inline-size: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                             */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .card-detail,
+  .card-detail *,
+  .card-detail *::before,
+  .card-detail *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

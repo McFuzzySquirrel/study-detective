@@ -3,8 +3,10 @@ import { createId, nowIso, systemClock } from '../domain/ids';
 import { DEFAULT_VIEWPORT, ATTACHMENT_KINDS } from '../domain/model';
 import type {
   AttachmentRecord,
+  CardCrop,
   CardPosition,
   CardRecord,
+  CardRotation,
   CardType,
   CaseRecord,
   CaseSummary,
@@ -27,7 +29,7 @@ import type { NotesDetectiveDatabase } from './db';
 import { deleteCase as deleteCaseTransaction, readCaseDeletionPreview } from './deleteCase';
 import type { CaseDeletionCounts, CaseDeletionPreview } from './deleteCase';
 import { RecordNotFoundError, readStored } from './errors';
-import { fromCardRow, toAttachmentRow, toCardRow, toCaseRow } from './mappers';
+import { fromAttachmentRow, fromCardRow, toAttachmentRow, toCardRow, toCaseRow } from './mappers';
 import { latestTimestamp, markCaseUpdated, readCaseRow, saveTouchedCase } from './transactions';
 
 /** Fields a student or the demo seeder may supply when creating a case. */
@@ -62,6 +64,10 @@ export type CardCreateInput = {
   readonly title: string;
   readonly position: CardPosition;
   readonly tags?: readonly string[];
+  /** Normalized source-frame crop chosen at import. */
+  readonly crop?: CardCrop;
+  readonly rotation?: CardRotation;
+  readonly retainFullResolution?: boolean;
   readonly ocrText?: string;
   readonly ocrConfidence?: number;
   readonly ocrEngineVersion?: string;
@@ -73,6 +79,9 @@ export type CardPatch = {
   readonly type?: CardType;
   readonly position?: CardPosition;
   readonly tags?: readonly string[];
+  readonly crop?: CardCrop;
+  readonly rotation?: CardRotation;
+  readonly retainFullResolution?: boolean;
   readonly ocrText?: string;
   readonly ocrConfidence?: number;
   readonly ocrEngineVersion?: string;
@@ -82,6 +91,12 @@ export type CardPatch = {
 export type CardWithAttachments = {
   readonly card: CardRecord;
   readonly attachments: AttachmentRecord[];
+  /**
+   * True when a replacement committed but removing the previous attachment
+   * rows failed. The card points at the new Blobs and remains usable; a later
+   * maintenance pass may remove the unreferenced rows.
+   */
+  readonly cleanupPending?: boolean;
 };
 
 /**
@@ -105,6 +120,19 @@ export interface CaseRepositoryPort {
     input: CardCreateInput,
     attachments: readonly NewAttachment[],
   ): Promise<CardWithAttachments>;
+  /**
+   * Replace a photo card's original, display, and thumbnail rows without
+   * changing its ID or connections. New rows commit with the card metadata and
+   * case timestamp; the previous rows are removed only after that transaction
+   * succeeds.
+   */
+  replaceCardAttachments(
+    cardId: string,
+    attachments: readonly NewAttachment[],
+    patch?: CardPatch,
+  ): Promise<CardWithAttachments>;
+  /** All current Blobs for a card in original, display, thumbnail order. */
+  listAttachments(cardId: string): Promise<AttachmentRecord[]>;
   getCard(cardId: string): Promise<CardRecord | null>;
   listCards(caseId: string): Promise<CardRecord[]>;
   updateCard(cardId: string, patch: CardPatch): Promise<CardRecord>;
@@ -178,6 +206,11 @@ function buildCardRecord(input: CardCreateInput, id: string, now: string): CardR
     tags: normalizeTags(input.tags ?? []),
     createdAt: now,
     updatedAt: now,
+    ...(input.crop !== undefined ? { crop: input.crop } : {}),
+    ...(input.rotation !== undefined ? { rotation: input.rotation } : {}),
+    ...(input.retainFullResolution !== undefined
+      ? { retainFullResolution: input.retainFullResolution }
+      : {}),
     ...(input.ocrText !== undefined ? { ocrText: input.ocrText } : {}),
     ...(input.ocrConfidence !== undefined ? { ocrConfidence: input.ocrConfidence } : {}),
     ...(input.ocrEngineVersion !== undefined ? { ocrEngineVersion: input.ocrEngineVersion } : {}),
@@ -194,6 +227,11 @@ function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): C
       ? { position: { x: patch.position.x, y: patch.position.y } }
       : {}),
     ...(patch.tags !== undefined ? { tags: normalizeTags(patch.tags) } : {}),
+    ...(patch.crop !== undefined ? { crop: patch.crop } : {}),
+    ...(patch.rotation !== undefined ? { rotation: patch.rotation } : {}),
+    ...(patch.retainFullResolution !== undefined
+      ? { retainFullResolution: patch.retainFullResolution }
+      : {}),
     updatedAt: latestTimestamp(nowIso(clock), current.updatedAt),
     ...(patch.ocrText !== undefined ? { ocrText: patch.ocrText } : {}),
     ...(patch.ocrConfidence !== undefined ? { ocrConfidence: patch.ocrConfidence } : {}),
@@ -248,6 +286,14 @@ export function compareCaseSummaries(a: CaseSummary, b: CaseSummary): number {
 function compareCards(a: CardRecord, b: CardRecord): number {
   const byCreatedAt = Date.parse(a.createdAt) - Date.parse(b.createdAt);
   return byCreatedAt !== 0 ? byCreatedAt : a.id.localeCompare(b.id);
+}
+
+/** Stable original, display, thumbnail order for one card's Blobs. */
+function sortAttachments(records: readonly AttachmentRecord[]): AttachmentRecord[] {
+  return [...records].sort((a, b) => {
+    const byKind = ATTACHMENT_KINDS.indexOf(a.kind) - ATTACHMENT_KINDS.indexOf(b.kind);
+    return byKind !== 0 ? byKind : a.id.localeCompare(b.id);
+  });
 }
 
 /** Dexie-backed repository: the only production write boundary for cases. */
@@ -388,6 +434,82 @@ export class CaseRepository implements CaseRepositoryPort {
     });
 
     return { card, attachments: attachmentRecords };
+  }
+
+  /**
+   * Write the replacement Blobs and card metadata in one transaction, then
+   * remove the previous Blobs in a second transaction. A failure in the first
+   * leaves the old image and card untouched; a failure in the second leaves the
+   * card usable and reports `cleanupPending` instead of losing the new photo.
+   */
+  async replaceCardAttachments(
+    cardId: string,
+    attachments: readonly NewAttachment[],
+    patch: CardPatch = {},
+  ): Promise<CardWithAttachments> {
+    const newRecords = attachments.map((attachment) =>
+      buildAttachmentRecord(cardId, attachment, this.idFactory),
+    );
+    assertDistinctAttachmentKinds(newRecords);
+
+    let replacedCard: CardRecord | undefined;
+    let previousIds: string[] = [];
+
+    await this.db.transaction('rw', this.db.cases, this.db.cards, this.db.attachments, async () => {
+      const cardRow = await this.db.cards.get(cardId);
+      if (cardRow === undefined) {
+        throw new RecordNotFoundError('card', cardId);
+      }
+      const current = readStored('card', cardId, () => fromCardRow(cardRow));
+
+      const caseRow = await this.db.cases.get(current.caseId);
+      if (caseRow === undefined) {
+        throw new RecordNotFoundError('case', current.caseId);
+      }
+      const currentCase = readStored('case', current.caseId, () =>
+        readCaseRow(caseRow, current.caseId),
+      );
+
+      const previousRows = await this.db.attachments.where('cardId').equals(cardId).toArray();
+      previousIds = previousRows.map((row) => row.id);
+
+      // New rows are written before the old ones are touched. The card itself
+      // keeps its ID, position, tags, connections, and OCR fields.
+      await this.db.attachments.bulkAdd(newRecords.map(toAttachmentRow));
+      replacedCard = mergeCardRecord(current, patch, this.clock);
+      await this.db.cards.put(toCardRow(replacedCard));
+      await saveTouchedCase(this.db, currentCase, this.clock);
+    });
+
+    if (replacedCard === undefined) {
+      throw new RecordNotFoundError('card', cardId);
+    }
+
+    let cleanupPending = false;
+    if (previousIds.length > 0) {
+      try {
+        await this.db.transaction('rw', this.db.attachments, async () => {
+          await this.db.attachments.bulkDelete(previousIds);
+        });
+      } catch {
+        // The replacement is durable and the card points at the new Blobs.
+        // Never roll back a usable card because an unreferenced copy survived.
+        cleanupPending = true;
+      }
+    }
+
+    return {
+      card: replacedCard,
+      attachments: newRecords,
+      ...(cleanupPending ? { cleanupPending: true } : {}),
+    };
+  }
+
+  async listAttachments(cardId: string): Promise<AttachmentRecord[]> {
+    const rows = await this.db.attachments.where('cardId').equals(cardId).toArray();
+    return sortAttachments(
+      rows.map((row) => readStored('attachment', row.id, () => fromAttachmentRow(row))),
+    );
   }
 
   async getCard(cardId: string): Promise<CardRecord | null> {
@@ -615,6 +737,42 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     return { card, attachments: records };
   }
 
+  /**
+   * Mirrors the production replacement order: write the new rows and card
+   * metadata, then remove the previous rows. A thrown write leaves the old set
+   * reachable because the fake applies the additions only after validation.
+   */
+  async replaceCardAttachments(
+    cardId: string,
+    attachments: readonly NewAttachment[],
+    patch: CardPatch = {},
+  ): Promise<CardWithAttachments> {
+    const current = this.requireCard(cardId);
+    const currentCase = this.requireCase(current.caseId);
+    const records = attachments.map((attachment) =>
+      buildAttachmentRecord(cardId, attachment, this.idFactory),
+    );
+    assertDistinctAttachmentKinds(records);
+
+    const previousIds = [...this.attachments.values()]
+      .filter((attachment) => attachment.cardId === cardId)
+      .map((attachment) => attachment.id);
+
+    for (const record of records) {
+      this.attachments.set(record.id, record);
+    }
+
+    const card = mergeCardRecord(current, patch, this.clock);
+    this.cards.set(cardId, card);
+    this.cases.set(card.caseId, markCaseUpdated(currentCase, this.clock));
+
+    for (const id of previousIds) {
+      this.attachments.delete(id);
+    }
+
+    return { card, attachments: records };
+  }
+
   async getCard(cardId: string): Promise<CardRecord | null> {
     return this.cards.get(cardId) ?? null;
   }
@@ -623,14 +781,11 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     return [...this.cards.values()].filter((card) => card.caseId === caseId).sort(compareCards);
   }
 
-  /** Test convenience: inspect seeded Blob rows without opening IndexedDB. */
+  /** Inspect a card's Blob rows without opening IndexedDB. */
   async listAttachments(cardId: string): Promise<AttachmentRecord[]> {
-    return [...this.attachments.values()]
-      .filter((attachment) => attachment.cardId === cardId)
-      .sort((a, b) => {
-        const byKind = ATTACHMENT_KINDS.indexOf(a.kind) - ATTACHMENT_KINDS.indexOf(b.kind);
-        return byKind !== 0 ? byKind : a.id.localeCompare(b.id);
-      });
+    return sortAttachments(
+      [...this.attachments.values()].filter((attachment) => attachment.cardId === cardId),
+    );
   }
 
   /** Test convenience: read one seeded Blob by attachment ID. */

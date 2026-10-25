@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes, useLocation } from 'react-router';
 
 import type { CaseRepositoryPort } from '../data/caseRepository';
+import type { CardDetailRepositoryLoader } from '../features/cards/CardDetailPage';
 import type { CaptureRepositoryLoader } from '../features/capture/CapturePage';
 import type { CaseRepositoryLoader } from '../features/shelf/CaseShelfPage';
 
@@ -18,6 +19,11 @@ const CaseBoardScreen = lazy(() =>
 const CaptureScreen = lazy(() =>
   import('../features/capture/CapturePage').then((module) => ({
     default: module.CapturePage,
+  })),
+);
+const CardDetailScreen = lazy(() =>
+  import('../features/cards/CardDetailPage').then((module) => ({
+    default: module.CardDetailPage,
   })),
 );
 const RecallScreen = lazy(() =>
@@ -39,6 +45,10 @@ export interface AppRoutesProps {
   readonly captureRepository?: CaseRepositoryPort | undefined;
   /** Replaces the capture route's repository opener, including its failure path. */
   readonly loadCaptureRepository?: CaptureRepositoryLoader | undefined;
+  /** Replaces the card-detail route's repository in tests and future composition. */
+  readonly cardRepository?: CaseRepositoryPort | undefined;
+  /** Replaces the card-detail route's repository opener, including its failure path. */
+  readonly loadCardRepository?: CardDetailRepositoryLoader | undefined;
 }
 
 /**
@@ -51,6 +61,8 @@ export function AppRoutes({
   loadShelfRepository,
   captureRepository,
   loadCaptureRepository,
+  cardRepository,
+  loadCardRepository,
 }: AppRoutesProps = {}) {
   const location = useLocation();
 
@@ -71,6 +83,12 @@ export function AppRoutes({
             }
           />
           <Route path="/case/:caseId" element={<CaseBoardScreen />} />
+          <Route
+            path="/case/:caseId/card/:cardId"
+            element={
+              <CardDetailScreen repository={cardRepository} loadRepository={loadCardRepository} />
+            }
+          />
           <Route
             path="/case/:caseId/capture"
             element={

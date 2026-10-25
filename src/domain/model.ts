@@ -105,6 +105,43 @@ export const viewportSchema = z.strictObject({
     .max(MAX_VIEWPORT_SCALE, `Viewport scale must be at most ${MAX_VIEWPORT_SCALE}`),
 });
 
+/**
+ * A non-destructive crop, normalized to the oriented source image. Keeping the
+ * rectangle independent of derivative sizes lets a later re-crop regenerate the
+ * display and thumbnail copies from the retained original.
+ */
+export const cardCropSchema = z
+  .strictObject({
+    x: z.number().finite().min(0).max(1),
+    y: z.number().finite().min(0).max(1),
+    width: z.number().finite().gt(0).max(1),
+    height: z.number().finite().gt(0).max(1),
+  })
+  .superRefine((crop, ctx) => {
+    if (crop.x + crop.width > 1 + 1e-6) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['width'],
+        message: 'Crop must stay inside the image width',
+      });
+    }
+    if (crop.y + crop.height > 1 + 1e-6) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['height'],
+        message: 'Crop must stay inside the image height',
+      });
+    }
+  });
+
+/** Exact clockwise quarter-turns; no floating-point degrees are stored. */
+export const cardRotationSchema = z.union([
+  z.literal(0),
+  z.literal(90),
+  z.literal(180),
+  z.literal(270),
+]);
+
 const pairKeySchema = z
   .string()
   .regex(/^[0-9a-fA-F-]{36}::[0-9a-fA-F-]{36}$/, 'Pair key must join two UUID strings with "::"');
@@ -145,6 +182,11 @@ export const cardRecordSchema = z
     title: titleSchema,
     position: positionSchema,
     tags: tagsSchema,
+    // Photo cards may be re-cropped later, so the choice is part of the card
+    // rather than a one-off import parameter. Cards without a photo omit them.
+    crop: cardCropSchema.optional(),
+    rotation: cardRotationSchema.optional(),
+    retainFullResolution: z.boolean().optional(),
     createdAt: isoTimestampSchema,
     updatedAt: isoTimestampSchema,
     // OCR is optional metadata: a card that was never read has no OCR fields
@@ -245,6 +287,8 @@ export type AttachmentRecordInput = z.input<typeof attachmentRecordSchema>;
 export type Viewport = z.infer<typeof viewportSchema>;
 export type ViewportInput = z.input<typeof viewportSchema>;
 export type CardPosition = z.infer<typeof positionSchema>;
+export type CardCrop = z.infer<typeof cardCropSchema>;
+export type CardRotation = z.infer<typeof cardRotationSchema>;
 export type CaseSummary = z.infer<typeof caseSummarySchema>;
 export type CaseSummaryInput = z.input<typeof caseSummarySchema>;
 

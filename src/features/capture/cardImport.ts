@@ -192,6 +192,9 @@ export async function importImageCard(
         type: input.type,
         title: input.title,
         position: input.position,
+        crop: processed.crop,
+        rotation: processed.rotation,
+        retainFullResolution: processed.retainFullResolution,
         ...(input.tags !== undefined ? { tags: input.tags } : {}),
       },
       [
