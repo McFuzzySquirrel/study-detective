@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: EVIDENCE-CAPTURE-2
+**Phase**: BACKUP-AND-RESTORE-1
 **Status**: In Progress
 **Validation Gaps**: 9 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T21:35:34.592Z
+**Last Updated**: 2026-10-25T21:40:27.236Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -40,9 +40,12 @@
   - Files: src/features/capture/CapturePage.tsx, src/features/capture/CaptureSourcePicker.tsx, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/capture/capture.css, src/app/routes.tsx, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx, src/features/capture/capturePosition.ts
 - [x] Phase EVIDENCE-CAPTURE-2, Task CAP-4: Build card detail with replace, re-crop, and a real browser import journey (@ui-engineer)
   - Files: src/features/cards/CardDetailPage.tsx, src/features/cards/CardDetail.css, src/app/routes.tsx, tests/cards/CardDetailPage.test.tsx, e2e/capture.spec.ts, e2e/fixtures/note.png, e2e/fixtures/source.png, src/data/caseRepository.ts, src/domain/model.ts, src/features/capture/cardImport.ts, src/features/cards/cardReplace.ts, tests/data/caseRepositoryReplace.test.ts
+- [x] Phase CASE-BOARD-1, Task BOARD-1: Implement viewport math and board state (@board-engineer)
+  - Files: src/board/viewport.ts, src/board/boardStore.ts, tests/board/viewport.test.ts, tests/board/boardStore.test.ts
 
 ## Current Task
-- None currently running
+- [ ] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
+  - Status: In progress
 
 ## Remaining
 - [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
