@@ -1,0 +1,23 @@
+{
+  "board-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "capture-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "data-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "foundation-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "qa-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "release-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  },
+  "ui-engineer": {
+    "primary": "deepseek/deepseek-flash"
+  }
+}
