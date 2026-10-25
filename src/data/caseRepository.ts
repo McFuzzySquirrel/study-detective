@@ -29,7 +29,14 @@ import type { NotesDetectiveDatabase } from './db';
 import { deleteCase as deleteCaseTransaction, readCaseDeletionPreview } from './deleteCase';
 import type { CaseDeletionCounts, CaseDeletionPreview } from './deleteCase';
 import { RecordNotFoundError, readStored } from './errors';
-import { fromAttachmentRow, fromCardRow, toAttachmentRow, toCardRow, toCaseRow } from './mappers';
+import {
+  fromAttachmentRow,
+  fromCardRow,
+  fromConnectionRow,
+  toAttachmentRow,
+  toCardRow,
+  toCaseRow,
+} from './mappers';
 import { latestTimestamp, markCaseUpdated, readCaseRow, saveTouchedCase } from './transactions';
 
 /** Fields a student or the demo seeder may supply when creating a case. */
@@ -135,6 +142,8 @@ export interface CaseRepositoryPort {
   listAttachments(cardId: string): Promise<AttachmentRecord[]>;
   getCard(cardId: string): Promise<CardRecord | null>;
   listCards(caseId: string): Promise<CardRecord[]>;
+  /** Every validated string in one case, ordered by canonical pair key. */
+  listConnections(caseId: string): Promise<ConnectionRecord[]>;
   updateCard(cardId: string, patch: CardPatch): Promise<CardRecord>;
   deleteCard(cardId: string): Promise<boolean>;
   /** Counts a destructive confirmation must name before deleting a case. */
@@ -525,6 +534,13 @@ export class CaseRepository implements CaseRepositoryPort {
     return rows.map((row) => readStored('card', row.id, () => fromCardRow(row))).sort(compareCards);
   }
 
+  async listConnections(caseId: string): Promise<ConnectionRecord[]> {
+    const rows = await this.db.connections.where('caseId').equals(caseId).toArray();
+    return rows
+      .map((row) => readStored('connection', row.id, () => fromConnectionRow(row)))
+      .sort((a, b) => a.pairKey.localeCompare(b.pairKey));
+  }
+
   async updateCard(cardId: string, patch: CardPatch): Promise<CardRecord> {
     return this.db.transaction('rw', this.db.cases, this.db.cards, async () => {
       const row = await this.db.cards.get(cardId);
@@ -779,6 +795,12 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
 
   async listCards(caseId: string): Promise<CardRecord[]> {
     return [...this.cards.values()].filter((card) => card.caseId === caseId).sort(compareCards);
+  }
+
+  async listConnections(caseId: string): Promise<ConnectionRecord[]> {
+    return [...this.connections.values()]
+      .filter((connection) => connection.caseId === caseId)
+      .sort((a, b) => a.pairKey.localeCompare(b.pairKey));
   }
 
   /** Inspect a card's Blob rows without opening IndexedDB. */

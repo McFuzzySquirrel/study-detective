@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: BACKUP-AND-RESTORE-1
 **Status**: In Progress
-**Validation Gaps**: 9 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T21:40:27.236Z
+**Validation Gaps**: 11 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T21:44:24.183Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -42,10 +42,11 @@
   - Files: src/features/cards/CardDetailPage.tsx, src/features/cards/CardDetail.css, src/app/routes.tsx, tests/cards/CardDetailPage.test.tsx, e2e/capture.spec.ts, e2e/fixtures/note.png, e2e/fixtures/source.png, src/data/caseRepository.ts, src/domain/model.ts, src/features/capture/cardImport.ts, src/features/cards/cardReplace.ts, tests/data/caseRepositoryReplace.test.ts
 - [x] Phase CASE-BOARD-1, Task BOARD-1: Implement viewport math and board state (@board-engineer)
   - Files: src/board/viewport.ts, src/board/boardStore.ts, tests/board/viewport.test.ts, tests/board/boardStore.test.ts
+- [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
+  - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 
 ## Current Task
-- [ ] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
-  - Status: In progress
+- None currently running
 
 ## Remaining
 - [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
@@ -60,7 +61,6 @@
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-1: Phase 1: Tags
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-2: Phase 2: Search and filters
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
-- [ ] Phase BACKUP-AND-RESTORE-1: Phase 1: Archive format and export
 - [ ] Phase BACKUP-AND-RESTORE-2: Phase 2: Import and restore
 - [ ] Phase BACKUP-AND-RESTORE-3: Phase 3: UI and browser journey
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
@@ -88,6 +88,8 @@
 - Task CAP-3: Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification.
 - Task CAP-4: Browser rotation/crop behavior was verified in Chromium only.
 - Task CAP-4: The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey.
+- Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
+- Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
