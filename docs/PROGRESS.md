@@ -1,9 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: LOCAL-DATA-AND-CASE-SHELF-2
+**Phase**: EVIDENCE-CAPTURE-1
 **Status**: In Progress
-**Last Updated**: 2026-10-25T20:43:57.933Z
+**Validation Gaps**: 3 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T20:59:00.801Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -31,6 +32,8 @@
   - Files: src/data/persistence.ts, src/data/storageEstimate.ts, src/data/useBroadcastSync.ts, src/features/shelf/StorageStatus.tsx, src/features/shelf/CaseFormDialog.tsx, src/features/shelf/CaseShelf.tsx, tests/data/persistence.test.ts, tests/data/storageEstimate.test.ts, tests/data/useBroadcastSync.test.tsx, tests/shelf/StorageStatus.test.tsx, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/shelf.css, src/features/shelf/useBroadcastSync.ts
 - [x] Phase LOCAL-DATA-AND-CASE-SHELF-2, Task DATA-5: Implement confirmed cascade deletion of a case (@data-engineer)
   - Files: src/features/shelf/DeleteCaseDialog.tsx, src/data/deleteCase.ts, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, tests/shelf/DeleteCaseDialog.test.tsx, tests/data/deleteCase.test.ts, src/data/caseRepository.ts, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/shelf.css
+- [x] Phase EVIDENCE-CAPTURE-1, Task CAP-1: Implement validated image import and atomic card creation (@capture-engineer)
+  - Files: src/features/capture/imageValidation.ts, src/features/capture/imagePipeline.ts, src/features/capture/cardImport.ts, src/data/caseRepository.ts, tests/capture/imageValidation.test.ts, tests/capture/imagePipeline.test.ts, tests/capture/cardImport.test.ts
 
 ## Current Task
 - None currently running
@@ -69,7 +72,9 @@
 - None
 
 ## Validation Gaps
-- None reported
+- Task CAP-1: No real-browser image decode or EXIF fixture journey was run in CAP-1; the capture route/UI is out of scope.
+- Task CAP-1: Cancellation cannot interrupt an IndexedDB transaction once saving begins; the UI should disable cancel at the saving stage.
+- Task CAP-1: UI-created preview object URLs must be revoked by the UI on unmount/cancel; the pipeline owns only its internal fallback URL.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

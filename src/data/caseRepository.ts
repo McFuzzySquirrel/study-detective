@@ -96,6 +96,11 @@ export interface CaseRepositoryPort {
   updateCase(caseId: string, patch: CasePatch): Promise<CaseRecord>;
   saveViewport(caseId: string, viewport: Viewport): Promise<CaseRecord>;
   createCard(input: CardCreateInput): Promise<CardRecord>;
+  /**
+   * Create a card and all of its attachment rows in one transaction. If any
+   * Blob or the owning-case timestamp write fails, the card rolls back too.
+   * Capture passes the original, display, and thumbnail set here.
+   */
   createCardWithAttachments(
     input: CardCreateInput,
     attachments: readonly NewAttachment[],
@@ -354,6 +359,10 @@ export class CaseRepository implements CaseRepositoryPort {
     return record;
   }
 
+  /**
+   * One transaction covers cases, cards, and attachments: a failed Blob write
+   * cannot leave a card or a touched case behind.
+   */
   async createCardWithAttachments(
     input: CardCreateInput,
     attachments: readonly NewAttachment[],
@@ -583,6 +592,10 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     return record;
   }
 
+  /**
+   * Mirrors the Dexie atomic contract for tests. The fake applies the mutations
+   * in memory and is not itself a transaction proof.
+   */
   async createCardWithAttachments(
     input: CardCreateInput,
     attachments: readonly NewAttachment[],
