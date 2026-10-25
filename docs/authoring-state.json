@@ -51,9 +51,42 @@
       "completedAt": "2026-10-25T18:21:52.058Z"
     },
     "skills": {
-      "status": "pending",
+      "status": "complete",
       "inputFingerprint": "1a5c92db06ebcbafb02eaedf798bb6a81853bbe0f2b955cf66854b14fea8e165",
-      "outputs": []
+      "outputs": [
+        ".opencode/skills/case-domain-integrity/SKILL.md",
+        ".opencode/skills/atomic-media-storage/SKILL.md",
+        ".opencode/skills/pixi-case-board/SKILL.md",
+        ".opencode/skills/accessible-case-ui/SKILL.md",
+        ".opencode/skills/local-first-backup-archive/SKILL.md",
+        ".opencode/skills/offline-pwa-release/SKILL.md",
+        ".opencode/skills/browser-evidence-journeys/SKILL.md",
+        ".opencode/skills/ocr-worker-lifecycle/SKILL.md"
+      ],
+      "startedAt": "2026-10-25T18:30:14.958Z",
+      "invocation": {
+        "runner": "opencode",
+        "requestedModel": "deepseek/deepseek-flash",
+        "source": "project",
+        "effectiveModel": "deepseek/deepseek-flash",
+        "inventoryVerifiedAt": "2026-10-25T16:58:27.544Z",
+        "runnerSource": "project",
+        "argv": [
+          "run",
+          "--auto",
+          "--model",
+          "deepseek/deepseek-flash",
+          "/forge-build-project-skills Consume docs/SKILL-CANDIDATES.json. Use .opencode/skills/ and .opencode/agents/. Create or extend only planned skills, reuse unchanged packages, honor omit decisions, and run structural and per-axis review gates. Do not regenerate the team, modify its ownership or handoff, compile a manifest, or start the build. Headless: proceed with authorized defaults."
+        ],
+        "skill": "forge-build-project-skills"
+      },
+      "outputFingerprint": "710e10cc56b21afadf1f97516c2182b9c316ae696771d4495fd20f260d49742a",
+      "completedAt": "2026-10-25T18:35:39.927Z",
+      "reusedSkills": [
+        "pixijs",
+        "tdd"
+      ],
+      "noSkillsRequired": false
     }
   }
 }

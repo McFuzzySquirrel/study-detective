@@ -1,0 +1,156 @@
+
+> mcfuzzy-skills@1.0.0 skill-review
+> tsx scripts/skill-review.ts --files .opencode/skills/case-domain-integrity/SKILL.md .opencode/skills/atomic-media-storage/SKILL.md .opencode/skills/pixi-case-board/SKILL.md .opencode/skills/accessible-case-ui/SKILL.md .opencode/skills/local-first-backup-archive/SKILL.md .opencode/skills/offline-pwa-release/SKILL.md .opencode/skills/browser-evidence-journeys/SKILL.md .opencode/skills/ocr-worker-lifecycle/SKILL.md --provider stdout --min-score 2 --fail-below --min-axis 2 --fail-axis-below --fail-structural
+
+Posting audit report via stdout...
+# Skill Audit Report
+
+**Generated:** 2026-10-25
+**Audited by:** `skill-review`
+**Skills audited:** 8
+
+---
+
+## Summary Scores
+
+| Skill | Context economy | Gotchas coverage | Procedural clarity | Progressive disclosure | Calibration | Validation | Overall |
+|-------|---|---|---|---|---|---|---------|
+| `case-domain-integrity` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `atomic-media-storage` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `pixi-case-board` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `accessible-case-ui` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `local-first-backup-archive` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `offline-pwa-release` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `browser-evidence-journeys` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+| `ocr-worker-lifecycle` | 3 | 3 | 3 | 3 | 3 | 3 | 3 |
+
+**Score interpretation:**
+- 2.5–3.0: Strong - follows best practices well
+- 1.5–2.4: Adequate - works but has improvement opportunities
+- 1.0–1.4: Needs work - significant gaps against best practices
+
+---
+
+### `case-domain-integrity`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/case-domain-integrity/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `atomic-media-storage`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/atomic-media-storage/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `pixi-case-board`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/pixi-case-board/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `accessible-case-ui`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/accessible-case-ui/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `local-first-backup-archive`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/local-first-backup-archive/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `offline-pwa-release`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/offline-pwa-release/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `browser-evidence-journeys`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/browser-evidence-journeys/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+### `ocr-worker-lifecycle`
+**Overall score:** 3 🟢 (strong)
+**Path:** `/home/mcfuzzysquirrel/Projects/testing/notes-detective/.opencode/skills/ocr-worker-lifecycle/SKILL.md`
+**Reviewer-style proxy:** 3 (proxy)
+**Strengths:**
+- Strong context economy
+- Strong gotchas coverage
+- Strong procedural clarity
+- Strong progressive disclosure
+- Strong calibration
+- Strong validation
+**Improvement opportunities:** None - all axes scored 3
+
+---
+
+## Next Steps
+
+Review the suggested changes above. Fix structural issues first, then tackle the lowest-scoring axes.

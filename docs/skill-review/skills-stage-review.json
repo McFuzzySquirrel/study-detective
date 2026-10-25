@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "stage": "skills",
+  "mode": "headless",
+  "completedAt": "2026-10-25T18:35:18.000Z",
+  "handoff": {
+    "path": "docs/SKILL-CANDIDATES.json",
+    "sha256": "74080307a4feba3f0a8e0210700d6f301d2e6e89f8e34a6c9af77ebffefdc978",
+    "unchanged": true
+  },
+  "review": {
+    "tool": "skill-review",
+    "command": "npm run skill-review -- --files <8 SKILL.md paths> --provider stdout --min-score 2 --fail-below --min-axis 2 --fail-axis-below --fail-structural",
+    "exitCode": 0,
+    "minScore": 2,
+    "minAxis": 2,
+    "structuralFailures": 0
+  },
+  "candidates": [
+    {
+      "name": "case-domain-integrity",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/case-domain-integrity/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "atomic-media-storage",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/atomic-media-storage/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "pixi-case-board",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/pixi-case-board/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "pixijs",
+      "action": "reuse",
+      "outcome": "not-authored",
+      "path": null,
+      "scores": null,
+      "structuralIssues": [],
+      "diagnostic": "Resolves outside this repository; not vendored and not project-locally discoverable."
+    },
+    {
+      "name": "accessible-case-ui",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/accessible-case-ui/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "local-first-backup-archive",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/local-first-backup-archive/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "offline-pwa-release",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/offline-pwa-release/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "browser-evidence-journeys",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/browser-evidence-journeys/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "ocr-worker-lifecycle",
+      "action": "create",
+      "outcome": "authored",
+      "path": ".opencode/skills/ocr-worker-lifecycle/SKILL.md",
+      "scores": {
+        "contextEconomy": 3,
+        "gotchasCoverage": 3,
+        "proceduralClarity": 3,
+        "progressiveDisclosure": 3,
+        "calibration": 3,
+        "validation": 3,
+        "overall": 3,
+        "reviewerStyleProxy": 3
+      },
+      "structuralIssues": []
+    },
+    {
+      "name": "demo-case-seeding",
+      "action": "omit",
+      "outcome": "not-authored",
+      "path": null,
+      "scores": null,
+      "structuralIssues": []
+    },
+    {
+      "name": "human-acceptance-review",
+      "action": "omit",
+      "outcome": "not-authored",
+      "path": null,
+      "scores": null,
+      "structuralIssues": []
+    },
+    {
+      "name": "tdd",
+      "action": "reuse",
+      "outcome": "not-authored",
+      "path": null,
+      "scores": null,
+      "structuralIssues": [],
+      "diagnostic": "Resolves outside this repository; not vendored."
+    }
+  ],
+  "boundaries": {
+    "agentsModified": false,
+    "ownershipModified": false,
+    "handoffModified": false,
+    "executionManifestCreated": false,
+    "buildStarted": false
+  }
+}
