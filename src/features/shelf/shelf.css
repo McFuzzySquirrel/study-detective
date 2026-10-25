@@ -35,6 +35,33 @@
   text-transform: uppercase;
 }
 
+.shelf__empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.shelf__restore-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.shelf__restore-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 .shelf__heading h2 {
   margin: 0;
 }
@@ -450,6 +477,50 @@
 }
 
 /* ------------------------------------------------------------------------- */
+/* Backup and restore entry point                                             */
+/* ------------------------------------------------------------------------- */
+
+.shelf__backup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-accent-border);
+  border-radius: var(--radius-md);
+}
+
+.shelf__backup-copy {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.shelf__backup-copy h3 {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.shelf__backup-copy p {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.shelf__backup code {
+  color: var(--color-ink);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+/* ------------------------------------------------------------------------- */
 /* Responsive layout                                                          */
 /* ------------------------------------------------------------------------- */
 
@@ -468,6 +539,11 @@
 
   .case-card__meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shelf__backup {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 

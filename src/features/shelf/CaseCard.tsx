@@ -11,6 +11,8 @@ export interface CaseCardProps {
   readonly onEdit: (summary: CaseSummary) => void;
   /** Opens the destructive confirmation; it never deletes on its own. */
   readonly onDelete: (summary: CaseSummary) => void;
+  /** Opens the export flow for just this case. */
+  readonly onBackup?: ((summary: CaseSummary) => void) | undefined;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -43,7 +45,7 @@ function formatUpdatedAt(value: string): string {
  * stretched pseudo-element makes the whole card pointer-clickable while the
  * actions stay on top and keyboard reachable on their own.
  */
-export default function CaseCard({ summary, selected, onEdit, onDelete }: CaseCardProps) {
+export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup }: CaseCardProps) {
   const titleId = `case-title-${summary.id}`;
   const linkId = `case-open-${summary.id}`;
 
@@ -111,6 +113,16 @@ export default function CaseCard({ summary, selected, onEdit, onDelete }: CaseCa
         >
           Edit
         </Button>
+        {onBackup !== undefined ? (
+          <Button
+            variant="quiet"
+            size="md"
+            aria-label={`Back up ${summary.title}`}
+            onClick={() => onBackup(summary)}
+          >
+            Back up
+          </Button>
+        ) : null}
         <Button
           variant="danger"
           size="md"

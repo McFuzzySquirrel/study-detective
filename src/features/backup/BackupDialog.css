@@ -1,0 +1,280 @@
+/*
+ * Backup and restore dialog.
+ *
+ * Every colour, target, and motion value comes from tokens.css. The dialog is a
+ * composition surface only; archive bytes never become HTML and no palette
+ * literal lives in this file.
+ */
+
+.backup-dialog {
+  --backup-dialog-gap: var(--space-4);
+}
+
+.backup-dialog__views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.backup-dialog__lead,
+.backup-dialog__hint,
+.backup-dialog__privacy,
+.backup-dialog__announcement,
+.backup-dialog__notice,
+.backup-dialog__summary-note {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__announcement {
+  min-block-size: 1.5rem;
+  color: var(--color-ink);
+}
+
+.backup-dialog__pick {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+}
+
+.backup-dialog__file-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-ink);
+  background-color: var(--color-control-surface);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.backup-dialog__file-label:hover {
+  background-color: var(--color-control-surface-hover);
+}
+
+.backup-dialog__file-label:focus-within {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.backup-dialog__stages {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.backup-dialog__stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: 2rem;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface-sunken);
+  border-inline-start: var(--border-width-strong) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+.backup-dialog__stage[data-status='active'] {
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border-inline-start-color: var(--color-warning);
+}
+
+.backup-dialog__stage[data-status='complete'] {
+  color: var(--color-ink);
+  border-inline-start-color: var(--color-success);
+}
+
+.backup-dialog__stage[data-status='failed'] {
+  color: var(--color-danger-text);
+  background-color: var(--color-surface);
+  border-inline-start-color: var(--color-danger);
+}
+
+.backup-dialog__stage-label {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__stage-state {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.backup-dialog__stage[data-status='failed'] .backup-dialog__stage-state {
+  color: var(--color-danger-text);
+}
+
+.backup-dialog__summary,
+.backup-dialog__result,
+.backup-dialog__error {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.backup-dialog__summary {
+  border-inline-start: var(--border-width-strong) solid var(--color-accent-border);
+}
+
+.backup-dialog__result {
+  border-inline-start: var(--border-width-strong) solid var(--color-success);
+}
+
+.backup-dialog__error {
+  border-color: var(--color-danger-border);
+  border-inline-start-width: var(--border-width-strong);
+}
+
+.backup-dialog__section-title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__error .backup-dialog__section-title {
+  color: var(--color-danger-text);
+}
+
+.backup-dialog__summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.backup-dialog__summary-grid > div {
+  min-inline-size: 0;
+}
+
+.backup-dialog__summary-grid dt {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.backup-dialog__summary-grid dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__summary-title {
+  font-size: var(--font-size-md);
+}
+
+.backup-dialog__error p,
+.backup-dialog__result p,
+.backup-dialog__summary p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__choices {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.backup-dialog__choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  min-block-size: var(--target-min);
+  padding: var(--space-3);
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.backup-dialog__choice:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-control-border);
+}
+
+.backup-dialog__choice input {
+  flex: none;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-block-start: 0.15rem;
+  accent-color: var(--color-accent);
+}
+
+.backup-dialog__choice input:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.backup-dialog__choice strong {
+  display: block;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-md);
+}
+
+.backup-dialog__choice-detail {
+  display: block;
+  margin-block-start: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.backup-dialog__confirm {
+  padding: var(--space-3);
+  background-color: var(--color-surface);
+  border-inline-start: var(--border-width-strong) solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 40rem) {
+  .backup-dialog__summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backup-dialog__file-label,
+  .backup-dialog__choice {
+    transition: none;
+  }
+}

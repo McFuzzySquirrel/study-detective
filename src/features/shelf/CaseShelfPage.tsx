@@ -13,6 +13,11 @@ import type { PersistenceClient, PersistenceResult } from '../../data/persistenc
 import { readStorageEstimate, UNKNOWN_STORAGE_ESTIMATE } from '../../data/storageEstimate';
 import type { StorageEstimateSnapshot } from '../../data/storageEstimate';
 import type { CaseSummary } from '../../domain/model';
+import BackupDialog from '../backup/BackupDialog';
+import type { BackupDialogView } from '../backup/BackupDialog';
+import type { ExportCaseResult } from '../backup/exportCase';
+import type { RestoreCaseResult } from '../backup/importCase';
+import { persistBackupPromptedAt } from '../backup/useBackupReminder';
 
 import CaseFormDialog from './CaseFormDialog';
 import type { CaseFormMode, CaseFormValues } from './CaseFormDialog';
@@ -43,6 +48,13 @@ type LoadStatus = 'loading' | 'ready' | 'error';
 type DialogState =
   | { readonly mode: Extract<CaseFormMode, 'create'> }
   | { readonly mode: Extract<CaseFormMode, 'edit'>; readonly summary: CaseSummary };
+
+type BackupState =
+  | { readonly view: Extract<BackupDialogView, 'import'> }
+  | {
+      readonly view: Extract<BackupDialogView, 'export'>;
+      readonly summary: CaseSummary;
+    };
 
 type Feedback = {
   readonly message: string;
@@ -91,6 +103,7 @@ export function CaseShelfPage({
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [deletePreview, setDeletePreview] = useState<CaseDeletionPreview | null>(null);
+  const [backupState, setBackupState] = useState<BackupState | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [persistence, setPersistence] = useState<PersistenceResult | null>(null);
@@ -305,6 +318,41 @@ export function CaseShelfPage({
     setReloadToken((token) => token + 1);
   };
 
+  const openImportBackup = (): void => {
+    setBackupState({ view: 'import' });
+  };
+
+  const openExportBackup = (summary: CaseSummary): void => {
+    setBackupState({ view: 'export', summary });
+  };
+
+  const handleImported = (result: RestoreCaseResult): void => {
+    remoteRefreshTokenRef.current += 1;
+    setSelectedCaseId(result.caseId);
+    setFeedback({ message: `Case restored: ${result.title}.`, tone: 'success' });
+    void refreshFromRemote();
+  };
+
+  const handleExported = (result: ExportCaseResult): void => {
+    const target = activeRepository;
+    if (target === null) {
+      return;
+    }
+
+    void persistBackupPromptedAt(target, result.archive.manifest.case.id)
+      .then(() => {
+        setFeedback({ message: `Backup saved: ${result.save.fileName}.`, tone: 'success' });
+        void refreshFromRemote();
+      })
+      .catch(() => {
+        setFeedback({
+          message:
+            'The backup file was saved, but the backup reminder could not be updated. The case is unchanged.',
+          tone: 'error',
+        });
+      });
+  };
+
   const applySummary = (summary: CaseSummary | null): boolean => {
     if (summary === null) {
       // The write is already committed but the authoritative summary could not
@@ -493,9 +541,22 @@ export function CaseShelfPage({
             description="Create a case for your next exam. Notes, sources, and topics get pinned to it once the case is open."
             headingLevel={3}
             action={
-              <Button variant="primary" size="lg" onClick={openCreate}>
-                Create your first case
-              </Button>
+              <div className="shelf__empty-actions">
+                <Button variant="primary" size="lg" onClick={openCreate}>
+                  Create your first case
+                </Button>
+                <a
+                  className="shelf__restore-link"
+                  href="#restore-backup"
+                  aria-haspopup="dialog"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    openImportBackup();
+                  }}
+                >
+                  Restore from a backup file
+                </a>
+              </div>
             }
           />
         </>
@@ -507,6 +568,8 @@ export function CaseShelfPage({
           selectedCaseId={selectedCaseId}
           onEdit={openEdit}
           onDelete={openDelete}
+          onBackUp={openExportBackup}
+          onImport={openImportBackup}
           storageStatus={storageStatus}
         />
       ) : null}
@@ -525,6 +588,23 @@ export function CaseShelfPage({
           preview={deletePreview}
           onClose={() => setDeletePreview(null)}
           onConfirm={handleDeleteConfirmed}
+        />
+      ) : null}
+
+      {backupState !== null && activeRepository !== null ? (
+        <BackupDialog
+          open
+          repository={activeRepository}
+          initialView={backupState.view}
+          onClose={() => setBackupState(null)}
+          onImported={handleImported}
+          onExported={handleExported}
+          {...(backupState.view === 'export'
+            ? {
+                exportCaseId: backupState.summary.id,
+                exportCaseTitle: backupState.summary.title,
+              }
+            : {})}
         />
       ) : null}
     </section>

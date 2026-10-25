@@ -29,6 +29,8 @@ import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import type { CardRecord, CaseRecord } from '../../domain/model';
+import BackupDialog from '../backup/BackupDialog';
+import { useBackupReminder } from '../backup/useBackupReminder';
 
 import './CaseBoardPage.css';
 
@@ -94,6 +96,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [cards, setCards] = useState<CardRecord[]>([]);
+  const [backupOpen, setBackupOpen] = useState(false);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
 
   const viewport = useStore(activeStore, selectViewport);
@@ -108,6 +111,11 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
 
   const invalidAddress = caseId.length === 0;
   const visibleStatus: LoadStatus = invalidAddress ? 'missing' : status;
+  const reminder = useBackupReminder({
+    repository: activeRepository,
+    caseId,
+    enabled: visibleStatus === 'ready',
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -266,10 +274,51 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </p>
         </div>
 
-        <Link className="case-board-page__back" to="/">
-          Back to case shelf
-        </Link>
+        <div className="case-board-page__actions">
+          <Button
+            variant="secondary"
+            onClick={() => setBackupOpen(true)}
+            disabled={visibleStatus !== 'ready' || activeRepository === null}
+          >
+            Back up case
+          </Button>
+          <Link className="case-board-page__back" to="/">
+            Back to case shelf
+          </Link>
+        </div>
       </header>
+
+      {visibleStatus === 'ready' && reminder.visible ? (
+        <aside className="backup-reminder" aria-labelledby="backup-reminder-title">
+          <p className="visually-hidden" role="status">
+            This case is ready for its first backup.
+          </p>
+          <div className="backup-reminder__copy">
+            <h3 id="backup-reminder-title">This case is worth backing up</h3>
+            <p>
+              Five cards and at least one connection is a good moment to keep a copy outside this
+              browser. Backups are a single file and are never uploaded.
+            </p>
+            {reminder.error !== null ? (
+              <p className="backup-reminder__error" role="alert">
+                {reminder.error}
+              </p>
+            ) : null}
+          </div>
+          <div className="backup-reminder__actions">
+            <Button variant="primary" onClick={() => setBackupOpen(true)}>
+              Back up now
+            </Button>
+            <Button
+              variant="quiet"
+              onClick={() => void reminder.dismiss()}
+              disabled={reminder.saving}
+            >
+              Not now
+            </Button>
+          </div>
+        </aside>
+      ) : null}
 
       <div className="case-board-page__stage">
         {visibleStatus === 'loading' ? (
@@ -328,6 +377,25 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </Suspense>
         ) : null}
       </div>
+
+      {backupOpen && caseRecord !== null && activeRepository !== null ? (
+        <BackupDialog
+          open
+          repository={activeRepository}
+          initialView="export"
+          exportCaseId={caseRecord.id}
+          exportCaseTitle={caseRecord.title}
+          onClose={() => setBackupOpen(false)}
+          onExported={() => {
+            void reminder.complete();
+          }}
+          onImported={(result) => {
+            if (result.caseId === caseId) {
+              setReloadToken((token) => token + 1);
+            }
+          }}
+        />
+      ) : null}
     </section>
   );
 }
