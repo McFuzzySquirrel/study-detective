@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: EVIDENCE-CAPTURE-1
+**Phase**: EVIDENCE-CAPTURE-2
 **Status**: In Progress
-**Validation Gaps**: 5 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T21:11:53.796Z
+**Validation Gaps**: 7 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-25T21:20:58.509Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -36,6 +36,8 @@
   - Files: src/features/capture/imageValidation.ts, src/features/capture/imagePipeline.ts, src/features/capture/cardImport.ts, src/data/caseRepository.ts, tests/capture/imageValidation.test.ts, tests/capture/imagePipeline.test.ts, tests/capture/cardImport.test.ts
 - [x] Phase EVIDENCE-CAPTURE-1, Task CAP-2: Build the touch and keyboard crop/rotate editor (@capture-engineer)
   - Files: src/features/capture/cropMath.ts, src/features/capture/CropRotateEditor.tsx, src/features/capture/crop.css, tests/capture/cropMath.test.ts, tests/capture/CropRotateEditor.test.tsx
+- [x] Phase EVIDENCE-CAPTURE-2, Task CAP-3: Build the capture route for notes, sources, and topics (@ui-engineer)
+  - Files: src/features/capture/CapturePage.tsx, src/features/capture/CaptureSourcePicker.tsx, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/capture/capture.css, src/app/routes.tsx, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx, src/features/capture/capturePosition.ts
 
 ## Current Task
 - None currently running
@@ -78,6 +80,8 @@
 - Task CAP-1: UI-created preview object URLs must be revoked by the UI on unmount/cancel; the pipeline owns only its internal fallback URL.
 - Task CAP-2: No real-browser or Playwright crop exercise was run because CAP-2 is not wired into a route; CAP-3/CAP-4 own that integration.
 - Task CAP-2: The editor's live summary updates during selection changes; screen-reader nudge and rotation paths were tested with keyboard events in jsdom.
+- Task CAP-3: The case board does not exist yet, so viewport placement is validated against an injected 1000x800 visible size rather than a live Pixi board viewport.
+- Task CAP-3: Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

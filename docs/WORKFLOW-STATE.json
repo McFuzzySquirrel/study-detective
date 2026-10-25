@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-25T21:11:53.795Z",
+  "lastUpdatedAt": "2026-10-25T21:20:58.508Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "EVIDENCE-CAPTURE-1",
+  "currentPhase": "EVIDENCE-CAPTURE-2",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -444,10 +444,40 @@
     },
     "CAP-3": {
       "taskId": "CAP-3",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "ui-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/features/capture/CapturePage.tsx",
+        "src/features/capture/CaptureSourcePicker.tsx",
+        "src/features/capture/NoteSourceForm.tsx",
+        "src/features/capture/TopicForm.tsx",
+        "src/features/capture/capture.css",
+        "src/app/routes.tsx",
+        "tests/capture/CaptureFlow.test.tsx",
+        "tests/capture/TopicForm.test.tsx",
+        "src/features/capture/capturePosition.ts"
+      ],
+      "startedAt": "2026-10-25T21:11:54.520Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/CAP-3.2026-10-25T21-20-58-499Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-25T21:20:58.501Z",
+      "agentOutput": "I'll start by reading the execution file and understanding the project context.\nImplemented CAP-3: the capture route now creates Study Note, Source, and text-only Topic cards.\n\n## What changed\n\n### New capture UI\n- `src/features/capture/CapturePage.tsx`\n  - `/case/:caseId/capture` step machine: picker → validation → crop → card form / topic form → import → return to case.\n  - Separate Take photo and Choose photo inputs accept `image/jpeg`, `image/png`, `image/webp`; only Take photo has `capture=\"environment\"`.\n  - Runs `validateImageFile`, shows validation/import progress, opens `CropRotateEditor`, then `NoteSourceForm`.\n  - Calls `importImageCard` for photo cards and `repository.createCard` for topics.\n  - Handles Retry/Back for decode and write failures; Cancel aborts in-flight work and returns to the case with no card.\n  - Revokes preview object URLs on success, crop cancel, failure exit, and unmount.\n  - Moves focus to the active step container when the flow changes.\n- `src/features/capture/CaptureSourcePicker.tsx`\n- `src/features/capture/NoteSourceForm.tsx`\n  - Card type, required 1–80 character title, Keep full resolution toggle defaulting off with a storage warning.\n- `src/features/capture/TopicForm.tsx`\n  - Text-only topic, no file input, required 1–80 character title.\n- `src/features/capture/capture.css`\n- `src/features/capture/capturePosition.ts`\n  - Pure viewport-center placement with a small staggered offset and nonnegative position clamping.\n\n### Route wiring\n- `src/app/routes.tsx`\n  - Replaced the capture placeholder with the lazy `CapturePage`.\n  - Added optional `captureRepository` / `loadCaptureRepository` injection props.\n\n### Tests\n- `tests/capture/CaptureFlow.test.tsx`\n- `tests/capture/TopicForm.test.tsx`\n\n## Acceptance evidence\n- Route is covered through `AppRoutes`; successful saves navigate to `/case/:caseId`.\n- Both photo inputs share one validation/crop path; Add topic never mounts a file input and never calls the validator.\n- Photo cards commit three attachment kinds (`original`, `display`, `thumbnail`); topics have zero attachments.\n- Full-resolution toggle is off by default and is forwarded as `retainFullResolution`.\n- Position is computed from the case viewport, visible viewport size, and existing-card count, then persisted with the card.\n- Decode and write failures show Retry/Back with no card written; cancel returns to the case with no card.\n- Component tests assert step focus, error focus, accessible names, live regions, and 44 px targets.\n- CSS and source checks confirm no raw palette literals and no `dangerouslySetInnerHTML`.\n- Responsive/announcement behavior uses existing token contrast pairs; reduced-motion overrides are present.\n\n## Validation run\n- `npm test -- tests/capture/CaptureFlow.test.tsx tests/capture/TopicForm.test.tsx` — 19 passed\n- `npm run typecheck` — passed\n- `npm run build` — passed\n- Full suite — 398 passed\n- `npm run lint` — passed\n- `npm run format:check` — passed\n\nKeyboards were exercised through `user-event` tab/Enter/typing flows. The component flow used an injected 1000×800 viewport; no Playwright browser journey was part of this task’s required commands.\n\n## Shared-file handoff\n- `src/app/routes.tsx`: preserve the new optional capture repository props and lazy `CapturePage` import.\n- `CapturePage` treats persisted `Viewport.x/y` as the visible world top-left corner and derives the center as `x + width / (2 * scale)`. Board-engineer should either adopt that contract or update `capturePosition.ts` when viewport semantics land.\n\n`docs/EXECUTION-AUDIT.jsonl` had a pre-existing engine modification that I did not touch. `docs/artifacts/` was not modified.\n\n```forge-result\n{\"summary\":\"Built the capture route with shared photo validation/crop flow, note/source and text-only topic creation, viewport-derived card placement, import progress with cancel/retry, object URL cleanup, route wiring, and 19 targeted component tests; full suite (398), typecheck, lint, format, and production build pass.\",\"unresolved\":[],\"decisions\":[\"Persisted viewport x/y is treated as the visible world top-left corner; placement centers at viewport.x + visibleWidth/(2*scale) with a small existing-card stagger.\",\"Cancel during photo import is available before the atomic saving stage and returns to the case; once saving starts the control is hidden because IndexedDB writes cannot be interrupted safely.\",\"Crop cancel returns to the picker, while failure Back returns to the case; both write no card.\"],\"interfaces\":[\"CapturePage({ repository?, loadRepository?, validateImage?, importCard?, readViewportSize? })\",\"CaptureSourcePicker({ disabled?, onFileSelected, onAddTopic })\",\"NoteSourceForm({ initialType?, initialTitle?, onBack, onSubmit })\",\"TopicForm({ onBack, onSubmit })\",\"computeInitialCardPosition(viewport, viewportSize, existingCardCount)\",\"AppRoutes({ shelfRepository?, loadShelfRepository?, captureRepository?, loadCaptureRepository? })\"],\"tests\":[\"npm test -- tests/capture/CaptureFlow.test.tsx tests/capture/TopicForm.test.tsx: exit 0\",\"npm run typecheck: exit 0\",\"npm run build: exit 0\",\"npm test: exit 0 (398 tests)\",\"npm run lint: exit 0\",\"npm run format:check: exit 0\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.\",\"Playwright/browser camera, real image decode, and tablet touch crop behavior were not run; component evidence is jsdom-based with injected validation/import functions.\",\"CAP-3 opens its own cached production repository handle; a later composition pass may want to share the shelf loader.\"],\"validationLimitations\":[\"The case board does not exist yet, so viewport placement is validated against an injected 1000x800 visible size rather than a live Pixi board viewport.\",\"Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification.\"]}\n```\n",
+      "validationLimitations": [
+        "The case board does not exist yet, so viewport placement is validated against an injected 1000x800 visible size rather than a live Pixi board viewport.",
+        "Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification."
+      ],
+      "artifactId": "work-cap-3-001",
+      "inputArtifactIds": [
+        "work-cap-1-001",
+        "work-cap-2-001",
+        "work-data-3-001"
+      ]
     },
     "CAP-4": {
       "taskId": "CAP-4",
