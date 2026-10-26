@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T17:49:03.095Z",
+  "lastUpdatedAt": "2026-10-26T17:57:01.143Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -1500,10 +1500,45 @@
     },
     "DEMO-1": {
       "taskId": "DEMO-1",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "data-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/features/demo/demoImages.ts",
+        "src/features/demo/demoCase.ts",
+        "src/features/demo/seedDemoCase.ts",
+        "tests/demo/seedDemoCase.test.ts",
+        "tests/demo/demoCase.test.ts",
+        "tests/demo/demoBackup.test.ts",
+        "tests/demo/demoFixtures.ts"
+      ],
+      "startedAt": "2026-10-26T17:49:03.181Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/DEMO-1.2026-10-26T17-57-01-126Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T17:57:01.135Z",
+      "agentOutput": "## DEMO-1 result\n\nImplemented one-time, locally generated demo seeding with no UI changes.\n\n### What was built\n\n- **`demoImages.ts`** — draws four 1200×800 notebook-style pages (two note pages, two source pages) entirely on canvas. Each page produces independent original, display, and thumbnail Blobs with MIME, dimensions, byte size, and SHA-256 metadata. No external image, font, URL, or asset is used.\n- **`demoCase.ts`** — builds the six-card demo graph:\n  - 2 notes, 2 sources, 2 topics\n  - 2 provenance strings: note 1 → source 1, note 2 → source 2\n  - 3 association strings: note 1 → topic 1, note 2 → topic 1, note 1 → topic 2\n  - derived readiness: ready, zero loose threads\n  - topic 1 solved with 2 linked notes; topic 2 developing with 1\n  - 12 attachment records, 3 per note/source\n- **`seedDemoCase.ts`** — checks the install flag and case count before generating anything, writes case/cards/connections/attachments in one IndexedDB transaction, sets the flag even when skipped, and provides `removeDemoCase` with an `isDemo` guard and flag re-assertion.\n\n### Invariants and failure evidence\n\n- **Graph legality:** canonical pair keys, no self-links, no duplicate pairs, provenance only between a note and a source; tested through `assertConnectionInCase` and readiness derivation.\n- **Atomic seed failure:** injected a duplicate attachment primary key so the final `bulkAdd` fails after the case, cards, and strings were staged. Observed rollback: all four tables at zero rows and the install flag still unset.\n- **One-time behavior:** second seed returns `already-seeded`; existing user case returns `existing-cases`, marks the flag, and writes nothing.\n- **Removal:** deleting the demo leaves user cases untouched, removes all demo rows/blobs, and a simulated reload does not reseed.\n- **Backup round-trip:** a real `.ndcase` archive manifest carries `isDemo: true`; copy restore through `importCase` preserves the marker and the full 6/5/12 graph; re-export preserves it again.\n\n### Validation\n\n- `npm test -- tests/demo/seedDemoCase.test.ts tests/demo/demoCase.test.ts tests/demo/demoBackup.test.ts` — **17 passed**\n- `npm run typecheck` — **exit 0**\n- Full suite — **945 passed, 75 files**\n- `npm run lint` — 0 errors (3 pre-existing `RecallSummary.tsx` fast-refresh warnings)\n- Prettier — clean\n- Coverage: demo modules **88.3% lines**; unchanged `src/domain` **98.43% lines**, `src/data` **90.79% lines**\n\n### Files created\n\n- `src/features/demo/demoImages.ts`\n- `src/features/demo/demoCase.ts`\n- `src/features/demo/seedDemoCase.ts`\n- `tests/demo/seedDemoCase.test.ts`\n- `tests/demo/demoCase.test.ts`\n- `tests/demo/demoBackup.test.ts`\n- `tests/demo/demoFixtures.ts` (shared canvas/storage test helper)\n\n### Files changed\n\nNo existing production files changed. The pre-existing modifications to `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were left untouched.\n\n### Handoff notes\n\n- **DEMO-3:** use `createDemoSeedFlagStore()`/`seedDemoCase()` and render the `isDemo` ribbon. Reuse one `DemoSeedFlagStore` per bootstrap. In jsdom component tests, inject `createCanvas` because jsdom has no 2D canvas implementation.\n- `removeDemoCase()` refuses non-demo cases; the normal confirmed delete dialog can also be used because the seed flag is already durable.\n- Demo source pages are 1200×800, below the existing display cap, so the display derivative has the same dimensions as the original; all three are separately encoded normal attachments.\n\n```forge-result\n{\"summary\":\"Implemented DEMO-1: locally canvas-generated demo pages, a close-ready six-card demo graph with five legal strings, atomic one-time seeding and demo-only removal, and isDemo preservation through real .ndcase export/import. The exact validation commands pass (17 demo tests; typecheck exit 0); full suite is 945 passing tests.\",\"unresolved\":[],\"decisions\":[\"Install flag is notes-detective.demo.seeded in localStorage behind an injectable store; the flag is set when seeding succeeds and when it is skipped for existing cases.\",\"Seed image generation happens only after the flag and zero-case checks; a failed generation or transaction leaves the flag unset so a later clean boot can retry.\",\"The case, six cards, five strings, and twelve attachments commit in one read-write Dexie transaction, with attachments last so a failed Blob write rolls back the whole graph.\",\"removeDemoCase rejects non-demo cases with DomainValidationError and re-marks the flag after a successful delete; generic confirmed delete remains safe because the seed flag is already durable.\",\"The demo is left ready-to-close rather than closed; the five specified strings derive topic 1 as solved (2 notes) and topic 2 as developing (1 note).\"],\"interfaces\":[\"generateDemoImages(options?: DemoImageGenerationOptions): Promise<DemoImageSet[]>\",\"buildDemoGraph(options: { images: readonly DemoImageSet[]; clock?: Clock; idFactory?: IdFactory }): DemoGraph\",\"seedDemoCase(options: { db: NotesDetectiveDatabase; clock?: Clock; idFactory?: IdFactory; flagStore?: DemoSeedFlagStore; createCanvas?: DemoCanvasFactory; digest?: DemoBlobDigest }): Promise<SeedDemoCaseResult>\",\"createDemoSeedFlagStore(storage?: DemoFlagStorage | null): DemoSeedFlagStore\",\"removeDemoCase(options: { repository: Pick<CaseRepositoryPort, 'getCase' | 'deleteCase'>; caseId: string; flagStore?: DemoSeedFlagStore }): Promise<boolean>\",\"DEMO_SEED_FLAG_KEY, DEMO_CASE_TITLE, DEMO_CASE_SUBJECT, DEMO_CARD_SPECS, DEMO_CONNECTION_SPECS, DEMO_PAGES, DemoImageError\"],\"tests\":[\"npm test -- tests/demo/seedDemoCase.test.ts tests/demo/demoCase.test.ts tests/demo/demoBackup.test.ts: 17 passed\",\"npm run typecheck: exit 0\",\"npm test: 945 passed across 75 files\",\"npm run lint: 0 errors, 3 pre-existing RecallSummary fast-refresh warnings\",\"npx prettier --check src/features/demo tests/demo: clean\",\"Coverage: src/features/demo 88.3% lines; src/domain 98.43% lines; src/data 90.79% lines\"],\"warnings\":[\"jsdom has no 2D canvas context. DEMO-3 component tests should inject createCanvas; real browser canvas drawing is exercised by the future first-run Playwright journey.\",\"Demo display derivatives keep 1200x800 dimensions because the source is below the existing DISPLAY_MAX_EDGE of 2048; original, display, and thumbnail are still separate validated attachments.\",\"The localStorage flag has an in-memory fallback only when storage is blocked; durable install-level persistence relies on browser localStorage availability.\"],\"validationLimitations\":[\"No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests.\"]}\n```\n",
+      "validationLimitations": [
+        "No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests."
+      ],
+      "artifactId": "work-demo-1-001",
+      "inputArtifactIds": [
+        "work-backup-2-001",
+        "work-link-1-001",
+        "work-close-1-001",
+        "work-board-4-001",
+        "work-board-5-001",
+        "work-link-5-001",
+        "work-link-hr-1-001",
+        "work-close-2-001",
+        "work-close-3-001",
+        "work-backup-3-001",
+        "work-backup-4-001"
+      ]
     },
     "DEMO-2": {
       "taskId": "DEMO-2",

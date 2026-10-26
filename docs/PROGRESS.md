@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: FIRST-RUN-DEMO-AND-HINTS-1
 **Status**: In Progress
-**Validation Gaps**: 47 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T17:49:03.100Z
+**Validation Gaps**: 48 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T17:57:01.148Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -94,12 +94,13 @@
   - Files: src/features/ocr/OcrPanel.tsx, src/features/ocr/OcrPanel.css, src/features/capture/NoteSourceForm.tsx, src/features/cards/CardDetailPage.tsx, tests/ocr/OcrPanel.test.tsx, e2e/ocr.spec.ts, e2e/fixtures/ocr-note.png, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/capture/cardImport.ts, src/features/ocr/ocrWorker.ts, src/features/ocr/ocrTitle.ts, tests/ocr/CardDetailOcr.test.tsx
 - [x] Phase OPTIONAL-OCR-3, Task OCR-3: Include OCR text in search and case archives (@data-engineer)
   - Files: src/features/search/searchCards.ts, src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, src/features/backup/importCase.ts, tests/search/ocrSearch.test.ts, tests/backup/ocrRoundTrip.test.ts
+- [x] Phase FIRST-RUN-DEMO-AND-HINTS-1, Task DEMO-1: Generate the demo case and implement one-time seeding (@data-engineer)
+  - Files: src/features/demo/demoImages.ts, src/features/demo/demoCase.ts, src/features/demo/seedDemoCase.ts, tests/demo/seedDemoCase.test.ts, tests/demo/demoCase.test.ts, tests/demo/demoBackup.test.ts, tests/demo/demoFixtures.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase FIRST-RUN-DEMO-AND-HINTS-1: Phase 1: Demo content and seeding
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-3: Phase 3: First-run integration
 - [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1: Phase 1: Layout, keyboard, and motion
@@ -159,6 +160,7 @@
 - Task OCR-1: tesseract.js JS is tree-shaken from this build because no screen imports useOcr yet; assets are emitted and precached.
 - Task OCR-2: Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey.
 - Task OCR-3: No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow.
+- Task DEMO-1: No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
