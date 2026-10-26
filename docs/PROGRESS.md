@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: CASE-BOARD-2
+**Phase**: SEARCH-TAGS-AND-FILTERS-1
 **Status**: In Progress
-**Validation Gaps**: 23 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T05:06:07.568Z
+**Validation Gaps**: 25 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T05:18:11.814Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -50,6 +50,8 @@
   - Files: src/board/Minimap.tsx, src/board/useCulling.ts, src/board/FitToViewButton.tsx, src/features/case/ScaleWarning.tsx, src/features/capture/CapturePage.tsx, src/board/textureCache.ts, src/features/case/CaseBoardPage.tsx, tests/board/Minimap.test.tsx, tests/board/culling.test.ts, tests/case/ScaleWarning.test.tsx, src/board/BoardCanvas.css, src/board/BoardCanvas.tsx, src/board/CardLayer.ts, src/board/CardSprite.ts, tests/board/BoardCanvas.test.tsx, src/board/boardCapacity.ts, src/board/fitToView.ts, src/features/case/ScaleWarning.css, tests/board/FitToViewButton.test.tsx
 - [x] Phase CASE-BOARD-2, Task BOARD-5: Build the keyboard card list, empty state, and delete undo (@ui-engineer)
   - Files: src/features/case/CardListPage.tsx, src/features/case/CardListPanel.tsx, src/features/case/EmptyBoard.tsx, src/features/case/useUndoDelete.ts, src/data/deleteCard.ts, src/features/case/CaseBoardPage.tsx, src/app/routes.tsx, tests/case/CardListPanel.test.tsx, tests/case/useUndoDelete.test.tsx, e2e/keyboard-cards.spec.ts, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/EmptyBoard.css
+- [x] Phase CONNECTIONS-AND-PROVENANCE-1, Task LINK-1: Implement connection rules, repository, and cascade delete (@data-engineer)
+  - Files: src/domain/connections.ts, src/data/connectionRepository.ts, tests/domain/connections.test.ts, tests/data/connectionRepository.test.ts
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -107,6 +109,8 @@
 - Task BOARD-4: e2e/board-drag.spec.ts passed for mouse and touch drag, tap, persistence, and context recovery in the combined run.
 - Task BOARD-4: Browser evidence covers Chromium-based projects only.
 - Task BOARD-5: Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design.
+- Task LINK-1: Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.
+- Task LINK-1: No browser or visual board behavior is in scope for LINK-1.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).
