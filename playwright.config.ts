@@ -12,6 +12,12 @@ export default defineConfig({
   use: {
     baseURL: previewUrl,
     trace: 'on-first-retry',
+    // Every pre-existing journey starts from an ordinary empty shelf with
+    // onboarding already seen. The install-level demo flag suppresses the
+    // first-run seed, and the seen set keeps one-time hints from covering
+    // unrelated pointer work. e2e/demo.spec.ts overrides this with a truly
+    // fresh context to exercise the seed and the first hint themselves.
+    storageState: './e2e/fixtures/no-demo-storage.json',
   },
   webServer: {
     command: 'npm run preview -- --port 4173 --strictPort',

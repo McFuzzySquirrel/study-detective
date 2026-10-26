@@ -168,7 +168,9 @@ function anchorPoint(card: CardRecord, viewport: Viewport): { x: number; y: numb
 }
 
 async function waitForBoard(): Promise<void> {
-  await screen.findByTestId('board-canvas');
+  // The board is a lazy chunk. A full parallel suite can take longer than the
+  // Testing Library default second to transform and evaluate it.
+  await screen.findByTestId('board-canvas', {}, { timeout: 5_000 });
   await waitFor(() => {
     expect(screen.getByTestId('board-canvas')).toHaveAttribute('data-board-scene-status', 'ready');
   });

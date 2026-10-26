@@ -24,15 +24,17 @@ describe('update prompt', () => {
   it('is mounted from the app root and appears only for a waiting worker', () => {
     render(<App />);
 
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    // The app root also mounts the first-run bootstrap status; this assertion
+    // is specifically about a waiting service worker, not any live region.
+    expect(
+      screen.queryByText('A new version of Notes Detective is ready.'),
+    ).not.toBeInTheDocument();
 
     act(() => {
       __triggerNeedRefresh();
     });
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'A new version of Notes Detective is ready.',
-    );
+    expect(screen.getByText('A new version of Notes Detective is ready.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Later' })).toBeEnabled();
   });
@@ -59,7 +61,9 @@ describe('update prompt', () => {
       expect(__getUpdateCalls()).toEqual([true]);
     });
     await waitFor(() => {
-      expect(screen.queryByRole('status')).not.toBeInTheDocument();
+      expect(
+        screen.queryByText('A new version of Notes Detective is ready.'),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -71,7 +75,9 @@ describe('update prompt', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Later' }));
 
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('A new version of Notes Detective is ready.'),
+    ).not.toBeInTheDocument();
     expect(__getUpdateCalls()).toEqual([]);
   });
 
@@ -83,9 +89,7 @@ describe('update prompt', () => {
       setUnsavedChanges(true);
     });
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Finish your current edit before refreshing.',
-    );
+    expect(screen.getByText('Finish your current edit before refreshing.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));

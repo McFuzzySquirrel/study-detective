@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: FIRST-RUN-DEMO-AND-HINTS-2
+**Phase**: FIRST-RUN-DEMO-AND-HINTS-3
 **Status**: In Progress
-**Validation Gaps**: 49 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T18:06:33.110Z
+**Validation Gaps**: 51 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T18:36:34.248Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -98,12 +98,13 @@
   - Files: src/features/demo/demoImages.ts, src/features/demo/demoCase.ts, src/features/demo/seedDemoCase.ts, tests/demo/seedDemoCase.test.ts, tests/demo/demoCase.test.ts, tests/demo/demoBackup.test.ts, tests/demo/demoFixtures.ts
 - [x] Phase FIRST-RUN-DEMO-AND-HINTS-2, Task DEMO-2: Implement persistent hints, the hint popover, and replay settings (@ui-engineer)
   - Files: src/features/onboarding/hints.ts, src/features/onboarding/HintPopover.tsx, src/features/onboarding/hints.css, src/features/settings/SettingsPage.tsx, src/app/routes.tsx, tests/onboarding/hints.test.ts, tests/onboarding/HintPopover.test.tsx, tests/settings/SettingsPage.test.tsx
+- [x] Phase FIRST-RUN-DEMO-AND-HINTS-3, Task DEMO-3: Wire first-run seeding, demo removal, and contextual hint triggers (@ui-engineer)
+  - Files: src/app/AppBootstrap.tsx, src/App.tsx, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, src/features/case/CaseBoardPage.tsx, src/features/recall/RecallPage.tsx, tests/demo/firstRun.test.tsx, e2e/demo.spec.ts, playwright.config.ts, src/features/onboarding/hints.css, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/DeleteCaseDialog.tsx, src/features/shelf/shelf.css, tests/pwa/UpdatePrompt.test.tsx, tests/recall/RecallPage.test.tsx, e2e/fixtures/no-demo-storage.json
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase FIRST-RUN-DEMO-AND-HINTS-3: Phase 3: First-run integration
 - [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1: Phase 1: Layout, keyboard, and motion
 - [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2: Phase 2: Automated audits
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-1: Phase 1: CI and deployment
@@ -163,6 +164,8 @@
 - Task OCR-3: No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow.
 - Task DEMO-1: No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests.
 - Task DEMO-2: No Playwright/browser reload or viewport matrix was run for DEMO-2 because the task's required validation is unit/component plus typecheck; the browser first-run journey belongs to DEMO-3. Persistence across reload is covered by reconstructing the store over the same injected storage.
+- Task DEMO-3: Long-press hint behavior is component-tested with a mocked coarse-pointer matchMedia; Playwright's configured projects do not emulate touch, so the browser journey exercises the thread-anchor hint instead.
+- Task DEMO-3: Contextual hints are fixed near the viewport bottom rather than geometrically anchored to their trigger; their click-through body avoids blocking the board, but final placement is a human style-review matter.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

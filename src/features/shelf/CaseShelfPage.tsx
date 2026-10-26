@@ -9,6 +9,7 @@ import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import type { CaseDeletionPreview } from '../../data/deleteCase';
 import { createPersistenceClient, UNSUPPORTED_PERSISTENCE } from '../../data/persistence';
+import type { DemoSeedFlagStore } from '../demo/seedDemoCase';
 import type { PersistenceClient, PersistenceResult } from '../../data/persistence';
 import { readStorageEstimate, UNKNOWN_STORAGE_ESTIMATE } from '../../data/storageEstimate';
 import type { StorageEstimateSnapshot } from '../../data/storageEstimate';
@@ -41,6 +42,8 @@ export interface CaseShelfPageProps {
   readonly loadStorageEstimate?: (() => Promise<StorageEstimateSnapshot>) | undefined;
   /** Injected BroadcastChannel factory so tests can simulate another tab. */
   readonly syncChannelFactory?: BroadcastChannelFactory | undefined;
+  /** Injected demo flag so a removal test can prove the one-time marker. */
+  readonly demoFlagStore?: DemoSeedFlagStore | undefined;
 }
 
 type LoadStatus = 'loading' | 'ready' | 'error';
@@ -59,6 +62,11 @@ type BackupState =
 type Feedback = {
   readonly message: string;
   readonly tone: ToastTone;
+};
+
+type DeleteTarget = {
+  readonly preview: CaseDeletionPreview;
+  readonly isDemo: boolean;
 };
 
 let defaultRepositoryPromise: Promise<CaseRepositoryPort> | null = null;
@@ -96,13 +104,14 @@ export function CaseShelfPage({
   persistenceClient,
   loadStorageEstimate,
   syncChannelFactory,
+  demoFlagStore,
 }: CaseShelfPageProps) {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [cases, setCases] = useState<CaseSummary[]>([]);
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState | null>(null);
-  const [deletePreview, setDeletePreview] = useState<CaseDeletionPreview | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null);
   const [backupState, setBackupState] = useState<BackupState | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -301,7 +310,7 @@ export function CaseShelfPage({
           void refreshFromRemote();
           return;
         }
-        setDeletePreview(preview);
+        setDeleteTarget({ preview, isDemo: summary.isDemo });
       })
       .catch(() => {
         setFeedback({
@@ -432,28 +441,46 @@ export function CaseShelfPage({
 
   /**
    * Called only by the confirmed dialog. The repository commits the cascade in
-   * one transaction; this handler updates derived shelf state afterwards.
+   * one transaction; this handler updates derived shelf state afterwards. The
+   * demo path goes through the demo helper so the install flag is re-asserted
+   * and a lost localStorage value cannot trigger a reseed on the next reload.
    */
   const handleDeleteConfirmed = async (): Promise<void> => {
     const target = activeRepository;
-    const preview = deletePreview;
+    const request = deleteTarget;
 
-    if (target === null || preview === null) {
+    if (target === null || request === null) {
       throw new Error('The case repository is not open.');
     }
 
-    const deleted = await target.deleteCase(preview.caseId);
+    const { preview, isDemo } = request;
+    let deleted: boolean;
+
+    if (isDemo) {
+      const { removeDemoCase } = await import('../demo/seedDemoCase');
+      deleted = await removeDemoCase({
+        repository: target,
+        caseId: preview.caseId,
+        ...(demoFlagStore !== undefined ? { flagStore: demoFlagStore } : {}),
+      });
+    } else {
+      deleted = await target.deleteCase(preview.caseId);
+    }
 
     remoteRefreshTokenRef.current += 1;
     broadcastMutation(preview.caseId, 'deleted');
     setCases((current) => current.filter((summary) => summary.id !== preview.caseId));
     setSelectedCaseId((current) => (current === preview.caseId ? null : current));
-    setDeletePreview(null);
+    setDeleteTarget(null);
 
     setFeedback({
       message: deleted
-        ? `Case deleted: ${preview.title}.`
-        : `The case was already deleted: ${preview.title}.`,
+        ? isDemo
+          ? `Demo case removed: ${preview.title}.`
+          : `Case deleted: ${preview.title}.`
+        : isDemo
+          ? `The demo case was already gone: ${preview.title}.`
+          : `The case was already deleted: ${preview.title}.`,
       tone: 'success',
     });
   };
@@ -583,10 +610,11 @@ export function CaseShelfPage({
         />
       ) : null}
 
-      {deletePreview !== null ? (
+      {deleteTarget !== null ? (
         <DeleteCaseDialog
-          preview={deletePreview}
-          onClose={() => setDeletePreview(null)}
+          preview={deleteTarget.preview}
+          isDemo={deleteTarget.isDemo}
+          onClose={() => setDeleteTarget(null)}
           onConfirm={handleDeleteConfirmed}
         />
       ) : null}

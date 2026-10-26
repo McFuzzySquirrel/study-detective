@@ -34,11 +34,15 @@ export default function CaseShelf({
   onImport,
   storageStatus,
 }: CaseShelfProps) {
+  // The demo is a first-run example, so it leads the shelf even if a later
+  // user case has a nearer exam date. Every other case keeps repository order.
+  const orderedCases = [...cases].sort((a, b) => (a.isDemo === b.isDemo ? 0 : a.isDemo ? -1 : 1));
+
   return (
     <>
       {storageStatus}
       <ul className="shelf__grid" aria-label="Case files">
-        {cases.map((summary) => (
+        {orderedCases.map((summary) => (
           <li key={summary.id} className="shelf__grid-item">
             <CaseCard
               summary={summary}

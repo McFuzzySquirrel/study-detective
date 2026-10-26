@@ -9,6 +9,8 @@ import './shelf.css';
 export interface DeleteCaseDialogProps {
   /** Authoritative counts read from storage when the dialog opened. */
   readonly preview: CaseDeletionPreview;
+  /** Names the target as the demo case and uses removal wording. */
+  readonly isDemo?: boolean | undefined;
   readonly onClose: () => void;
   /**
    * Performs the cascade. A rejection keeps the dialog open and announces that
@@ -38,10 +40,22 @@ function countRows(
  * Dialog restores focus to the delete trigger on close. There is deliberately
  * no undo control.
  */
-export default function DeleteCaseDialog({ preview, onClose, onConfirm }: DeleteCaseDialogProps) {
+export default function DeleteCaseDialog({
+  preview,
+  isDemo = false,
+  onClose,
+  onConfirm,
+}: DeleteCaseDialogProps) {
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  const targetName = isDemo ? 'the demo case' : 'this case';
+  const dialogTitle = isDemo
+    ? `Remove demo case “${preview.title}”?`
+    : `Delete “${preview.title}”?`;
+  const dialogDescription = isDemo
+    ? 'Removing the demo case deletes its sample cards, strings, and images from this device. Your own cases are not touched.'
+    : 'Deleting a case permanently removes it and everything pinned to it from this device.';
 
   const handleConfirm = async (): Promise<void> => {
     if (deleting) {
@@ -57,7 +71,11 @@ export default function DeleteCaseDialog({ preview, onClose, onConfirm }: Delete
     } catch {
       // The data layer rolled the whole transaction back. Keep the dialog and
       // its counts so the student can retry or cancel.
-      setError('The case could not be deleted. Nothing was removed; try again.');
+      setError(
+        isDemo
+          ? 'The demo case could not be removed. Nothing was removed; try again.'
+          : 'The case could not be deleted. Nothing was removed; try again.',
+      );
       setDeleting(false);
     }
   };
@@ -66,8 +84,8 @@ export default function DeleteCaseDialog({ preview, onClose, onConfirm }: Delete
     <Dialog
       open
       onClose={onClose}
-      title={`Delete “${preview.title}”?`}
-      description="Deleting a case permanently removes it and everything pinned to it from this device."
+      title={dialogTitle}
+      description={dialogDescription}
       size="sm"
       dismissible={!deleting}
       closeOnBackdrop={!deleting}
@@ -78,13 +96,19 @@ export default function DeleteCaseDialog({ preview, onClose, onConfirm }: Delete
             Cancel
           </Button>
           <Button variant="danger" onClick={() => void handleConfirm()} disabled={deleting}>
-            {deleting ? 'Deleting…' : 'Delete case'}
+            {deleting
+              ? isDemo
+                ? 'Removing…'
+                : 'Deleting…'
+              : isDemo
+                ? 'Remove demo'
+                : 'Delete case'}
           </Button>
         </>
       }
     >
       <div className="delete-case">
-        <p className="delete-case__lead">This removes the case and everything stored in it:</p>
+        <p className="delete-case__lead">This removes {targetName} and everything stored in it:</p>
 
         <dl className="delete-case__counts" aria-label="Case contents">
           {countRows(preview).map((row) => (
@@ -96,8 +120,10 @@ export default function DeleteCaseDialog({ preview, onClose, onConfirm }: Delete
         </dl>
 
         <p className="delete-case__warning" role="note">
-          <strong>Deletion is permanent.</strong> It cannot be undone and no copy is kept in the
-          app.
+          <strong>{isDemo ? 'Removal is permanent.' : 'Deletion is permanent.'}</strong>{' '}
+          {isDemo
+            ? 'The demo will not be recreated automatically, and no copy is kept in the app.'
+            : 'It cannot be undone and no copy is kept in the app.'}
         </p>
 
         {error !== null ? (

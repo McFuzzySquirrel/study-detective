@@ -69,19 +69,27 @@ export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup
       className="case-card"
       aria-labelledby={titleId}
       data-selected={selected ? 'true' : 'false'}
+      data-demo={summary.isDemo ? 'true' : 'false'}
     >
       <div className="case-card__header">
-        <h3 id={titleId} className="case-card__title">
-          <Link
-            id={linkId}
-            className="case-card__link"
-            to={`/case/${summary.id}`}
-            data-case-link={summary.id}
-            aria-current={selected ? 'true' : undefined}
-          >
-            {summary.title}
-          </Link>
-        </h3>
+        <div className="case-card__title-group">
+          {summary.isDemo ? (
+            <span className="case-card__demo-ribbon" data-testid="case-demo-ribbon">
+              Demo
+            </span>
+          ) : null}
+          <h3 id={titleId} className="case-card__title">
+            <Link
+              id={linkId}
+              className="case-card__link"
+              to={`/case/${summary.id}`}
+              data-case-link={summary.id}
+              aria-current={selected ? 'true' : undefined}
+            >
+              {summary.title}
+            </Link>
+          </h3>
+        </div>
 
         {badgeLabel !== null && badgeState !== null ? (
           <span className="case-card__badge" data-state={badgeState}>
@@ -89,6 +97,10 @@ export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup
           </span>
         ) : null}
       </div>
+
+      {summary.isDemo ? (
+        <p className="case-card__demo-note">Demo case — remove it whenever you like.</p>
+      ) : null}
 
       <p className="case-card__subject">
         {summary.subject !== undefined ? summary.subject : 'No subject recorded'}
@@ -141,10 +153,10 @@ export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup
         <Button
           variant="danger"
           size="md"
-          aria-label={`Delete ${summary.title}`}
+          aria-label={summary.isDemo ? `Remove demo ${summary.title}` : `Delete ${summary.title}`}
           onClick={() => onDelete(summary)}
         >
-          Delete
+          {summary.isDemo ? 'Remove demo' : 'Delete'}
         </Button>
       </div>
     </article>

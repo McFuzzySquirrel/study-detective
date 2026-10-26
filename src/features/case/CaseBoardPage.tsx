@@ -22,6 +22,7 @@ import { useStore } from 'zustand';
 import { boardStore } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import {
+  selectSelectedCardId,
   selectSelectedConnectionId,
   selectViewport,
   selectViewportDirty,
@@ -59,6 +60,9 @@ import ConnectionTypeMenu from '../connections/ConnectionTypeMenu';
 import type { ConnectionDropInput } from '../connections/useCreateConnection';
 import { useCreateConnection } from '../connections/useCreateConnection';
 import { useUndoDeleteConnection } from '../connections/useUndoDeleteConnection';
+import HintPopover from '../onboarding/HintPopover';
+import { getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
+import type { HintId, HintSeenStore } from '../onboarding/hints';
 import SearchPanel from '../search/SearchPanel';
 
 import ScaleWarning from './ScaleWarning';
@@ -91,6 +95,8 @@ export interface CaseBoardPageProps {
   readonly loadConnectionRepository?: CaseBoardConnectionRepositoryLoader | undefined;
   /** Injected board store for tests and future multi-board screens. */
   readonly store?: BoardStoreApi | undefined;
+  /** Injected hint seen store for context-trigger tests and composition. */
+  readonly hintStore?: HintSeenStore | undefined;
 }
 
 type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
@@ -192,6 +198,19 @@ function readStageSize(element: HTMLElement | null): BoardSize {
   };
 }
 
+/** A coarse primary pointer is the touch case the long-press hint explains. */
+function readCoarsePointer(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+
+  try {
+    return window.matchMedia('(pointer: coarse)').matches;
+  } catch {
+    return false;
+  }
+}
+
 /** The routed case-board screen: repository load, canvas mount, viewport save. */
 export function CaseBoardPage({
   repository,
@@ -199,6 +218,7 @@ export function CaseBoardPage({
   connectionRepository,
   loadConnectionRepository,
   store,
+  hintStore,
 }: CaseBoardPageProps) {
   const { caseId: caseIdParam } = useParams();
   const caseId = caseIdParam ?? '';
@@ -220,6 +240,9 @@ export function CaseBoardPage({
   }>({ key: '', images: {} });
   const [backupOpen, setBackupOpen] = useState(false);
   const [restoredConnectionFocusToken, setRestoredConnectionFocusToken] = useState(0);
+  const [coarsePointer, setCoarsePointer] = useState(readCoarsePointer);
+  const activeHintStore = hintStore ?? hintSeenStore;
+  const seenHints = useSeenHints(activeHintStore);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
   const cardSaveTimersRef = useRef(new Map<string, number>());
   const cardSaveGenerationsRef = useRef(new Map<string, number>());
@@ -232,6 +255,7 @@ export function CaseBoardPage({
   const viewport = useStore(activeStore, selectViewport);
   const viewportDirty = useStore(activeStore, selectViewportDirty);
   const selectedConnectionId = useStore(activeStore, selectSelectedConnectionId);
+  const selectedCardId = useStore(activeStore, selectSelectedCardId);
 
   const resolveRepository = useCallback<CaseBoardRepositoryLoader>(() => {
     if (repository !== undefined) {
@@ -335,6 +359,31 @@ export function CaseBoardPage({
     },
     [activeStore],
   );
+
+  // The long-press hint only makes sense for a coarse primary pointer. Track
+  // the media query so a tablet with a paired mouse still gets the right copy.
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    let query: MediaQueryList;
+    try {
+      query = window.matchMedia('(pointer: coarse)');
+    } catch {
+      return;
+    }
+
+    const sync = (): void => setCoarsePointer(query.matches);
+    sync();
+
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', sync);
+      return () => query.removeEventListener('change', sync);
+    }
+
+    return undefined;
+  }, []);
 
   // Clear pending card-position timers on route/case change so a late write
   // cannot land in a different case. Generation tokens make an already-started
@@ -761,6 +810,22 @@ export function CaseBoardPage({
 
   const capacityBlocked = visibleStatus === 'ready' && !canAddCard(cards.length);
 
+  /**
+   * Contextual hints are independent, not a tour. Only the one whose moment is
+   * actually present is shown, and the shared seen store removes it for good
+   * once it is dismissed. A hint never covers the board pointer surface: it
+   * uses the contextual modifier that lets clicks pass through the panel body.
+   */
+  const activeHintId: HintId | null =
+    visibleStatus !== 'ready' || caseRecord === null
+      ? null
+      : cards.length >= 2 && !seenHints.has('thread-anchor')
+        ? 'thread-anchor'
+        : coarsePointer && selectedCardId !== null && !seenHints.has('long-press')
+          ? 'long-press'
+          : null;
+  const activeHint = activeHintId === null ? null : getHint(activeHintId);
+
   const retryLoad = (): void => {
     setLoadError(null);
     setStatus('loading');
@@ -1029,6 +1094,20 @@ export function CaseBoardPage({
         }}
         onDismiss={connection.dismissMenu}
       />
+
+      {activeHint !== null ? (
+        <HintPopover
+          key={activeHint.id}
+          open
+          hintId={activeHint.id}
+          store={activeHintStore}
+          title={activeHint.title}
+          description={activeHint.description}
+          className="nd-hint--contextual"
+          returnFocusRef={boardHeadingRef}
+          onDismiss={() => undefined}
+        />
+      ) : null}
 
       {backupOpen && caseRecord !== null && activeRepository !== null ? (
         <BackupDialog

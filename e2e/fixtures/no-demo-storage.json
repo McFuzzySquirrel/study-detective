@@ -1,0 +1,18 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://127.0.0.1:4173",
+      "localStorage": [
+        {
+          "name": "notes-detective.demo.seeded",
+          "value": "1"
+        },
+        {
+          "name": "notes-detective.hints.seen",
+          "value": "[\"thread-anchor\",\"long-press\",\"recall\"]"
+        }
+      ]
+    }
+  ]
+}

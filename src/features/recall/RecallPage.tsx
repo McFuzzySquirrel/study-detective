@@ -35,6 +35,9 @@ import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import type { CardRecord, CaseRecord, ConnectionRecord } from '../../domain/model';
+import HintPopover from '../onboarding/HintPopover';
+import { getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
+import type { HintSeenStore } from '../onboarding/hints';
 
 import { compareConnections } from './compareConnections';
 import type { RecallComparison } from './compareConnections';
@@ -62,6 +65,8 @@ export interface RecallPageProps {
   readonly store?: BoardStoreApi | undefined;
   /** Injected scratch store so a test can assert the discard lifecycle. */
   readonly scratchStore?: RecallStoreApi | undefined;
+  /** Injected hint seen store for context-trigger tests and composition. */
+  readonly hintStore?: HintSeenStore | undefined;
 }
 
 type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
@@ -130,12 +135,20 @@ function scratchSnapshot(connection: {
 }
 
 /** The routed, non-persistent recall screen. */
-export function RecallPage({ repository, loadRepository, store, scratchStore }: RecallPageProps) {
+export function RecallPage({
+  repository,
+  loadRepository,
+  store,
+  scratchStore,
+  hintStore,
+}: RecallPageProps) {
   const { caseId: caseIdParam } = useParams();
   const caseId = caseIdParam ?? '';
   const navigate = useNavigate();
   const activeStore = store ?? boardStore;
   const activeScratchStore = scratchStore ?? recallStore;
+  const activeHintStore = hintStore ?? hintSeenStore;
+  const seenHints = useSeenHints(activeHintStore);
   const scratch = useScratchConnections({ store: activeScratchStore });
   const viewport = useStore(activeStore, selectViewport);
 
@@ -480,6 +493,11 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
   const extraCount = comparison?.extra.length ?? 0;
   const typeMismatchCount = comparison?.typeMismatch.length ?? 0;
   const resultsVisible = checked && comparison !== null;
+  // Recall only becomes useful once the case has a real string to rebuild.
+  const recallHint =
+    visibleStatus === 'ready' && connections.length > 0 && !seenHints.has('recall')
+      ? getHint('recall')
+      : null;
 
   return (
     <section
@@ -625,6 +643,20 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
 
       {visibleStatus === 'ready' && resultsVisible && comparison !== null ? (
         <RecallResults comparison={comparison} cards={cards} />
+      ) : null}
+
+      {recallHint !== null ? (
+        <HintPopover
+          key={recallHint.id}
+          open
+          hintId={recallHint.id}
+          store={activeHintStore}
+          title={recallHint.title}
+          description={recallHint.description}
+          className="nd-hint--contextual"
+          returnFocusRef={headingRef}
+          onDismiss={() => undefined}
+        />
       ) : null}
 
       <Dialog
