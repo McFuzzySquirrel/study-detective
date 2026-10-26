@@ -7,7 +7,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Frame-rate evidence is only comparable when the machine is not also
+  // rendering two other WebGL contexts. CI already uses one worker; keeping one
+  // locally makes `npm run test:e2e -- e2e/performance.spec.ts` measure the
+  // board rather than worker contention.
+  workers: 1,
   reporter: 'list',
   use: {
     baseURL: previewUrl,

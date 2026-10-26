@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2
 **Status**: In Progress
-**Validation Gaps**: 62 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T19:55:03.854Z
+**Validation Gaps**: 64 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T20:23:04.022Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -108,6 +108,8 @@
   - Files: src/styles/tokens.css, src/styles/base.css, src/features/settings/SettingsPage.tsx, tests/a11y/contrast.test.ts, tests/a11y/targets.test.ts, tests/a11y/reducedMotion.test.tsx, src/app/AppShell.tsx, src/board/BoardCanvas.tsx, src/features/backup/BackupDialog.css, src/features/case/CaseBoardPage.tsx, src/features/case/TopicStatusBadge.tsx, src/features/connections/connections.css, src/features/ocr/OcrPanel.css, src/main.tsx, tests/ocr/OcrPanel.test.tsx, src/app/motionPreference.ts, src/features/settings/settings.css
 - [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-4: Add axe scans for every primary screen (@qa-engineer)
   - Files: tests/a11y/axeConfig.ts, e2e/a11y.spec.ts, e2e/search.spec.ts, src/features/search/SearchPanel.tsx, tests/search/SearchPanel.test.tsx
+- [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-5: Measure board performance and enforce the initial JavaScript budget (@qa-engineer)
+  - Files: e2e/helpers/seedLargeCase.ts, e2e/performance.spec.ts, scripts/perf-budget.mjs, tests/a11y/perfBudget.test.ts, docs/quality/performance-budget.md, vite.config.ts, playwright.config.ts
 
 ## Current Task
 - None currently running
@@ -184,6 +186,8 @@
 - Task A11Y-4: Automated axe scans do not replace the human keyboard and screen-reader spot check.
 - Task A11Y-4: Canvas spatial screen-reader parity and visual focus-ring/target appearance remain human review items.
 - Task A11Y-4: No performance checks were added, per task exclusion.
+- Task A11Y-5: Headless Chromium software WebGL is not the target tablet; the 45 FPS result cannot be inferred from the 30 FPS floor.
+- Task A11Y-5: The local preview server does not represent a 20 Mbps network profile, so cold load is documented but deferred to field measurement.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

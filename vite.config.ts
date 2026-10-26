@@ -13,5 +13,9 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: false,
+    // A11Y-5 reads dist/.vite/manifest.json to measure the entry and its
+    // statically imported shared chunks. Lazy board and OCR chunks are dynamic
+    // imports, so they stay outside the initial-JavaScript budget.
+    manifest: true,
   },
 });
