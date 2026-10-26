@@ -1045,6 +1045,7 @@ export function CardDetailPage({
 
             <Button
               className="card-detail__action"
+              data-connect-action="true"
               onClick={() => {
                 setFeedback(null);
                 setPickerIntent('connect');

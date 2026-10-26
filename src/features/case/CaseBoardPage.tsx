@@ -39,6 +39,7 @@ import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
 import Toast from '../../components/Toast';
 import { usePhoneLayout } from '../../app/useLayoutMode';
+import { FOCUS_SEARCH_EVENT } from '../../app/focus';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { ConnectionRepository } from '../../data/connectionRepository';
@@ -301,6 +302,25 @@ export function CaseBoardPage({
     repository: activeRepository,
     onCaseChanged: setCaseRecord,
   });
+
+  // The shell's `/` shortcut publishes this event. On a phone the search panel
+  // lives in a sheet, so the page opens the sheet and the Dialog primitive puts
+  // focus on the search field. Desktop and tablet panels handle it themselves.
+  useEffect(() => {
+    const handleFocusSearch = (): void => {
+      if (!phoneLayout || visibleStatus !== 'ready' || cards.length === 0) {
+        return;
+      }
+
+      setSearchSheetOpen(true);
+    };
+
+    window.addEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
+
+    return () => {
+      window.removeEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
+    };
+  }, [cards.length, phoneLayout, visibleStatus]);
 
   useEffect(() => {
     let cancelled = false;

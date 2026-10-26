@@ -7,6 +7,8 @@
  * component imports no repository and cannot write storage.
  */
 
+import { useEffect, useRef } from 'react';
+
 import Button from '../../components/Button';
 
 import type { ScratchConnection } from './recallStore';
@@ -46,6 +48,27 @@ export function RecallToolbar({
   onRemove,
 }: RecallToolbarProps) {
   const hasScratch = scratchConnections.length > 0;
+  const resetDisabled = !hasScratch && !checked;
+  const resetRef = useRef<HTMLButtonElement>(null);
+  const checkRef = useRef<HTMLButtonElement>(null);
+  const wasResetDisabledRef = useRef(resetDisabled);
+
+  // Reset disables itself once the scratch layer and check result are clear.
+  // A disabled control cannot keep focus, so land on Check rather than letting
+  // the student's place fall back to the document body.
+  useEffect(() => {
+    const becameDisabled = !wasResetDisabledRef.current && resetDisabled;
+    wasResetDisabledRef.current = resetDisabled;
+
+    if (!becameDisabled) {
+      return;
+    }
+
+    const active = document.activeElement;
+    if (active === document.body || active === resetRef.current) {
+      checkRef.current?.focus();
+    }
+  }, [resetDisabled]);
 
   return (
     <section className="recall-toolbar" aria-label="Recall controls">
@@ -55,13 +78,19 @@ export function RecallToolbar({
         </p>
 
         <div className="recall-toolbar__actions">
-          <Button variant="primary" onClick={onCheck}>
+          <Button ref={checkRef} variant="primary" onClick={onCheck} data-recall-action="check">
             Check
           </Button>
-          <Button variant="secondary" onClick={onReset} disabled={!hasScratch && !checked}>
+          <Button
+            ref={resetRef}
+            variant="secondary"
+            onClick={onReset}
+            disabled={resetDisabled}
+            data-recall-action="reset"
+          >
             Reset scratch
           </Button>
-          <Button variant="quiet" onClick={onExit}>
+          <Button variant="quiet" onClick={onExit} data-recall-action="exit">
             Exit recall
           </Button>
         </div>
@@ -85,6 +114,7 @@ export function RecallToolbar({
                     size="md"
                     onClick={() => onRemove(connection.id)}
                     aria-label={`Remove scratch connection between ${fromTitle} and ${toTitle}`}
+                    data-recall-action="remove"
                   >
                     Remove
                   </Button>

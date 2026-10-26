@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1
 **Status**: In Progress
-**Validation Gaps**: 55 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T18:53:48.294Z
+**Validation Gaps**: 57 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T19:10:00.157Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -102,6 +102,8 @@
   - Files: src/app/AppBootstrap.tsx, src/App.tsx, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, src/features/case/CaseBoardPage.tsx, src/features/recall/RecallPage.tsx, tests/demo/firstRun.test.tsx, e2e/demo.spec.ts, playwright.config.ts, src/features/onboarding/hints.css, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/DeleteCaseDialog.tsx, src/features/shelf/shelf.css, tests/pwa/UpdatePrompt.test.tsx, tests/recall/RecallPage.test.tsx, e2e/fixtures/no-demo-storage.json
 - [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1, Task A11Y-1: Harden tablet, phone, and desktop layouts (@ui-engineer)
   - Files: src/styles/responsive.css, src/app/AppShell.tsx, src/app/AppShell.css, src/features/shelf/CaseShelf.tsx, src/features/case/CaseBoardPage.tsx, src/features/cards/CardDetailPage.tsx, src/features/recall/RecallPage.tsx, src/features/search/SearchPanel.tsx, src/features/settings/SettingsPage.tsx, tests/a11y/responsive.test.tsx, e2e/responsive.spec.ts, src/components/Dialog.tsx, src/components/components.css, src/features/capture/capture.css, src/features/cards/CardDetail.css, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/CaseBoardPage.css, src/features/case/EmptyBoard.css, src/features/closure/closure.css, src/features/connections/connections.css, src/features/ocr/OcrPanel.css, src/features/onboarding/hints.css, src/features/recall/recall.css, src/features/search/SearchPanel.css, src/features/shelf/shelf.css, src/main.tsx, tests/search/SearchPanel.test.tsx, src/app/useLayoutMode.ts
+- [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1, Task A11Y-2: Complete the keyboard path and canvas text alternative (@ui-engineer)
+  - Files: src/app/KeyboardShortcuts.tsx, src/app/focus.ts, src/app/AppShell.tsx, src/features/case/CardListPanel.tsx, src/features/connections/ConnectionPicker.tsx, src/features/recall/RecallToolbar.tsx, src/features/search/SearchPanel.tsx, src/features/settings/SettingsPage.tsx, tests/a11y/keyboard.test.tsx, e2e/keyboard-journey.spec.ts, src/board/BoardCanvas.tsx, src/components/components.css, src/features/cards/CardDetailPage.tsx, src/features/case/CaseBoardPage.tsx, src/components/ShortcutList.tsx, src/components/shortcuts.ts
 
 ## Current Task
 - None currently running
@@ -172,6 +174,8 @@
 - Task A11Y-1: No axe scans were added, per task exclusion.
 - Task A11Y-1: The viewport matrix runs once in the desktop project while setting all four viewports explicitly; the phone sheet journey runs in the phone project, so tablet and desktop projects report the other journey as skipped by design.
 - Task A11Y-1: Safe-area presence is verified by a source contract test because the headless browser resolves env() insets to 0px.
+- Task A11Y-2: Spatial placement, panning, and scratch drawing were not exercised by keyboard because they remain pointer-only by design.
+- Task A11Y-2: Headless Chromium cannot validate safe-area or visual focus-ring appearance; those remain human visual review items.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

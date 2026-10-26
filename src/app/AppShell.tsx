@@ -2,6 +2,7 @@ import type { MouseEvent, ReactNode } from 'react';
 import { NavLink } from 'react-router';
 
 import { useLayoutMode } from './useLayoutMode';
+import KeyboardShortcuts from './KeyboardShortcuts';
 import OfflineNotice from './OfflineNotice';
 import './AppShell.css';
 
@@ -51,6 +52,9 @@ export default function AppShell({ children, storageStatus }: AppShellProps) {
       <main id="main-content" className="app-frame__content" tabIndex={-1}>
         {children}
       </main>
+
+      {/* The listener lives in the shell, so shortcuts exist on every route. */}
+      <KeyboardShortcuts />
     </div>
   );
 }

@@ -22,8 +22,9 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 
+import { DISMISS_EVENT, FOCUS_SEARCH_EVENT } from '../../app/focus';
 import Button from '../../components/Button';
 import Field from '../../components/Field';
 import IconButton from '../../components/IconButton';
@@ -148,6 +149,18 @@ export default function SearchPanel({
   const [filtersOpen, setFiltersOpen] = useState(defaultFiltersOpen);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const [searchParams] = useSearchParams();
+
+  // The `/` shortcut on card detail or capture navigates here with
+  // `?focus=search`. The panel mounts after the case data loads, so focus is
+  // applied here rather than by the shell reaching across routes.
+  useEffect(() => {
+    if (searchParams.get('focus') !== 'search') {
+      return;
+    }
+
+    inputRef.current?.focus();
+  }, [searchParams]);
 
   // Debounce only the text query. Filter state is applied by the render below,
   // so tapping a chip updates the list immediately.
@@ -187,13 +200,43 @@ export default function SearchPanel({
     );
   }, []);
 
-  const clearAll = (): void => {
+  const clearAll = useCallback((): void => {
     setDraft('');
     setQuery('');
     setTypeFilter('all');
     setSelectedTags([]);
     inputRef.current?.focus();
-  };
+  }, []);
+
+  // The shell's `/` shortcut and its Escape handler publish these events.
+  // Keeping the listeners here means the panel owns its own focus and reset
+  // behavior instead of the shell reaching into its state.
+  useEffect(() => {
+    const handleFocusSearch = (): void => {
+      const field = inputRef.current;
+
+      if (field === null) {
+        return;
+      }
+
+      field.focus();
+      field.select();
+    };
+
+    const handleDismiss = (): void => {
+      if (criteriaActive) {
+        clearAll();
+      }
+    };
+
+    window.addEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
+    window.addEventListener(DISMISS_EVENT, handleDismiss);
+
+    return () => {
+      window.removeEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
+      window.removeEventListener(DISMISS_EVENT, handleDismiss);
+    };
+  }, [clearAll, criteriaActive]);
 
   const chooseResult = (card: CardRecord): void => {
     onSelectCard(card);
@@ -295,6 +338,8 @@ export default function SearchPanel({
               value={draft}
               autoComplete="off"
               spellCheck={false}
+              data-shortcut-target="search"
+              aria-keyshortcuts="/"
               onChange={(event) => setDraft(event.currentTarget.value)}
               onKeyDown={handleQueryKeyDown}
             />

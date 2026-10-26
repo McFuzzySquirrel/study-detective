@@ -7,7 +7,7 @@
  * accessible controls; `usePixiApp` owns renderer and texture teardown.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -158,6 +158,16 @@ export function BoardCanvas({
   const reducedMotion = usePrefersReducedMotion();
   const navigate = useNavigate();
   const recall = mode === 'recall';
+  const canvasTitle = recall ? 'Recall board canvas' : 'Case board canvas';
+  const canvasDescriptionId = `board-canvas-description-${useId().replace(/:/g, '')}`;
+  const cardCount = snapshot.cards.length;
+  const canvasDescription = recall
+    ? `Recall board with ${cardCount} ${
+        cardCount === 1 ? 'card' : 'cards'
+      } arranged spatially. Case strings are hidden. Use the recall toolbar for Check, Reset scratch, and Exit; scratch drawing is pointer-only.`
+    : `Case board with ${cardCount} ${
+        cardCount === 1 ? 'card' : 'cards'
+      } arranged spatially. Use Open card list for a keyboard-operable view. Placement, panning, and thread drawing stay pointer-only.`;
 
   const snapshotRef = useRef(snapshot);
   const viewportRef = useRef(viewport);
@@ -558,12 +568,16 @@ export function BoardCanvas({
       data-board-context-lost={contextLost ? 'true' : 'false'}
       aria-busy={status === 'initializing'}
     >
+      <p id={canvasDescriptionId} className="visually-hidden">
+        {canvasDescription}
+      </p>
       <div
         ref={hostRef}
         className="board-canvas__host"
         data-testid="board-canvas-host"
         role="group"
-        aria-label="Case board canvas"
+        aria-label={canvasTitle}
+        aria-describedby={canvasDescriptionId}
       />
 
       <div className="board-canvas__controls" role="group" aria-label="Board view controls">
@@ -619,7 +633,7 @@ export function BoardCanvas({
               Add evidence
             </Link>
           )}
-          <Link className="board-canvas__link" to={`${casePath}/list`}>
+          <Link className="board-canvas__link" to={`${casePath}/list`} data-testid="open-card-list">
             Open card list
           </Link>
         </div>

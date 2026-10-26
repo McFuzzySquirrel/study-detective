@@ -112,6 +112,7 @@ function CardListGroup({
                 aria-labelledby={`card-title-${card.id}`}
                 data-card-id={card.id}
                 data-card-type={card.type}
+                data-card-row="true"
               >
                 <div className="card-list__body">
                   <p className="card-list__type">{CARD_TYPE_LABELS[card.type]}</p>
@@ -147,6 +148,7 @@ function CardListGroup({
                     className="card-list__action-link"
                     to={`/case/${card.caseId}/card/${card.id}`}
                     aria-label={`Open detail for ${card.title}`}
+                    data-card-open="true"
                   >
                     Open detail
                   </Link>
@@ -168,6 +170,7 @@ function CardListGroup({
                   <Button
                     className="card-list__action"
                     aria-label={`Connect to… for ${card.title}`}
+                    data-connect-action="true"
                     onClick={() => onConnect(card, 'connect')}
                   >
                     Connect to…

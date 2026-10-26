@@ -12,6 +12,7 @@ import type { MouseEvent } from 'react';
 
 import { useLayoutMode } from '../../app/useLayoutMode';
 import Button from '../../components/Button';
+import { ShortcutList } from '../../components/ShortcutList';
 import HintPopover from '../onboarding/HintPopover';
 import { HINTS, getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
 import type { HintId, HintSeenStore } from '../onboarding/hints';
@@ -75,6 +76,24 @@ export function SettingsPage({ hintStore = hintSeenStore }: SettingsPageProps = 
           miss.
         </p>
       </header>
+
+      <section className="shortcut-settings" aria-labelledby="keyboard-shortcuts-title">
+        <div className="shortcut-settings__header">
+          <h3 id="keyboard-shortcuts-title" className="shortcut-settings__title">
+            Keyboard shortcuts
+          </h3>
+          <p className="shortcut-settings__intro">
+            Every non-spatial task has a keyboard path. All shortcuts are active on every route;
+            letter, bracket, and slash shortcuts stay inert while you type, and Escape still closes
+            an overlay or clears search.
+          </p>
+        </div>
+        <ShortcutList />
+        <p className="shortcut-settings__note">
+          Spatial placement, canvas panning, and scratch drawing remain pointer-only in this
+          version. Use the card list and recall toolbar for every other action.
+        </p>
+      </section>
 
       <section className="hint-settings" aria-labelledby="replay-hints-title">
         <div className="hint-settings__header">
