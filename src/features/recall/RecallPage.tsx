@@ -13,15 +13,17 @@
  * - Exit, browser back, reload, and route change discard the scratch layer.
  *   Only the in-app Exit action asks before discarding non-empty scratch.
  *
- * Check computes the pure comparison and exposes its counts as data attributes
- * for the next task's accessible results panel. It deliberately renders no
- * results list here.
+ * Check computes the pure comparison, announces its counts through a mounted
+ * live region, places decorative marks over the cards, and renders the grouped
+ * accessible summary below the stage. The toolbar stays available for another
+ * check, reset, or exit.
  */
 
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { useStore } from 'zustand';
 
-import { boardStore } from '../../board/boardStore';
+import { boardStore, selectViewport } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
 import { fitViewportToCards, type BoardSize } from '../../board/viewport';
@@ -38,6 +40,8 @@ import { compareConnections } from './compareConnections';
 import type { RecallComparison } from './compareConnections';
 import { recallStore } from './recallStore';
 import type { RecallStoreApi } from './recallStore';
+import { RecallResultOverlay, RecallResults } from './RecallResults';
+import { recallSummaryAnnouncement } from './RecallSummary';
 import RecallToolbar from './RecallToolbar';
 import { useScratchConnections } from './useScratchConnections';
 
@@ -133,6 +137,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
   const activeStore = store ?? boardStore;
   const activeScratchStore = scratchStore ?? recallStore;
   const scratch = useScratchConnections({ store: activeScratchStore });
+  const viewport = useStore(activeStore, selectViewport);
 
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -147,6 +152,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
   }>({ key: '', images: {} });
   const [checked, setChecked] = useState(false);
   const [comparison, setComparison] = useState<RecallComparison | null>(null);
+  const [announcement, setAnnouncement] = useState('');
   const [feedback, setFeedback] = useState<RecallFeedback | null>(null);
   const [exitOpen, setExitOpen] = useState(false);
 
@@ -379,6 +385,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
   const afterScratchChange = useCallback((): void => {
     setChecked(false);
     setComparison(null);
+    setAnnouncement('');
   }, []);
 
   const handleScratchDrop = useCallback(
@@ -432,6 +439,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
     const result = compareConnections(connections, scratch.scratchConnections);
     setComparison(result);
     setChecked(true);
+    setAnnouncement(recallSummaryAnnouncement(result));
     setFeedback({
       message: 'Check complete. Recall has not changed the case.',
       tone: 'info',
@@ -471,6 +479,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
   const missedCount = comparison?.missed.length ?? 0;
   const extraCount = comparison?.extra.length ?? 0;
   const typeMismatchCount = comparison?.typeMismatch.length ?? 0;
+  const resultsVisible = checked && comparison !== null;
 
   return (
     <section
@@ -486,6 +495,7 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
       data-recall-missed-count={missedCount}
       data-recall-extra-count={extraCount}
       data-recall-type-mismatch-count={typeMismatchCount}
+      data-recall-results-visible={resultsVisible ? 'true' : 'false'}
     >
       <Toast
         message={feedback?.message ?? null}
@@ -526,6 +536,18 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
           onRemove={handleRemoveScratch}
         />
       ) : null}
+
+      {/* Kept mounted for the life of the page so a Check result is a real
+          live-region update rather than a region that appears with its text. */}
+      <p
+        className="visually-hidden"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-testid="recall-announcement"
+      >
+        {announcement}
+      </p>
 
       <div className="recall-page__stage" ref={stageRef}>
         {visibleStatus === 'loading' ? (
@@ -595,7 +617,15 @@ export function RecallPage({ repository, loadRepository, store, scratchStore }: 
             />
           </Suspense>
         ) : null}
+
+        {visibleStatus === 'ready' && resultsVisible && comparison !== null ? (
+          <RecallResultOverlay comparison={comparison} cards={cards} viewport={viewport} />
+        ) : null}
       </div>
+
+      {visibleStatus === 'ready' && resultsVisible && comparison !== null ? (
+        <RecallResults comparison={comparison} cards={cards} />
+      ) : null}
 
       <Dialog
         open={exitOpen}

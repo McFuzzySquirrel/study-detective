@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: CASE-CLOSURE-2
+**Phase**: FIRST-RUN-DEMO-AND-HINTS-1
 **Status**: In Progress
 **Validation Gaps**: 47 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T17:38:40.363Z
+**Last Updated**: 2026-10-26T17:49:03.100Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -72,6 +72,8 @@
   - Files: src/features/recall/recallStore.ts, src/features/recall/compareConnections.ts, tests/recall/compareConnections.test.ts, tests/recall/recallStore.test.ts
 - [x] Phase RECALL-MODE-2, Task RECALL-2: Build the recall route, hidden strings, and scratch drawing (@board-engineer)
   - Files: src/features/recall/RecallPage.tsx, src/features/recall/RecallToolbar.tsx, src/features/recall/useScratchConnections.ts, src/features/recall/recall.css, src/board/BoardCanvas.tsx, src/app/routes.tsx, tests/recall/RecallPage.test.tsx, e2e/recall.spec.ts, src/board/BoardScene.ts, src/board/StringLayer.ts, src/features/case/CaseBoardPage.tsx
+- [x] Phase RECALL-MODE-2, Task RECALL-3: Add the check overlay and accessible results summary (@ui-engineer)
+  - Files: src/features/recall/RecallResults.tsx, src/features/recall/RecallSummary.tsx, src/features/recall/RecallToolbar.tsx, src/features/recall/RecallPage.tsx, tests/recall/RecallResults.test.tsx, tests/recall/compareConnections.type.test.ts, e2e/recall-results.spec.ts, src/features/recall/recall.css
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
@@ -97,7 +99,6 @@
 - None currently running
 
 ## Remaining
-- [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-1: Phase 1: Demo content and seeding
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-3: Phase 3: First-run integration

@@ -2,8 +2,9 @@
  * Recall route chrome.
  *
  * Recall keeps the case-file language of the board: a header, a slim toolbar,
- * and the same stage. The only new visual grammar is the neutral scratch list,
- * which is deliberately a normal text list rather than a canvas overlay.
+ * the same stage, and a grouped results panel. The neutral scratch list, the
+ * result groups, and the decorative board marks are ordinary text/DOM surfaces
+ * rather than canvas-only overlays.
  */
 
 .recall-page {
@@ -250,5 +251,278 @@
   .recall-page__nav-link,
   .recall-page__text-link {
     transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Results panel and grouped summary                                         */
+/* ------------------------------------------------------------------------- */
+
+.recall-results {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.recall-results__header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.recall-results__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+.recall-results__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.recall-results__intro {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recall-summary {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.recall-summary__note {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recall-summary__group {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.recall-summary__group-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.recall-summary__count {
+  color: var(--color-ink-muted);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.recall-summary__group-description,
+.recall-summary__empty {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recall-summary__empty {
+  font-style: italic;
+}
+
+.recall-summary__list {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recall-summary__pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+.recall-summary__pair--mismatch {
+  border-color: var(--color-danger-border);
+}
+
+.recall-summary__pair-titles {
+  min-inline-size: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.recall-summary__pair-arrow {
+  padding-inline: var(--space-1);
+  color: var(--color-ink-muted);
+}
+
+.recall-summary__type,
+.recall-summary__mismatch-label {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.recall-summary__mismatch-label {
+  color: var(--color-danger-text);
+}
+
+.recall-summary__mismatch-note {
+  flex-basis: 100%;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Decorative board overlay                                                  */
+/* ------------------------------------------------------------------------- */
+
+.recall-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.recall-overlay__outline {
+  position: absolute;
+  display: block;
+  border: var(--border-width-strong) dashed var(--color-warning);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-cork-edge);
+  animation: recall-outline-in var(--motion-duration-base) var(--motion-ease-standard) both;
+}
+
+.recall-overlay__marker {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 15rem;
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  line-height: var(--line-height-control);
+  text-transform: uppercase;
+  box-shadow: var(--shadow-panel);
+  transform: translate(-50%, -50%);
+  overflow-wrap: anywhere;
+  animation: recall-marker-in var(--motion-duration-fast) var(--motion-ease-standard) both;
+}
+
+.recall-overlay__glyph {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-control-surface);
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+}
+
+.recall-overlay__marker--remembered {
+  border-color: var(--color-success-ink);
+  background-color: var(--color-success);
+  color: var(--color-success-ink);
+}
+
+.recall-overlay__marker--remembered .recall-overlay__glyph {
+  background-color: var(--color-success-ink);
+  color: var(--color-success);
+}
+
+.recall-overlay__marker--missed {
+  border-color: var(--color-warning-ink);
+  background-color: var(--color-warning);
+  color: var(--color-warning-ink);
+}
+
+.recall-overlay__marker--missed .recall-overlay__glyph {
+  background-color: var(--color-warning-ink);
+  color: var(--color-warning);
+}
+
+.recall-overlay__marker--extra {
+  border-color: var(--color-ink-muted);
+  border-style: dashed;
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink-muted);
+}
+
+.recall-overlay__marker--mismatch {
+  border-color: var(--color-danger-border);
+  background-color: var(--color-surface-raised);
+  color: var(--color-danger-text);
+  text-transform: none;
+}
+
+@keyframes recall-marker-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes recall-outline-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recall-overlay__marker,
+  .recall-overlay__outline {
+    animation: none;
   }
 }
