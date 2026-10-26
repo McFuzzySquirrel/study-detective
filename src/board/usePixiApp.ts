@@ -33,6 +33,8 @@ export interface UsePixiAppOptions {
   readonly viewport: Viewport;
   /** Accessible name written to the generated canvas. */
   readonly canvasLabel: string;
+  /** OS motion preference forwarded to the static string layer. */
+  readonly reducedMotion?: boolean;
 }
 
 export interface UsePixiAppResult {
@@ -90,6 +92,7 @@ export function usePixiApp({
   snapshot,
   viewport,
   canvasLabel,
+  reducedMotion = false,
 }: UsePixiAppOptions): UsePixiAppResult {
   const [status, setStatus] = useState<PixiAppStatus>('initializing');
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +106,7 @@ export function usePixiApp({
   const snapshotRef = useRef(snapshot);
   const viewportRef = useRef(viewport);
   const canvasLabelRef = useRef(canvasLabel);
+  const reducedMotionRef = useRef(reducedMotion);
 
   useEffect(() => {
     canvasLabelRef.current = canvasLabel;
@@ -244,6 +248,7 @@ export function usePixiApp({
         scene = new BoardScene(next, {
           snapshot: snapshotRef.current,
           viewport: viewportRef.current,
+          reducedMotion: reducedMotionRef.current,
         });
       } catch {
         setStatus('error');
@@ -341,6 +346,14 @@ export function usePixiApp({
     sceneRef.current?.setViewport(viewport, sizeRef.current);
     renderRef.current?.();
   }, [viewport]);
+
+  // A mid-session OS motion change is forwarded to the existing scene; the
+  // string layer has no animation state to tear down.
+  useEffect(() => {
+    reducedMotionRef.current = reducedMotion;
+    sceneRef.current?.setReducedMotion(reducedMotion);
+    renderRef.current?.();
+  }, [reducedMotion]);
 
   const retry = (): void => {
     setAttempt((current) => current + 1);

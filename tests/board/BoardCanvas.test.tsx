@@ -124,6 +124,7 @@ describe('BoardCanvas', () => {
 
     const canvas = screen.getByTestId('board-canvas');
     expect(canvas).toHaveAttribute('data-board-card-count', '2');
+    expect(canvas).toHaveAttribute('data-board-connection-count', '0');
     expect(canvas).toHaveAttribute('data-board-scene-status', 'ready');
     expect(canvas).toHaveAttribute('data-board-viewport-x', '0.000');
     expect(canvas).toHaveAttribute('data-board-scale', '1.0000');

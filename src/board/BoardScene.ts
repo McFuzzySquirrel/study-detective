@@ -9,11 +9,14 @@
  * Layers:
  *
  * - A screen-space tiled cork surface, whose offset follows the camera.
+ * - A screen-space `StringLayer` below the cards, so thread ends tuck under
+ *   card art. It redraws on a card move or a camera change.
  * - A world container whose transform is the camera.
  * - A `CardLayer` holding one card sprite per snapshot card.
  *
- * The background, world, and card layer are created once and updated on
- * snapshot or viewport changes. Strings and connection menus are later phases.
+ * The background, strings, world, and card layer are created once and updated
+ * on snapshot or viewport changes. Connection creation and labels are later
+ * phases.
  */
 
 import { Container, Texture, TilingSprite } from 'pixi.js';
@@ -24,11 +27,14 @@ import type { CardPosition, Viewport } from '../domain/model';
 import { CardLayer } from './CardLayer';
 import type { BoardCardSnapshot, BoardPalette } from './CardSprite';
 import { readBoardPalette } from './CardSprite';
+import { readStringPalette, StringLayer } from './StringLayer';
+import type { BoardStringConnection } from './StringLayer';
 import { normalizeViewport, type BoardSize } from './viewport';
 
 export { BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, BOARD_CULL_MARGIN } from './CardLayer';
 export type { BoardCardImage } from './CardLayer';
 export type { BoardCardSnapshot } from './CardSprite';
+export type { BoardStringConnection } from './StringLayer';
 
 /**
  * The plain case snapshot consumed by the canvas. The page builds it from
@@ -38,11 +44,18 @@ export interface BoardSnapshot {
   readonly caseId: string;
   readonly caseTitle: string;
   readonly cards: readonly BoardCardSnapshot[];
+  /**
+   * Undirected strings for the case. Optional so a card-only snapshot (or an
+   * older page) still renders; an absent list means no strings.
+   */
+  readonly connections?: readonly BoardStringConnection[];
 }
 
 export interface BoardSceneOptions {
   readonly snapshot: BoardSnapshot;
   readonly viewport: Viewport;
+  /** Initial OS motion preference. Defaults to no preference. */
+  readonly reducedMotion?: boolean;
 }
 
 function cssToken(name: string): string {
@@ -108,6 +121,7 @@ function boardPalette(): BoardPalette {
 export class BoardScene {
   private readonly stage: Container;
   private readonly background: TilingSprite;
+  private readonly stringLayer: StringLayer;
   private readonly world: Container;
   private readonly cardLayer: CardLayer;
 
@@ -132,22 +146,29 @@ export class BoardScene {
     this.world.label = 'board-world';
     this.world.eventMode = 'none';
 
+    this.stringLayer = new StringLayer({
+      palette: readStringPalette(),
+      reducedMotion: options.reducedMotion ?? false,
+    });
     this.cardLayer = new CardLayer({ palette: boardPalette() });
 
     this.world.addChild(this.cardLayer.root);
-    this.stage.addChild(this.background, this.world);
+    this.stage.addChild(this.background, this.stringLayer.root, this.world);
 
     this.setSnapshot(options.snapshot);
   }
 
-  /** Replace the card snapshot, reusing unchanged card sprites. */
+  /** Replace the card and connection snapshot, reusing unchanged card sprites. */
   setSnapshot(snapshot: BoardSnapshot): void {
     if (this.destroyed) {
       return;
     }
 
     this.cardLayer.setCards(snapshot.cards);
+    this.stringLayer.setCards(snapshot.cards);
+    this.stringLayer.setConnections(snapshot.connections ?? []);
     this.cardLayer.setViewport(this.viewport, this.size);
+    this.stringLayer.setViewport(this.viewport, this.size);
   }
 
   /** Apply the camera and canvas size, then redraw the visible window. */
@@ -168,6 +189,7 @@ export class BoardScene {
     this.world.position.set(-this.viewport.x * scale, -this.viewport.y * scale);
     this.world.scale.set(scale);
     this.cardLayer.setViewport(this.viewport, this.size);
+    this.stringLayer.setViewport(this.viewport, this.size);
   }
 
   /** Resize the cork surface without changing the camera. */
@@ -178,6 +200,7 @@ export class BoardScene {
   /** The live drag preview. The page persists only the final position. */
   moveCard(cardId: string, position: CardPosition): void {
     this.cardLayer.moveCard(cardId, position);
+    this.stringLayer.moveCard(cardId, position);
   }
 
   setCardLifted(cardId: string, lifted: boolean, reducedMotion: boolean): void {
@@ -188,9 +211,19 @@ export class BoardScene {
     this.cardLayer.setSelected(cardId);
   }
 
+  /** Record a mid-session motion preference for the static string layer. */
+  setReducedMotion(reducedMotion: boolean): void {
+    this.stringLayer.setReducedMotion(reducedMotion);
+  }
+
   /** Resolve a screen-space point to a card, respecting the live camera. */
   cardAt(point: { readonly x: number; readonly y: number }): BoardCardSnapshot | null {
     return this.cardLayer.hitTest(point);
+  }
+
+  /** Resolve a screen-space point to the nearest visible string, if any. */
+  stringAt(point: { readonly x: number; readonly y: number }): BoardStringConnection | null {
+    return this.stringLayer.stringAt(point);
   }
 
   /**
@@ -204,18 +237,20 @@ export class BoardScene {
 
     this.background.texture.source.update();
     this.cardLayer.rebuildAfterContextLoss();
+    this.stringLayer.rebuildAfterContextLoss();
     this.setViewport(this.viewport, this.size);
   }
 
-  /** Destroy card art, the cork texture, and every card image. */
+  /** Destroy card art, string geometry, the cork texture, and every card image. */
   destroy(): void {
     if (this.destroyed) {
       return;
     }
     this.destroyed = true;
 
-    this.stage.removeChild(this.world, this.background);
+    this.stage.removeChild(this.world, this.background, this.stringLayer.root);
     this.cardLayer.destroy();
+    this.stringLayer.destroy();
     this.world.destroy({ children: true, context: true, style: true });
     this.background.destroy({ texture: true, textureSource: true });
   }

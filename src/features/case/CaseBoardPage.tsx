@@ -23,13 +23,13 @@ import { boardStore } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import { selectViewport, selectViewportDirty } from '../../board/boardStore';
 import { canAddCard } from '../../board/boardCapacity';
-import type { BoardCardImage, BoardSnapshot } from '../../board/BoardScene';
+import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
 import Button from '../../components/Button';
 import Toast from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
-import type { CardRecord, CaseRecord } from '../../domain/model';
+import type { CardRecord, CaseRecord, ConnectionRecord } from '../../domain/model';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
 
@@ -92,6 +92,15 @@ function cardSnapshot(
   return image === undefined ? snapshot : { ...snapshot, image };
 }
 
+function connectionSnapshot(connection: ConnectionRecord): BoardStringConnection {
+  return {
+    id: connection.id,
+    fromCardId: connection.fromCardId,
+    toCardId: connection.toCardId,
+    type: connection.type,
+  };
+}
+
 function cardCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'card' : 'cards'}`;
 }
@@ -109,6 +118,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [cards, setCards] = useState<CardRecord[]>([]);
+  const [connections, setConnections] = useState<ConnectionRecord[]>([]);
   const [cardImageState, setCardImageState] = useState<{
     readonly key: string;
     readonly images: Record<string, BoardCardImage>;
@@ -159,7 +169,10 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           return;
         }
 
-        const storedCards = await target.listCards(caseId);
+        const [storedCards, storedConnections] = await Promise.all([
+          target.listCards(caseId),
+          target.listConnections(caseId),
+        ]);
         if (cancelled) {
           return;
         }
@@ -171,6 +184,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
         setActiveRepository(target);
         setCaseRecord(record);
         setCards(storedCards);
+        setConnections(storedConnections);
         setLoadError(null);
         setSaveError(null);
         setStatus('ready');
@@ -179,6 +193,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           setActiveRepository(null);
           setCaseRecord(null);
           setCards([]);
+          setConnections([]);
           setLoadError(
             'The local case database could not be reached. Nothing on this board was changed.',
           );
@@ -419,8 +434,9 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
       caseId,
       caseTitle: caseRecord?.title ?? '',
       cards: cards.map((card) => cardSnapshot(card, cardImages[card.id])),
+      connections: connections.map(connectionSnapshot),
     }),
-    [cardImages, cards, caseId, caseRecord],
+    [cardImages, cards, caseId, caseRecord, connections],
   );
 
   const capacityBlocked = visibleStatus === 'ready' && !canAddCard(cards.length);

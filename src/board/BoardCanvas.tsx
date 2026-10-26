@@ -132,6 +132,7 @@ export function BoardCanvas({
     snapshot,
     viewport,
     canvasLabel: BOARD_CANVAS_LABEL,
+    reducedMotion,
   });
 
   const cardPositionList = useMemo(
@@ -292,6 +293,7 @@ export function BoardCanvas({
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}
       data-board-card-count={snapshot.cards.length}
+      data-board-connection-count={snapshot.connections?.length ?? 0}
       data-board-visible-card-count={visibleCards.length}
       data-board-card-positions={cardPositions}
       data-board-scene-status={sceneStatus}

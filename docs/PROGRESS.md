@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: SEARCH-TAGS-AND-FILTERS-1
+**Phase**: SEARCH-TAGS-AND-FILTERS-2
 **Status**: In Progress
-**Validation Gaps**: 26 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T05:24:48.115Z
+**Validation Gaps**: 28 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T05:43:12.422Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -52,6 +52,8 @@
   - Files: src/features/case/CardListPage.tsx, src/features/case/CardListPanel.tsx, src/features/case/EmptyBoard.tsx, src/features/case/useUndoDelete.ts, src/data/deleteCard.ts, src/features/case/CaseBoardPage.tsx, src/app/routes.tsx, tests/case/CardListPanel.test.tsx, tests/case/useUndoDelete.test.tsx, e2e/keyboard-cards.spec.ts, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/EmptyBoard.css
 - [x] Phase CONNECTIONS-AND-PROVENANCE-1, Task LINK-1: Implement connection rules, repository, and cascade delete (@data-engineer)
   - Files: src/domain/connections.ts, src/data/connectionRepository.ts, tests/domain/connections.test.ts, tests/data/connectionRepository.test.ts
+- [x] Phase CONNECTIONS-AND-PROVENANCE-1, Task LINK-2: Render sagging association and provenance strings (@board-engineer)
+  - Files: src/board/stringGeometry.ts, src/board/StringLayer.ts, src/board/BoardScene.ts, tests/board/stringGeometry.test.ts, tests/board/stringGeometry.performance.test.ts, src/board/BoardCanvas.tsx, src/board/usePixiApp.ts, src/features/case/CaseBoardPage.tsx, tests/board/BoardCanvas.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
@@ -67,7 +69,6 @@
 - None currently running
 
 ## Remaining
-- [ ] Phase CONNECTIONS-AND-PROVENANCE-1: Phase 1: Graph rules and rendering
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-2: Phase 2: Drawing and editing
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-3: Phase 3: Keyboard path and feel review
 - [ ] Phase CASE-CLOSURE-1: Phase 1: Derived rules
@@ -112,6 +113,8 @@
 - Task BOARD-5: Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design.
 - Task LINK-1: Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.
 - Task LINK-1: No browser or visual board behavior is in scope for LINK-1.
+- Task LINK-2: No permanent BoardScene unit test; scene integration was verified by the temporary real-browser pixel journey and the committed board-drag Playwright journey.
+- Task LINK-2: Human board-feel review of string sag still needs a real tablet/desktop pass.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
