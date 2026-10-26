@@ -238,4 +238,22 @@ describe('BoardCanvas', () => {
 
     expect(store.getState().viewport).toEqual(before);
   });
+
+  it('blocks the Add evidence link at the 200-card hard stop', () => {
+    render(
+      <MemoryRouter initialEntries={['/case/case-1']}>
+        <BoardCanvas snapshot={snapshot} store={createBoardStore()} cardLimitReached />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Add evidence' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('board-add-evidence-blocked')).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+    expect(screen.getByRole('link', { name: 'Open card list' })).toHaveAttribute(
+      'href',
+      '/case/case-1/list',
+    );
+  });
 });

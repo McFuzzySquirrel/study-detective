@@ -420,7 +420,12 @@ export class CardSprite {
     }
   }
 
-  private releaseImages(): void {
+  /**
+   * Drop the card's image textures while keeping its paper, pin, title, and
+   * type geometry. Culling calls this after the offscreen grace period; a
+   * later pan back re-requests the thumbnail and display derivatives.
+   */
+  releaseImages(): void {
     this.imageGeneration += 1;
     this.photo.visible = false;
     this.photo.texture = Texture.EMPTY;

@@ -22,6 +22,7 @@ import { useStore } from 'zustand';
 import { boardStore } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import { selectViewport, selectViewportDirty } from '../../board/boardStore';
+import { canAddCard } from '../../board/boardCapacity';
 import type { BoardCardImage, BoardSnapshot } from '../../board/BoardScene';
 import Button from '../../components/Button';
 import Toast from '../../components/Toast';
@@ -32,6 +33,7 @@ import type { CardRecord, CaseRecord } from '../../domain/model';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
 
+import ScaleWarning from './ScaleWarning';
 import './CaseBoardPage.css';
 
 const BoardCanvas = lazy(() =>
@@ -420,6 +422,8 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     [cardImages, cards, caseId, caseRecord],
   );
 
+  const capacityBlocked = visibleStatus === 'ready' && !canAddCard(cards.length);
+
   const retryLoad = (): void => {
     setLoadError(null);
     setStatus('loading');
@@ -471,6 +475,8 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </Link>
         </div>
       </header>
+
+      <ScaleWarning cardCount={visibleStatus === 'ready' ? cards.length : 0} />
 
       {visibleStatus === 'ready' && reminder.visible ? (
         <aside className="backup-reminder" aria-labelledby="backup-reminder-title">
@@ -557,7 +563,12 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
               </p>
             }
           >
-            <BoardCanvas snapshot={snapshot} store={activeStore} onCardMoved={handleCardMoved} />
+            <BoardCanvas
+              snapshot={snapshot}
+              store={activeStore}
+              onCardMoved={handleCardMoved}
+              cardLimitReached={capacityBlocked}
+            />
           </Suspense>
         ) : null}
       </div>

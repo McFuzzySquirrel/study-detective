@@ -13,21 +13,19 @@ import type { Viewport } from '../domain/model';
 
 import type { BoardCardSnapshot, BoardPalette } from './CardSprite';
 import { CardSprite } from './CardSprite';
+import { DEFAULT_OFFSCREEN_RELEASE_MS } from './textureCache';
+import { computeCullingWindow, rectsIntersect } from './useCulling';
 import {
   BOARD_CARD_HEIGHT,
   BOARD_CARD_WIDTH,
-  computeVisibleWorldRect,
   normalizeViewport,
   screenToWorld,
   type BoardPoint,
   type BoardSize,
-  type WorldRect,
 } from './viewport';
 
 export { BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT };
-
-/** Extra world margin rendered around the viewport to hide pan pop-in. */
-export const BOARD_CULL_MARGIN = 200;
+export { BOARD_CULL_MARGIN, computeCullingWindow, filterVisibleCards } from './useCulling';
 
 /** Optional image URLs supplied by the composition page. */
 export interface BoardCardImage {
@@ -39,47 +37,6 @@ export interface BoardCardImage {
 
 export interface CardLayerOptions {
   readonly palette: BoardPalette;
-}
-
-function cardRect(card: BoardCardSnapshot): WorldRect {
-  return {
-    x: card.position.x,
-    y: card.position.y,
-    width: BOARD_CARD_WIDTH,
-    height: BOARD_CARD_HEIGHT,
-  };
-}
-
-function intersects(first: WorldRect, second: WorldRect): boolean {
-  return (
-    first.x < second.x + second.width &&
-    first.x + first.width > second.x &&
-    first.y < second.y + second.height &&
-    first.y + first.height > second.y
-  );
-}
-
-/** The world rectangle rendered at a given camera, including the pan margin. */
-export function computeCullingWindow(viewport: Viewport, size: BoardSize): WorldRect {
-  const visible = computeVisibleWorldRect(normalizeViewport(viewport), size);
-  const margin = BOARD_CULL_MARGIN / normalizeViewport(viewport).scale;
-
-  return {
-    x: visible.x - margin,
-    y: visible.y - margin,
-    width: visible.width + margin * 2,
-    height: visible.height + margin * 2,
-  };
-}
-
-/** Cards intersecting the viewport plus the 200 px margin, in fixture order. */
-export function filterVisibleCards(
-  cards: readonly BoardCardSnapshot[],
-  viewport: Viewport,
-  size: BoardSize,
-): BoardCardSnapshot[] {
-  const window = computeCullingWindow(viewport, size);
-  return cards.filter((card) => intersects(cardRect(card), window));
 }
 
 /**
@@ -99,7 +56,12 @@ export function hitTestCard(
       continue;
     }
 
-    const rect = cardRect(card);
+    const rect = {
+      x: card.position.x,
+      y: card.position.y,
+      width: BOARD_CARD_WIDTH,
+      height: BOARD_CARD_HEIGHT,
+    };
     if (
       world.x >= rect.x &&
       world.x <= rect.x + rect.width &&
@@ -119,6 +81,7 @@ export class CardLayer {
 
   private readonly sprites = new Map<string, CardSprite>();
   private readonly cards = new Map<string, BoardCardSnapshot>();
+  private readonly offscreenTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private readonly palette: BoardPalette;
 
   private viewport: Viewport = { x: 0, y: 0, scale: 1 };
@@ -143,6 +106,7 @@ export class CardLayer {
 
     for (const [id, sprite] of [...this.sprites]) {
       if (!next.has(id)) {
+        this.clearOffscreenTimer(id);
         this.root.removeChild(sprite.root);
         sprite.destroy();
         this.sprites.delete(id);
@@ -224,6 +188,11 @@ export class CardLayer {
     }
     this.destroyed = true;
 
+    for (const timer of this.offscreenTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.offscreenTimers.clear();
+
     for (const sprite of this.sprites.values()) {
       sprite.destroy();
     }
@@ -238,8 +207,56 @@ export class CardLayer {
 
     for (const [id, sprite] of this.sprites) {
       const card = this.cards.get(id);
-      const visible = card !== undefined && intersects(cardRect(card), window);
+      const visible =
+        card !== undefined &&
+        rectsIntersect(
+          {
+            x: card.position.x,
+            y: card.position.y,
+            width: BOARD_CARD_WIDTH,
+            height: BOARD_CARD_HEIGHT,
+          },
+          window,
+        );
+
       sprite.setVisible(visible);
+
+      if (visible) {
+        this.clearOffscreenTimer(id);
+      } else {
+        this.scheduleOffscreenRelease(id);
+      }
     }
+  }
+
+  /**
+   * Release a card's image textures only after it has stayed offscreen. The
+   * delay prevents a fast pan-back from flashing a placeholder; the sprite's
+   * lightweight paper geometry stays alive for hit testing and culling.
+   */
+  private scheduleOffscreenRelease(cardId: string): void {
+    if (this.offscreenTimers.has(cardId)) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      this.offscreenTimers.delete(cardId);
+      if (this.destroyed) {
+        return;
+      }
+      this.sprites.get(cardId)?.releaseImages();
+    }, DEFAULT_OFFSCREEN_RELEASE_MS);
+
+    this.offscreenTimers.set(cardId, timer);
+  }
+
+  private clearOffscreenTimer(cardId: string): void {
+    const timer = this.offscreenTimers.get(cardId);
+    if (timer === undefined) {
+      return;
+    }
+
+    clearTimeout(timer);
+    this.offscreenTimers.delete(cardId);
   }
 }

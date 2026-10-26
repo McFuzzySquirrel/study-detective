@@ -120,6 +120,73 @@
   outline-offset: var(--focus-ring-offset);
 }
 
+.board-canvas__link--blocked {
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface-sunken);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Minimap                                                                    */
+/* ------------------------------------------------------------------------- */
+
+.board-minimap {
+  position: absolute;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+  z-index: 2;
+  display: grid;
+  justify-items: end;
+  gap: var(--space-1);
+  max-inline-size: min(16rem, calc(100% - var(--space-6)));
+}
+
+.board-minimap__toggle {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  font-size: var(--font-size-xs);
+}
+
+.board-minimap__panel {
+  inline-size: clamp(9rem, 28vw, 14rem);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-scrim);
+  backdrop-filter: blur(6px);
+}
+
+.board-minimap__svg {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  border-radius: var(--radius-sm);
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.board-minimap__background {
+  fill: var(--color-cork-edge);
+}
+
+.board-minimap__card {
+  fill: var(--color-paper);
+  stroke: var(--color-paper-edge);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+.board-minimap__viewport {
+  fill: var(--color-accent);
+  fill-opacity: 0.16;
+  stroke: var(--color-accent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+
 .board-canvas__notice {
   position: absolute;
   inset-block-start: 50%;
@@ -185,6 +252,16 @@
 
   .board-canvas__zoom-value {
     min-inline-size: 3rem;
+  }
+
+  .board-minimap {
+    inset-block-start: var(--space-2);
+    inset-inline-end: var(--space-2);
+    max-inline-size: calc(100% - var(--space-4));
+  }
+
+  .board-minimap__panel {
+    inline-size: min(11rem, 45vw);
   }
 }
 

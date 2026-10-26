@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T03:45:35.709Z",
+  "lastUpdatedAt": "2026-10-26T04:25:51.977Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -643,10 +643,51 @@
     },
     "BOARD-4": {
       "taskId": "BOARD-4",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "board-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/board/Minimap.tsx",
+        "src/board/useCulling.ts",
+        "src/board/FitToViewButton.tsx",
+        "src/features/case/ScaleWarning.tsx",
+        "src/features/capture/CapturePage.tsx",
+        "src/board/textureCache.ts",
+        "src/features/case/CaseBoardPage.tsx",
+        "tests/board/Minimap.test.tsx",
+        "tests/board/culling.test.ts",
+        "tests/case/ScaleWarning.test.tsx",
+        "src/board/BoardCanvas.css",
+        "src/board/BoardCanvas.tsx",
+        "src/board/CardLayer.ts",
+        "src/board/CardSprite.ts",
+        "tests/board/BoardCanvas.test.tsx",
+        "src/board/boardCapacity.ts",
+        "src/board/fitToView.ts",
+        "src/features/case/ScaleWarning.css",
+        "tests/board/FitToViewButton.test.tsx"
+      ],
+      "startedAt": "2026-10-26T04:11:34.173Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/BOARD-4.2026-10-26T04-25-51-973Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T04:25:51.976Z",
+      "agentOutput": "## Outcome\n\nBOARD-4 is implemented: fit-to-view, an SVG minimap with tap/drag navigation, 200 px-margin culling, delayed offscreen texture release, the shared 120/150/200-card capacity guard, and the capture-route hard stop.\n\n## Files created\n\n- `src/board/boardCapacity.ts`\n- `src/board/fitToView.ts`\n- `src/board/FitToViewButton.tsx`\n- `src/board/Minimap.tsx`\n- `src/board/useCulling.ts`\n- `src/features/case/ScaleWarning.tsx`\n- `src/features/case/ScaleWarning.css`\n- `tests/board/culling.test.ts`\n- `tests/board/Minimap.test.tsx`\n- `tests/board/FitToViewButton.test.tsx`\n- `tests/case/ScaleWarning.test.tsx`\n\n## Files changed\n\n- `src/board/BoardCanvas.tsx`\n- `src/board/BoardCanvas.css`\n- `src/board/CardLayer.ts`\n- `src/board/CardSprite.ts`\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/capture/CapturePage.tsx`\n- `tests/board/BoardCanvas.test.tsx`\n\n`src/board/textureCache.ts` already enforced the 200-texture ceiling and offscreen release from BOARD-2; this task reuses its `DEFAULT_OFFSCREEN_RELEASE_MS` and adds scene-level delayed release. `src/app/routes.tsx` was not changed. No `docs/artifacts/` file was modified.\n\n## Behavior and measurements\n\n- **Culling:** 150-card synthetic fixture at 1000×800/scale 1.0 returns 12 visible cards, each intersecting the viewport expanded by 200 screen px. The same margin becomes 400 world px at scale 0.5.\n- **Minimap:** projects every card and a viewport rectangle that tracks pan and zoom; tap and drag call `moveViewport`; defaults collapsed on phone widths and toggles with an accessible button.\n- **Fit:** uses padded card bounds (64 px), clamps scale to 0.25–2.5, never magnifies past 100%, and applies `applyTemporaryViewport` so the stored camera is not overwritten.\n- **Capacity:** 119 → none; 120–149 → dismissible soft; 150–199 → persistent; 200 → blocked. Capture returns the same split-case message and refuses to render the picker at 200. A 199-card case still opens the picker.\n- **Texture release:** offscreen card images are released after 3 s; a fast pan-back keeps the texture until the timer elapses. Timers are cleared on card delete, remount, and scene destroy.\n- **Bundle:** initial shell `index-*.js` is 266.16 KB / 84.63 KB gzip and contains no PixiJS. `BoardCanvas-*.js` is a separate 328.40 KB / 97.50 KB gzip chunk. `boardCapacity-*.js` is a shared 0.39 KB module.\n\n## Contract preserved for page owners\n\nThe board consumes:\n\n```ts\nBoardSnapshot {\n  caseId: string;\n  caseTitle: string;\n  cards: { id; title; type; position: { x; y }; image?: BoardCardImage }[];\n}\n```\n\nIt emits `onCardMoved(cardId, {x,y})` only on drop and uses store intents `panBy`, `zoomAt`, `zoomTo`, `applyTemporaryViewport`, `moveViewport`, `selectCard`, `setGesture`, and `resetGesture`. `CaseBoardPage` now also passes `cardLimitReached` and renders `ScaleWarning`; preserve that wiring, the lazy `BoardCanvas` import, and the viewport-persistence contract.\n\n## Validation\n\nPassed:\n\n- `npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/ScaleWarning.test.tsx` — 21 tests\n- `npm run typecheck`\n- `npm run lint`\n- `npm test` — 43 files, 597 tests\n- `npm run build`\n- `npm run test:e2e -- e2e/board-drag.spec.ts` coverage passed for mouse/touch drag, tap, persistence, and context recovery within the combined run.\n\nThe combined `e2e/board.spec.ts` pan/zoom test still fails on a 0.166 CSS-px pointer-anchor assertion. The same failure occurs after removing this task’s Fit and Minimap controls and rebuilding, so it is pre-existing/environmental and not introduced by BOARD-4. The phone run of that same test also timed out. Tablet 45 FPS remains for human verification; no FPS harness was run in this task.\n\n```forge-result\n{\"summary\":\"BOARD-4 implemented fit-to-view, minimap tap/drag navigation, 200px-margin culling, delayed offscreen texture release, and the shared 120/150/200-card capacity guard across the board and capture routes; required tests, typecheck, lint, full suite, and build pass.\",\"unresolved\":[],\"decisions\":[\"Fit and minimap navigation use existing board-store temporary/movement intents, so fit never persists a camera and minimap navigation does.\",\"The minimap is DOM/SVG over the same pure viewport projection helpers rather than a second Pixi scene.\",\"Culling margin is screen-space and divided by zoom when converted to world units; CardLayer and useCulling share one pure implementation.\",\"Offscreen card images are released after DEFAULT_OFFSCREEN_RELEASE_MS by CardLayer, with timers cleared on delete and destroy.\"],\"interfaces\":[\"boardCapacity.ts: SOFT_WARNING_CARD_COUNT=120, PERSISTENT_WARNING_CARD_COUNT=150, MAX_BOARD_CARDS=200, boardCapacityLevel, canAddCard, remainingCardCapacity, SPLIT_CASE_MESSAGE\",\"useCulling(cards, viewport, size, options) and pure computeCullingWindow/filterVisibleCards/cullCardIds/rectsIntersect\",\"FitToViewButton({ positions, viewportSize, store?, onFit? }) plus computeFitToCardsViewport in fitToView.ts\",\"Minimap({ cards, viewport, viewportSize, store?, onNavigate? })\",\"ScaleWarning({ cardCount })\",\"BoardCanvas gains cardLimitReached; CaseBoardPage passes it and renders ScaleWarning\",\"BoardSnapshot/intents unchanged; CardLayer still reads the plain snapshot and emits no storage writes\"],\"tests\":[\"npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/ScaleWarning.test.tsx: exit 0 (21 tests)\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm test: exit 0 (597 tests)\",\"npm run build: exit 0; separate BoardCanvas chunk and clean initial shell confirmed\"],\"warnings\":[\"The tablet 45 FPS floor was not measured in this task; culling and texture release are implemented but real-tablet feel still needs human verification.\",\"The 150-card fixture proves culling returns 12 cards at 1000x800/scale 1.0, but a headless FPS harness is still QA scope.\"],\"validationLimitations\":[\"The pre-existing e2e/board.spec.ts pan/zoom pointer-anchor assertion fails by about 0.166 CSS px in this environment even after removing this task's Fit/Minimap controls and rebuilding; the phone run of that test also timed out. It is not one of BOARD-4's required validation commands.\",\"e2e/board-drag.spec.ts passed for mouse and touch drag, tap, persistence, and context recovery in the combined run.\",\"Browser evidence covers Chromium-based projects only.\"]}\n```\n",
+      "validationLimitations": [
+        "The pre-existing e2e/board.spec.ts pan/zoom pointer-anchor assertion fails by about 0.166 CSS px in this environment even after removing this task's Fit/Minimap controls and rebuilding; the phone run of that test also timed out. It is not one of BOARD-4's required validation commands.",
+        "e2e/board-drag.spec.ts passed for mouse and touch drag, tap, persistence, and context recovery in the combined run.",
+        "Browser evidence covers Chromium-based projects only."
+      ],
+      "artifactId": "work-board-4-001",
+      "inputArtifactIds": [
+        "work-board-3-002",
+        "work-board-1-001",
+        "work-board-2-001"
+      ]
     },
     "BOARD-5": {
       "taskId": "BOARD-5",

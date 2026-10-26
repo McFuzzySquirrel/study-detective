@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 import Button from '../../components/Button';
+import { MAX_BOARD_CARDS, SPLIT_CASE_MESSAGE, canAddCard } from '../../board/boardCapacity';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
@@ -69,6 +70,7 @@ export interface CapturePageProps {
 type Step =
   | 'loading'
   | 'load-error'
+  | 'capacity-blocked'
   | 'picker'
   | 'validating'
   | 'crop'
@@ -107,6 +109,7 @@ type SavingKind = 'image' | 'topic' | null;
 const STEP_LABELS: Record<Step, string> = {
   loading: 'Opening the case',
   'load-error': 'The case could not be opened',
+  'capacity-blocked': 'This case is full',
   picker: 'Add evidence',
   validating: 'Checking the photo',
   crop: 'Crop and rotate',
@@ -277,6 +280,25 @@ export function CapturePage({
     }
   }, []);
 
+  /**
+   * The shared 200-card guard. A direct capture address and a stale picker
+   * both land here before any validation, image work, or repository write.
+   */
+  const blockAtCapacity = useCallback((): boolean => {
+    if (canAddCard(existingCardCount)) {
+      return false;
+    }
+
+    releasePreview();
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    setCropResult(null);
+    setSourceSize(null);
+    setFailure(null);
+    setStep('capacity-blocked');
+    return true;
+  }, [existingCardCount, releasePreview]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -319,7 +341,7 @@ export function CapturePage({
         setActiveRepository(target);
         setCaseRecord(record);
         setExistingCardCount(cards.length);
-        setStep('picker');
+        setStep(canAddCard(cards.length) ? 'picker' : 'capacity-blocked');
       } catch {
         if (!cancelled) {
           setActiveRepository(null);
@@ -364,6 +386,10 @@ export function CapturePage({
   );
 
   const beginValidation = async (file: File): Promise<void> => {
+    if (blockAtCapacity()) {
+      return;
+    }
+
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(file);
@@ -420,6 +446,10 @@ export function CapturePage({
   };
 
   const handleAddTopic = (): void => {
+    if (blockAtCapacity()) {
+      return;
+    }
+
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(null);
@@ -446,6 +476,10 @@ export function CapturePage({
   const runImageImport = async (draft: PendingCard): Promise<void> => {
     const target = activeRepository;
     if (target === null) {
+      return;
+    }
+
+    if (blockAtCapacity()) {
       return;
     }
 
@@ -524,6 +558,10 @@ export function CapturePage({
       return;
     }
 
+    if (blockAtCapacity()) {
+      return;
+    }
+
     setFailure(null);
     setSavingKind('topic');
     setStep('saving');
@@ -556,6 +594,10 @@ export function CapturePage({
   };
 
   const handleNoteSourceSubmit = (values: NoteSourceValues): void => {
+    if (blockAtCapacity()) {
+      return;
+    }
+
     if (selectedFile === null || cropResult === null) {
       return;
     }
@@ -580,6 +622,10 @@ export function CapturePage({
   };
 
   const handleTopicSubmit = (values: TopicFormValues): void => {
+    if (blockAtCapacity()) {
+      return;
+    }
+
     const position = nextPosition();
     if (position === null) {
       return;
@@ -697,6 +743,34 @@ export function CapturePage({
               ) : null}
               <Button variant="quiet" onClick={backToShelf}>
                 Back to case shelf
+              </Button>
+            </div>
+          </section>
+        ) : null}
+
+        {step === 'capacity-blocked' ? (
+          <section
+            className="capture__failure capture__capacity-blocked"
+            role="alert"
+            aria-labelledby="capture-capacity-title"
+            data-testid="capture-capacity-blocked"
+          >
+            <h3 id="capture-capacity-title">Case board is full</h3>
+            <p>
+              This case already has {Math.max(existingCardCount, MAX_BOARD_CARDS)} cards, the hard
+              limit of {MAX_BOARD_CARDS}. No card was added.
+            </p>
+            <p>{SPLIT_CASE_MESSAGE}</p>
+            <p>
+              The direct capture address cannot bypass this limit. Split the case first, then add
+              the new evidence there.
+            </p>
+            <div className="capture__failure-actions">
+              <Button variant="primary" onClick={backToShelf}>
+                Back to case shelf
+              </Button>
+              <Button variant="quiet" onClick={backToCase}>
+                Back to case
               </Button>
             </div>
           </section>

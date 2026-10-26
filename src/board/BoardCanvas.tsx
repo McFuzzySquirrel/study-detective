@@ -7,7 +7,7 @@
  * accessible controls; `usePixiApp` owns renderer and texture teardown.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -18,6 +18,10 @@ import { attachBoardInput } from './boardInput';
 import { boardStore } from './boardStore';
 import type { BoardStoreApi } from './boardStore';
 import { selectViewport } from './boardStore';
+import { SPLIT_CASE_MESSAGE } from './boardCapacity';
+import FitToViewButton from './FitToViewButton';
+import Minimap from './Minimap';
+import { useCulling } from './useCulling';
 import { useCardGestures } from './useCardGestures';
 import type { CardDragUpdate } from './useCardGestures';
 import { findCardAtPoint } from './useCardGestures';
@@ -44,6 +48,12 @@ export interface BoardCanvasProps {
   readonly onCardMoved?: ((cardId: string, position: BoardPoint) => void) | undefined;
   /** Override the default navigation to card detail, for tests. */
   readonly onCardTap?: ((cardId: string) => void) | undefined;
+  /**
+   * The shared 200-card guard already reports the case is full. The canvas
+   * hides its Add evidence link rather than sending the student to a blocked
+   * capture route.
+   */
+  readonly cardLimitReached?: boolean | undefined;
 }
 
 function formatViewportValue(value: number): string {
@@ -84,7 +94,13 @@ function usePrefersReducedMotion(): boolean {
 }
 
 /** The styled canvas surface, controls, and recoverable renderer states. */
-export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCanvasProps) {
+export function BoardCanvas({
+  snapshot,
+  store,
+  onCardMoved,
+  onCardTap,
+  cardLimitReached = false,
+}: BoardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeStore = store ?? boardStore;
   const viewport = useStore(activeStore, selectViewport);
@@ -106,6 +122,7 @@ export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCa
     status,
     error,
     contextLost,
+    viewportSize,
     retry,
     recover,
     moveCard: moveCardInScene,
@@ -116,6 +133,12 @@ export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCa
     viewport,
     canvasLabel: BOARD_CANVAS_LABEL,
   });
+
+  const cardPositionList = useMemo(
+    () => snapshot.cards.map((card) => ({ x: card.position.x, y: card.position.y })),
+    [snapshot.cards],
+  );
+  const visibleCards = useCulling(snapshot.cards, viewport, viewportSize);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -269,6 +292,7 @@ export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCa
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}
       data-board-card-count={snapshot.cards.length}
+      data-board-visible-card-count={visibleCards.length}
       data-board-card-positions={cardPositions}
       data-board-scene-status={sceneStatus}
       data-board-context-lost={contextLost ? 'true' : 'false'}
@@ -302,16 +326,39 @@ export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCa
         >
           +
         </Button>
+        <FitToViewButton
+          positions={cardPositionList}
+          viewportSize={viewportSize}
+          store={activeStore}
+        />
         <Button variant="quiet" onClick={resetView} aria-label="Reset view">
           Reset view
         </Button>
       </div>
 
+      <Minimap
+        cards={snapshot.cards}
+        viewport={viewport}
+        viewportSize={viewportSize}
+        store={activeStore}
+      />
+
       {status !== 'error' && !contextLost ? (
         <div className="board-canvas__links">
-          <Link className="board-canvas__link" to={`${casePath}/capture`}>
-            Add evidence
-          </Link>
+          {cardLimitReached ? (
+            <span
+              className="board-canvas__link board-canvas__link--blocked"
+              aria-disabled="true"
+              title={SPLIT_CASE_MESSAGE}
+              data-testid="board-add-evidence-blocked"
+            >
+              Add evidence
+            </span>
+          ) : (
+            <Link className="board-canvas__link" to={`${casePath}/capture`}>
+              Add evidence
+            </Link>
+          )}
           <Link className="board-canvas__link" to={`${casePath}/list`}>
             Open card list
           </Link>

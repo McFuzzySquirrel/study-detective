@@ -1,0 +1,88 @@
+/*
+ * Board-capacity warning.
+ *
+ * Soft, persistent, and blocked tiers share one visual language: an inline
+ * case-file notice whose left border carries the severity. Every colour and
+ * size comes from tokens.css.
+ */
+
+.scale-warning {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-inline-start: var(--border-width-strong) solid var(--color-warning);
+  border-radius: var(--radius-md);
+}
+
+.scale-warning--persistent {
+  border-inline-start-color: var(--color-accent);
+}
+
+.scale-warning--blocked {
+  border-color: var(--color-danger-border);
+  border-inline-start-color: var(--color-danger);
+  background-color: var(--color-surface-sunken);
+}
+
+.scale-warning__copy {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.scale-warning__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.scale-warning__body {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.scale-warning--blocked .scale-warning__body {
+  color: var(--color-danger-text);
+}
+
+.scale-warning__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.scale-warning__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.scale-warning__link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scale-warning,
+  .scale-warning__link {
+    transition: none;
+  }
+}
