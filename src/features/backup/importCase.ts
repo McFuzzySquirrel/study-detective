@@ -23,7 +23,11 @@ import {
   toConnectionRow,
 } from '../../data/mappers';
 
-import { parseCaseArchiveManifest } from './archiveFormat';
+import {
+  archiveCardOcrEquals,
+  parseCaseArchiveManifest,
+  readArchiveCardOcr,
+} from './archiveFormat';
 import {
   ArchiveImportError,
   summarizeValidatedArchive,
@@ -187,10 +191,24 @@ function buildRestoredRecords(
   const cards = manifest.cards.map((card) =>
     parseCardRecord({
       ...card,
+      // Reapply the OCR contract explicitly so a future card-field mapping
+      // change cannot quietly drop text, confidence, engine, or timestamp.
+      ...readArchiveCardOcr(card),
       id: cardIdFor(card.id),
       caseId,
     }),
   );
+
+  manifest.cards.forEach((archivedCard, index) => {
+    const restoredCard = cards[index];
+    if (restoredCard === undefined || !archiveCardOcrEquals(archivedCard, restoredCard)) {
+      throw new ArchiveImportError(
+        'structure',
+        'invalid-manifest',
+        'The restored card did not preserve its OCR metadata.',
+      );
+    }
+  });
 
   const connections = manifest.connections.map((connection) => {
     const fromCardId = cardIdFor(connection.fromCardId);

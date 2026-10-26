@@ -14,6 +14,7 @@ import {
   ARCHIVE_FILE_EXTENSION,
   ARCHIVE_MANIFEST_PATH,
   ARCHIVE_MIME_TYPE,
+  assertArchiveCardOcrPreserved,
   buildCaseArchiveFileName,
   buildCaseArchiveManifest,
   createArchiveAttachmentMetadata,
@@ -181,6 +182,18 @@ export async function buildCaseArchive(input: BuildCaseArchiveInput): Promise<Ca
       ...(input.appVersion !== undefined ? { appVersion: input.appVersion } : {}),
       dbSchemaVersion: input.dbSchemaVersion ?? DATABASE_VERSION,
     });
+
+    // The manifest is assembled from the stored cards, but OCR is exactly the
+    // optional metadata a future mapping change could drop. Fail the export
+    // rather than hand the student a backup that silently lost their OCR text.
+    const archivedCards = new Map(manifest.cards.map((card) => [card.id, card] as const));
+    for (const card of cards) {
+      const archived = archivedCards.get(card.id);
+      if (archived === undefined) {
+        throw new DomainValidationError('The case archive manifest did not include every card');
+      }
+      assertArchiveCardOcrPreserved(card, archived);
+    }
   } catch (cause) {
     if (cause instanceof DomainValidationError) {
       throw cause;

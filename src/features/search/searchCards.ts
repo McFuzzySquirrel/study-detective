@@ -13,6 +13,9 @@
  * - Selected tag filters are ORed with each other.
  * - The tag result, the card-type filter, and the text query are ANDed.
  * - Missing or blank OCR text is simply not a match, never an error.
+ * - Whitespace is collapsed before matching, so an OCR phrase split across
+ *   lines is still findable with a normal single-space query.
+ * - OCR excerpts are bounded, so a very long query cannot produce a giant row.
  * - Results preserve the input order so repeat calls are stable.
  */
 
@@ -24,6 +27,12 @@ export const SEARCH_DEBOUNCE_MS = 150;
 
 /** Characters of OCR context kept on each side of the matched phrase. */
 export const OCR_SNIPPET_RADIUS = 48;
+
+/**
+ * Hard cap on the collapsed OCR excerpt (before the two optional ellipses).
+ * A long query must not turn the result row into a wall of text.
+ */
+export const OCR_SNIPPET_MAX_LENGTH = 160;
 
 export const SEARCH_TYPE_FILTERS = ['all', ...CARD_TYPES] as const;
 export type SearchTypeFilter = (typeof SEARCH_TYPE_FILTERS)[number];
@@ -57,6 +66,15 @@ function lower(value: string): string {
   return value.toLowerCase();
 }
 
+/**
+ * Collapse runs of whitespace so a query typed with single spaces still finds
+ * OCR text that the engine split across lines or double spaces. Collapsing is
+ * also what makes the snippet a single-line, bounded excerpt.
+ */
+function normalizeSearchText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
 function normalizeCriteria(options: SearchOptions): NormalizedCriteria {
   const tagKeys = new Set<string>();
 
@@ -68,15 +86,24 @@ function normalizeCriteria(options: SearchOptions): NormalizedCriteria {
   }
 
   return {
-    query: (options.query ?? '').trim(),
+    query: normalizeSearchText(options.query ?? ''),
     type: options.type ?? 'all',
     tagKeys,
   };
 }
 
+/**
+ * OCR text is optional. A blank or missing value never becomes an empty search
+ * target, so a card without OCR is simply not matched by OCR.
+ */
 function readOcrText(card: CardRecord): string | null {
   const text = card.ocrText;
-  return typeof text === 'string' && text.trim().length > 0 ? text : null;
+  if (typeof text !== 'string') {
+    return null;
+  }
+
+  const normalized = normalizeSearchText(text);
+  return normalized.length > 0 ? normalized : null;
 }
 
 function cardTags(card: CardRecord): readonly string[] {
@@ -120,9 +147,23 @@ function tagsMatchFilter(tags: readonly string[], tagKeys: ReadonlySet<string>):
 }
 
 function ocrSnippetFor(text: string, matchIndex: number, matchLength: number): string {
-  const start = Math.max(0, matchIndex - OCR_SNIPPET_RADIUS);
-  const end = Math.min(text.length, matchIndex + matchLength + OCR_SNIPPET_RADIUS);
-  const body = text.slice(start, end).replace(/\s+/g, ' ').trim();
+  const matchEnd = Math.min(text.length, matchIndex + matchLength);
+  let start = Math.max(0, matchIndex - OCR_SNIPPET_RADIUS);
+  let end = Math.min(text.length, matchEnd + OCR_SNIPPET_RADIUS);
+
+  // Keep the excerpt inside the cap. Prefer the end of the match so a long
+  // query still shows where it landed, then truncate the leading context.
+  if (end - start > OCR_SNIPPET_MAX_LENGTH) {
+    start = Math.max(0, Math.min(matchIndex, matchEnd - OCR_SNIPPET_MAX_LENGTH));
+    end = Math.min(text.length, start + OCR_SNIPPET_MAX_LENGTH);
+
+    if (end < matchEnd) {
+      start = matchIndex;
+      end = Math.min(text.length, start + OCR_SNIPPET_MAX_LENGTH);
+    }
+  }
+
+  const body = text.slice(start, end).trim();
   const prefix = start > 0 ? '…' : '';
   const suffix = end < text.length ? '…' : '';
 

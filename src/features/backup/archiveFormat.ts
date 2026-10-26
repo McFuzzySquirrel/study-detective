@@ -60,6 +60,21 @@ export const MAX_ARCHIVE_ATTACHMENTS = 1_500;
 
 export const MAX_ARCHIVE_SLUG_LENGTH = 60;
 
+/**
+ * OCR metadata travels inside each manifest card, next to the title and tags.
+ * The list is explicit so an exporter or importer change cannot silently drop
+ * a field, and so round-trip tests can assert every one of them.
+ */
+export const ARCHIVE_CARD_OCR_FIELDS = [
+  'ocrText',
+  'ocrConfidence',
+  'ocrEngineVersion',
+  'ocrUpdatedAt',
+] as const;
+
+export type ArchiveCardOcrField = (typeof ARCHIVE_CARD_OCR_FIELDS)[number];
+export type ArchiveCardOcr = Partial<Pick<CardRecord, ArchiveCardOcrField>>;
+
 const IMAGE_EXTENSIONS: Record<AttachmentMime, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -285,6 +300,45 @@ export function validateCaseArchiveManifest(input: unknown): ValidationResult<Ca
 /** Parse and validate an unknown manifest, throwing a typed domain error. */
 export function parseCaseArchiveManifest(input: unknown): CaseArchiveManifest {
   return parseRecord(caseArchiveManifestSchema, input, 'CaseArchiveManifest');
+}
+
+/**
+ * Read only the OCR fields a card actually has. Missing metadata stays absent
+ * rather than becoming `undefined` keys or empty strings.
+ */
+export function readArchiveCardOcr(card: CardRecord): ArchiveCardOcr {
+  const ocr: ArchiveCardOcr = {};
+  if (card.ocrText !== undefined) {
+    ocr.ocrText = card.ocrText;
+  }
+  if (card.ocrConfidence !== undefined) {
+    ocr.ocrConfidence = card.ocrConfidence;
+  }
+  if (card.ocrEngineVersion !== undefined) {
+    ocr.ocrEngineVersion = card.ocrEngineVersion;
+  }
+  if (card.ocrUpdatedAt !== undefined) {
+    ocr.ocrUpdatedAt = card.ocrUpdatedAt;
+  }
+  return ocr;
+}
+
+/** True when both cards carry exactly the same OCR text and metadata. */
+export function archiveCardOcrEquals(expected: CardRecord, actual: CardRecord): boolean {
+  return ARCHIVE_CARD_OCR_FIELDS.every((field) => Object.is(expected[field], actual[field]));
+}
+
+/**
+ * Fail before packaging or writing when a card's OCR metadata changed between
+ * storage and the archive record. The message names the field, never its value.
+ */
+export function assertArchiveCardOcrPreserved(expected: CardRecord, actual: CardRecord): void {
+  const field = ARCHIVE_CARD_OCR_FIELDS.find(
+    (candidate) => !Object.is(expected[candidate], actual[candidate]),
+  );
+  if (field !== undefined) {
+    throw new DomainValidationError(`The case archive did not preserve the card ${field} value`);
+  }
 }
 
 export type ArchiveAttachmentMetadataInput = {
