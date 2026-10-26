@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2
+**Phase**: RELEASE-AND-FIELD-REVIEW-1
 **Status**: In Progress
-**Validation Gaps**: 66 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T20:48:40.608Z
+**Validation Gaps**: 69 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T21:06:21.989Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -112,6 +112,8 @@
   - Files: e2e/helpers/seedLargeCase.ts, e2e/performance.spec.ts, scripts/perf-budget.mjs, tests/a11y/perfBudget.test.ts, docs/quality/performance-budget.md, vite.config.ts, playwright.config.ts
 - [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-6: Add browser capability notice and cross-browser smoke paths (@qa-engineer)
   - Files: src/app/BrowserNotice.tsx, src/app/App.tsx, playwright.config.ts, e2e/compat.spec.ts, tests/app/BrowserNotice.test.tsx, README.md, src/App.tsx, src/app/AppShell.css, src/main.tsx, tests/pwa/manifest.test.ts, src/app/browserSupport.ts
+- [x] Phase RELEASE-AND-FIELD-REVIEW-1, Task REL-1: Create the CI quality gate with coverage thresholds (@release-engineer)
+  - Files: .github/workflows/ci.yml, package.json, vitest.config.ts, scripts/validate-workflows.mjs, tests/release/ciConfig.test.ts, package-lock.json, vitest.coverage.ts
 
 ## Current Task
 - None currently running
@@ -191,6 +193,9 @@
 - Task A11Y-5: The local preview server does not represent a 20 Mbps network profile, so cold load is documented but deferred to field measurement.
 - Task A11Y-6: Screen-reader announcement and visual notice treatment remain human review items.
 - Task A11Y-6: Tablet FPS and final field acceptance remain human gates.
+- Task REL-1: The full 92-test Playwright suite was not run locally; only discovery, desktop smoke, and Firefox/WebKit compat were executed.
+- Task REL-1: No deployment or base-path build was performed because REL-1 explicitly excludes deployment.
+- Task REL-1: Automated checks cannot replace the separate REL-HR-1 human journey gate.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

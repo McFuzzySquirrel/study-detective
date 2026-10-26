@@ -3,6 +3,8 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+import { domainDataCoverageThresholds } from './vitest.coverage.ts';
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -24,6 +26,7 @@ export default defineConfig({
       reporter: ['text', 'html'],
       include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/main.tsx', 'src/vite-env.d.ts'],
+      thresholds: domainDataCoverageThresholds,
     },
   },
 });
