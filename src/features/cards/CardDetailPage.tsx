@@ -18,12 +18,23 @@ import Toast from '../../components/Toast';
 import type { ToastTone } from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
+import { ConnectionRepository } from '../../data/connectionRepository';
+import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
-import type { AttachmentKind, AttachmentMime, CardRecord, CaseRecord } from '../../domain/model';
+import type {
+  AttachmentKind,
+  AttachmentMime,
+  CardRecord,
+  CaseRecord,
+  ConnectionRecord,
+} from '../../domain/model';
 import { TITLE_MAX_LENGTH } from '../../domain/model';
 import { FULL_CROP, type CropRect, type Rotation } from '../capture/imagePipeline';
 import CropRotateEditor from '../capture/CropRotateEditor';
 import type { CropResult } from '../capture/CropRotateEditor';
+import ConnectionPicker from '../connections/ConnectionPicker';
+import type { ConnectionPickerIntent } from '../connections/ConnectionPicker';
+import { connectionTypeLabel } from '../connections/useUndoDeleteConnection';
 import TagInput from '../search/TagInput';
 import {
   replaceCardPhoto as replaceCardPhotoWithPipeline,
@@ -38,6 +49,7 @@ import {
 import './CardDetail.css';
 
 export type CardDetailRepositoryLoader = () => Promise<CaseRepositoryPort>;
+export type CardDetailConnectionRepositoryLoader = () => Promise<ConnectionRepositoryPort>;
 
 export type CardPhotoReplacer = (
   input: ReplaceCardPhotoInput,
@@ -49,6 +61,10 @@ export interface CardDetailPageProps {
   readonly repository?: CaseRepositoryPort | undefined;
   /** Injected opener used by the route table and failure-state tests. */
   readonly loadRepository?: CardDetailRepositoryLoader | undefined;
+  /** Injected connection write boundary for the keyboard picker. */
+  readonly connectionRepository?: ConnectionRepositoryPort | undefined;
+  /** Lazy connection opener; resolved only when the picker saves. */
+  readonly loadConnectionRepository?: CardDetailConnectionRepositoryLoader | undefined;
   /** Defaults to the real local image pipeline plus repository replacement. */
   readonly replacePhoto?: CardPhotoReplacer | undefined;
 }
@@ -108,6 +124,7 @@ const REPLACE_STAGE_VALUES: Record<ReplaceStage, number> = {
 const REPLACE_STAGE_COUNT = 5;
 
 let defaultRepositoryPromise: Promise<CaseRepositoryPort> | null = null;
+let defaultConnectionRepositoryPromise: Promise<ConnectionRepositoryPort> | null = null;
 
 /** Open the one production repository, forgetting a failed open so Retry works. */
 function loadDefaultRepository(): Promise<CaseRepositoryPort> {
@@ -121,6 +138,23 @@ function loadDefaultRepository(): Promise<CaseRepositoryPort> {
   }
 
   return defaultRepositoryPromise;
+}
+
+/**
+ * Open the connection repository only when the picker writes. The page still
+ * never opens Dexie itself; this mirrors the board's lazy opener.
+ */
+function loadDefaultConnectionRepository(): Promise<ConnectionRepositoryPort> {
+  if (defaultConnectionRepositoryPromise === null) {
+    defaultConnectionRepositoryPromise = openNotesDetectiveDatabase()
+      .then((database) => new ConnectionRepository(database))
+      .catch((error: unknown) => {
+        defaultConnectionRepositoryPromise = null;
+        throw error;
+      });
+  }
+
+  return defaultConnectionRepositoryPromise;
 }
 
 function attachmentView(
@@ -390,6 +424,8 @@ function DeleteCardDialog({ title, onClose, onConfirm }: DeleteCardDialogProps) 
 export function CardDetailPage({
   repository,
   loadRepository,
+  connectionRepository,
+  loadConnectionRepository,
   replacePhoto = replaceCardPhotoWithPipeline,
 }: CardDetailPageProps) {
   const { caseId: caseIdParam, cardId: cardIdParam } = useParams();
@@ -404,10 +440,13 @@ export function CardDetailPage({
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [card, setCard] = useState<CardRecord | null>(null);
+  const [cards, setCards] = useState<CardRecord[]>([]);
+  const [connections, setConnections] = useState<ConnectionRecord[]>([]);
   const [attachments, setAttachments] = useState<AttachmentView[]>([]);
   const [displayUrl, setDisplayUrl] = useState<string | null>(null);
 
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
+  const [pickerIntent, setPickerIntent] = useState<ConnectionPickerIntent | null>(null);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cropSession, setCropSession] = useState<CropSession | null>(null);
@@ -509,7 +548,11 @@ export function CardDetailPage({
           return;
         }
 
-        const storedAttachments = await target.listAttachments(record.id);
+        const [storedAttachments, storedCards, storedConnections] = await Promise.all([
+          target.listAttachments(record.id),
+          target.listCards(caseId),
+          target.listConnections(caseId),
+        ]);
         if (cancelled) {
           return;
         }
@@ -517,6 +560,8 @@ export function CardDetailPage({
         setActiveRepository(target);
         setCaseRecord(owningCase);
         setCard(record);
+        setCards(storedCards);
+        setConnections(storedConnections);
         applyAttachments(attachmentView(storedAttachments));
         setFailedJob(null);
         setReplaceError(null);
@@ -807,6 +852,36 @@ export function CardDetailPage({
     setFeedback({ message: 'Card tags updated.', tone: 'success' });
   };
 
+  const handleConnectionCreated = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => [
+      ...current.filter((candidate) => candidate.id !== connection.id),
+      connection,
+    ]);
+    setFeedback({
+      message: `Connection saved: ${connectionTypeLabel(connection.type)}.`,
+      tone: 'success',
+    });
+  }, []);
+
+  const handleConnectionChanged = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => {
+      const exists = current.some((candidate) => candidate.id === connection.id);
+      if (!exists) {
+        return [...current, connection];
+      }
+      return current.map((candidate) => (candidate.id === connection.id ? connection : candidate));
+    });
+    setFeedback({
+      message: `Connection updated: ${connectionTypeLabel(connection.type)}.`,
+      tone: 'success',
+    });
+  }, []);
+
+  const handleConnectionDeleted = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => current.filter((candidate) => candidate.id !== connection.id));
+    setFeedback({ message: 'Connection deleted. Both cards are unchanged.', tone: 'success' });
+  }, []);
+
   const handleDeleteConfirmed = async (): Promise<void> => {
     const target = activeRepository;
     const currentCard = card;
@@ -994,7 +1069,34 @@ export function CardDetailPage({
                     >
                       Delete card
                     </Button>
+
+                    <Button
+                      className="card-detail__action"
+                      onClick={() => {
+                        setFeedback(null);
+                        setPickerIntent('connect');
+                      }}
+                    >
+                      Connect to…
+                    </Button>
+
+                    {card.type === 'note' ? (
+                      <Button
+                        className="card-detail__action"
+                        onClick={() => {
+                          setFeedback(null);
+                          setPickerIntent('attach-source');
+                        }}
+                      >
+                        Attach source
+                      </Button>
+                    ) : null}
                   </div>
+
+                  <p className="card-detail__hint">
+                    Connect to… builds a thread from this card without the board. A Study Note can
+                    also attach a Source as provenance.
+                  </p>
 
                   {card.type === 'topic' ? null : (
                     <p className="card-detail__hint">
@@ -1130,6 +1232,23 @@ export function CardDetailPage({
               title={card.title}
               onClose={() => setDeleteDialogOpen(false)}
               onConfirm={handleDeleteConfirmed}
+            />
+          ) : null}
+
+          {pickerIntent !== null ? (
+            <ConnectionPicker
+              key={`${card.id}:${pickerIntent}`}
+              open
+              currentCard={card}
+              cards={cards}
+              connections={connections}
+              intent={pickerIntent}
+              {...(connectionRepository !== undefined ? { repository: connectionRepository } : {})}
+              loadRepository={loadConnectionRepository ?? loadDefaultConnectionRepository}
+              onClose={() => setPickerIntent(null)}
+              onConnectionCreated={handleConnectionCreated}
+              onConnectionChanged={handleConnectionChanged}
+              onConnectionDeleted={handleConnectionDeleted}
             />
           ) : null}
         </>

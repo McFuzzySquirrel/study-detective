@@ -18,6 +18,8 @@ import Toast from '../../components/Toast';
 import type { ToastTone } from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
+import { ConnectionRepository } from '../../data/connectionRepository';
+import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import { readCardDeletionPreview } from '../../data/deleteCard';
 import type { CardDeletionPreview, CardDeletionSnapshot } from '../../data/deleteCard';
@@ -31,12 +33,17 @@ import { useUndoDelete } from './useUndoDelete';
 import './CardListPage.css';
 
 export type CardListRepositoryLoader = () => Promise<CaseRepositoryPort>;
+export type CardListConnectionRepositoryLoader = () => Promise<ConnectionRepositoryPort>;
 
 export interface CardListPageProps {
   /** Injected repository for route composition and component tests. */
   readonly repository?: CaseRepositoryPort | undefined;
   /** Injected opener used by the route table and failure-state tests. */
   readonly loadRepository?: CardListRepositoryLoader | undefined;
+  /** Injected connection write boundary for the keyboard picker. */
+  readonly connectionRepository?: ConnectionRepositoryPort | undefined;
+  /** Lazy connection opener; resolved only when the picker saves. */
+  readonly loadConnectionRepository?: CardListConnectionRepositoryLoader | undefined;
 }
 
 type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
@@ -47,6 +54,7 @@ type Feedback = {
 };
 
 let defaultRepositoryPromise: Promise<CaseRepositoryPort> | null = null;
+let defaultConnectionRepositoryPromise: Promise<ConnectionRepositoryPort> | null = null;
 
 /** Open the one production repository, forgetting a failed open so Retry works. */
 function loadDefaultRepository(): Promise<CaseRepositoryPort> {
@@ -60,6 +68,20 @@ function loadDefaultRepository(): Promise<CaseRepositoryPort> {
   }
 
   return defaultRepositoryPromise;
+}
+
+/** Resolve the connection write boundary on the first picker save. */
+function loadDefaultConnectionRepository(): Promise<ConnectionRepositoryPort> {
+  if (defaultConnectionRepositoryPromise === null) {
+    defaultConnectionRepositoryPromise = openNotesDetectiveDatabase()
+      .then((database) => new ConnectionRepository(database))
+      .catch((error: unknown) => {
+        defaultConnectionRepositoryPromise = null;
+        throw error;
+      });
+  }
+
+  return defaultConnectionRepositoryPromise;
 }
 
 function compareCards(a: CardRecord, b: CardRecord): number {
@@ -250,7 +272,12 @@ function DeleteCardDialog({ preview, onClose, onConfirm }: DeleteCardDialogProps
 }
 
 /** The routed text view for one case; every action except placement is here. */
-export function CardListPage({ repository, loadRepository }: CardListPageProps) {
+export function CardListPage({
+  repository,
+  loadRepository,
+  connectionRepository,
+  loadConnectionRepository,
+}: CardListPageProps) {
   const { caseId: caseIdParam } = useParams();
   const caseId = caseIdParam ?? '';
   const boardPath = `/case/${caseId}`;
@@ -308,6 +335,27 @@ export function CardListPage({ repository, loadRepository }: CardListPageProps) 
     onDeleted: handleDeleted,
     onRestored: handleRestored,
   });
+
+  const handleConnectionCreated = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => {
+      const without = current.filter((candidate) => candidate.id !== connection.id);
+      return [...without, connection];
+    });
+  }, []);
+
+  const handleConnectionChanged = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => {
+      const exists = current.some((candidate) => candidate.id === connection.id);
+      if (!exists) {
+        return [...current, connection];
+      }
+      return current.map((candidate) => (candidate.id === connection.id ? connection : candidate));
+    });
+  }, []);
+
+  const handleConnectionDeleted = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => current.filter((candidate) => candidate.id !== connection.id));
+  }, []);
 
   const invalidAddress = caseId.length === 0;
   const visibleStatus: LoadStatus = invalidAddress ? 'missing' : status;
@@ -616,6 +664,11 @@ export function CardListPage({ repository, loadRepository }: CardListPageProps) 
           connections={connections}
           onEdit={openEdit}
           onDelete={openDelete}
+          {...(connectionRepository !== undefined ? { connectionRepository } : {})}
+          loadConnectionRepository={loadConnectionRepository ?? loadDefaultConnectionRepository}
+          onConnectionCreated={handleConnectionCreated}
+          onConnectionChanged={handleConnectionChanged}
+          onConnectionDeleted={handleConnectionDeleted}
         />
       ) : null}
 

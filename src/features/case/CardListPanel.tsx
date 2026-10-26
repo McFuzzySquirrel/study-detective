@@ -2,8 +2,14 @@ import { useCallback, useId, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import Button from '../../components/Button';
+import Toast from '../../components/Toast';
+import type { ToastTone } from '../../components/Toast';
+import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import type { CardRecord, CardType, ConnectionRecord } from '../../domain/model';
 import { CARD_TYPES } from '../../domain/model';
+import ConnectionPicker from '../connections/ConnectionPicker';
+import type { ConnectionPickerIntent } from '../connections/ConnectionPicker';
+import { connectionTypeLabel } from '../connections/useUndoDeleteConnection';
 import SearchPanel from '../search/SearchPanel';
 
 import './CardListPanel.css';
@@ -46,6 +52,13 @@ export interface CardListPanelProps {
   readonly connections?: readonly ConnectionRecord[];
   readonly onEdit: (card: CardRecord) => void;
   readonly onDelete: (card: CardRecord) => void;
+  /** Direct connection write boundary for tests and composition. */
+  readonly connectionRepository?: ConnectionRepositoryPort | undefined;
+  /** Lazy connection opener; resolved only when the picker saves. */
+  readonly loadConnectionRepository?: (() => Promise<ConnectionRepositoryPort>) | undefined;
+  readonly onConnectionCreated?: ((connection: ConnectionRecord) => void) | undefined;
+  readonly onConnectionChanged?: ((connection: ConnectionRecord) => void) | undefined;
+  readonly onConnectionDeleted?: ((connection: ConnectionRecord) => void) | undefined;
   /**
    * Optional override for choosing a search result. The default navigates to
    * the board with the card focused and centered.
@@ -61,9 +74,17 @@ interface CardListGroupProps {
   readonly connections: readonly ConnectionRecord[];
   readonly onEdit: (card: CardRecord) => void;
   readonly onDelete: (card: CardRecord) => void;
+  readonly onConnect: (card: CardRecord, intent: ConnectionPickerIntent) => void;
 }
 
-function CardListGroup({ type, cards, connections, onEdit, onDelete }: CardListGroupProps) {
+function CardListGroup({
+  type,
+  cards,
+  connections,
+  onEdit,
+  onDelete,
+  onConnect,
+}: CardListGroupProps) {
   const headingId = `card-list-group-${useId().replace(/:/g, '')}-${type}`;
 
   return (
@@ -140,6 +161,22 @@ function CardListGroup({ type, cards, connections, onEdit, onDelete }: CardListG
                   >
                     Delete
                   </Button>
+                  <Button
+                    className="card-list__action"
+                    aria-label={`Connect to… for ${card.title}`}
+                    onClick={() => onConnect(card, 'connect')}
+                  >
+                    Connect to…
+                  </Button>
+                  {card.type === 'note' ? (
+                    <Button
+                      className="card-list__action"
+                      aria-label={`Attach source to ${card.title}`}
+                      onClick={() => onConnect(card, 'attach-source')}
+                    >
+                      Attach source
+                    </Button>
+                  ) : null}
                 </div>
               </article>
             </li>
@@ -162,11 +199,22 @@ export default function CardListPanel({
   connections = [],
   onEdit,
   onDelete,
+  connectionRepository,
+  loadConnectionRepository,
+  onConnectionCreated,
+  onConnectionChanged,
+  onConnectionDeleted,
   onSearchSelect,
   searchDetailHref,
 }: CardListPanelProps) {
   const navigate = useNavigate();
   const [searchActive, setSearchActive] = useState(false);
+  const [pickerCard, setPickerCard] = useState<CardRecord | null>(null);
+  const [pickerIntent, setPickerIntent] = useState<ConnectionPickerIntent>('connect');
+  const [feedback, setFeedback] = useState<{
+    readonly message: string;
+    readonly tone: ToastTone;
+  } | null>(null);
 
   const handleSearchSelect = useCallback(
     (card: CardRecord): void => {
@@ -182,8 +230,51 @@ export default function CardListPanel({
     [navigate, onSearchSelect],
   );
 
+  const openPicker = useCallback((card: CardRecord, intent: ConnectionPickerIntent): void => {
+    setFeedback(null);
+    setPickerCard(card);
+    setPickerIntent(intent);
+  }, []);
+
+  const handleConnectionCreated = useCallback(
+    (connection: ConnectionRecord): void => {
+      onConnectionCreated?.(connection);
+      setFeedback({
+        message: `Connection saved: ${connectionTypeLabel(connection.type)}.`,
+        tone: 'success',
+      });
+    },
+    [onConnectionCreated],
+  );
+
+  const handleConnectionChanged = useCallback(
+    (connection: ConnectionRecord): void => {
+      onConnectionChanged?.(connection);
+      setFeedback({
+        message: `Connection updated: ${connectionTypeLabel(connection.type)}.`,
+        tone: 'success',
+      });
+    },
+    [onConnectionChanged],
+  );
+
+  const handleConnectionDeleted = useCallback(
+    (connection: ConnectionRecord): void => {
+      onConnectionDeleted?.(connection);
+      setFeedback({ message: 'Connection deleted. Both cards are unchanged.', tone: 'success' });
+    },
+    [onConnectionDeleted],
+  );
+
   return (
     <div className="card-list">
+      <Toast
+        message={feedback?.message ?? null}
+        tone={feedback?.tone ?? 'info'}
+        onDismiss={() => setFeedback(null)}
+        dismissLabel="Dismiss connection message"
+      />
+
       <SearchPanel
         cards={cards}
         onSelectCard={handleSearchSelect}
@@ -212,10 +303,30 @@ export default function CardListPanel({
               connections={connections}
               onEdit={onEdit}
               onDelete={onDelete}
+              onConnect={openPicker}
             />
           );
         })
       )}
+
+      {pickerCard !== null ? (
+        <ConnectionPicker
+          key={`${pickerCard.id}:${pickerIntent}`}
+          open
+          currentCard={pickerCard}
+          cards={cards}
+          connections={connections}
+          intent={pickerIntent}
+          {...(connectionRepository !== undefined ? { repository: connectionRepository } : {})}
+          {...(loadConnectionRepository !== undefined
+            ? { loadRepository: loadConnectionRepository }
+            : {})}
+          onClose={() => setPickerCard(null)}
+          onConnectionCreated={handleConnectionCreated}
+          onConnectionChanged={handleConnectionChanged}
+          onConnectionDeleted={handleConnectionDeleted}
+        />
+      ) : null}
     </div>
   );
 }

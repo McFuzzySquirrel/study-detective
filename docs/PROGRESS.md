@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: OPTIONAL-OCR-1
+**Phase**: CONNECTIONS-AND-PROVENANCE-3
 **Status**: In Progress
-**Validation Gaps**: 35 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T06:55:56.194Z
+**Validation Gaps**: 36 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T07:10:56.128Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -58,6 +58,8 @@
   - Files: src/board/ThreadAnchor.ts, src/board/CardSprite.ts, src/features/connections/ConnectionTypeMenu.tsx, src/features/connections/useCreateConnection.ts, tests/connections/useCreateConnection.test.tsx, e2e/connections.spec.ts, src/board/BoardCanvas.tsx, src/board/BoardScene.ts, src/board/CardLayer.ts, src/board/boardStore.ts, src/board/useCardGestures.ts, src/board/usePixiApp.ts, src/features/case/CaseBoardPage.tsx, src/features/connections/connections.css
 - [x] Phase CONNECTIONS-AND-PROVENANCE-2, Task LINK-4: Build connection detail, retype, delete, undo, and legend (@ui-engineer)
   - Files: src/features/connections/ConnectionDetail.tsx, src/features/connections/ConnectionLegend.tsx, src/features/connections/useUndoDeleteConnection.ts, src/features/case/CaseBoardPage.tsx, tests/connections/ConnectionDetail.test.tsx, tests/connections/ConnectionLegend.test.tsx, src/features/case/CaseBoardPage.css, src/features/connections/connections.css
+- [x] Phase CONNECTIONS-AND-PROVENANCE-3, Task LINK-5: Build the keyboard connection target picker (@ui-engineer)
+  - Files: src/features/connections/ConnectionPicker.tsx, src/features/cards/CardDetailPage.tsx, src/features/case/CardListPanel.tsx, tests/connections/ConnectionPicker.test.tsx, e2e/keyboard-links.spec.ts, src/features/case/CardListPage.tsx, src/features/connections/connections.css
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
@@ -125,6 +127,7 @@
 - Task LINK-3: Pixel-level string color/pixel verification is covered by LINK-2 geometry tests and browser behavior, not a pixel assertion in this LINK-3 journey.
 - Task LINK-4: Component tests run in jsdom at its default 1024x768 viewport; the CSS breakpoints are not browser-exercised.
 - Task LINK-4: No Playwright journey was required or run for this task.
+- Task LINK-5: Component tests run in jsdom; the e2e journey provides the real-browser viewport and IndexedDB evidence.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
 - Task SEARCH-2: Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
