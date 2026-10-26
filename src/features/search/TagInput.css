@@ -1,0 +1,123 @@
+/*
+ * Tag editor styles.
+ *
+ * Tags wrap instead of widening the page, the remove control keeps the shared
+ * 44x44 target, and every colour, size, and radius comes from tokens.css.
+ */
+
+.tag-input {
+  min-inline-size: 0;
+}
+
+.tag-input__body {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.tag-input__empty {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tag-input__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag-input__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  padding-block: var(--space-1);
+  padding-inline-start: var(--space-3);
+  padding-inline-end: var(--space-1);
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.tag-input__tag-text {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-control);
+}
+
+.tag-input__remove {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.tag-input__remove:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.tag-input__entry {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.tag-input__field {
+  flex: 1 1 12rem;
+  min-inline-size: 0;
+}
+
+.tag-input__field:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.tag-input__counter {
+  flex: none;
+  color: var(--color-ink-muted);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.tag-input__status {
+  min-block-size: 1.5em;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.tag-input__status[data-tone='error'] {
+  color: var(--color-danger-text);
+}
+
+.tag-input__visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .tag-input__tag {
+    max-inline-size: 100%;
+  }
+
+  .tag-input__field {
+    flex-basis: 100%;
+  }
+}

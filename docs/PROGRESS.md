@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: SEARCH-TAGS-AND-FILTERS-1
 **Status**: In Progress
-**Validation Gaps**: 25 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T05:18:11.814Z
+**Validation Gaps**: 26 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T05:24:48.115Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -52,6 +52,8 @@
   - Files: src/features/case/CardListPage.tsx, src/features/case/CardListPanel.tsx, src/features/case/EmptyBoard.tsx, src/features/case/useUndoDelete.ts, src/data/deleteCard.ts, src/features/case/CaseBoardPage.tsx, src/app/routes.tsx, tests/case/CardListPanel.test.tsx, tests/case/useUndoDelete.test.tsx, e2e/keyboard-cards.spec.ts, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/EmptyBoard.css
 - [x] Phase CONNECTIONS-AND-PROVENANCE-1, Task LINK-1: Implement connection rules, repository, and cascade delete (@data-engineer)
   - Files: src/domain/connections.ts, src/data/connectionRepository.ts, tests/domain/connections.test.ts, tests/data/connectionRepository.test.ts
+- [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
+  - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -72,7 +74,6 @@
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
-- [ ] Phase SEARCH-TAGS-AND-FILTERS-1: Phase 1: Tags
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-2: Phase 2: Search and filters
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
@@ -111,6 +112,7 @@
 - Task BOARD-5: Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design.
 - Task LINK-1: Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.
 - Task LINK-1: No browser or visual board behavior is in scope for LINK-1.
+- Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).

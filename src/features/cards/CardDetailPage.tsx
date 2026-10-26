@@ -24,6 +24,7 @@ import { TITLE_MAX_LENGTH } from '../../domain/model';
 import { FULL_CROP, type CropRect, type Rotation } from '../capture/imagePipeline';
 import CropRotateEditor from '../capture/CropRotateEditor';
 import type { CropResult } from '../capture/CropRotateEditor';
+import TagInput from '../search/TagInput';
 import {
   replaceCardPhoto as replaceCardPhotoWithPipeline,
   type CardPhotoSource,
@@ -153,8 +154,9 @@ interface TitleEditDialogProps {
 }
 
 /**
- * Title-only edit. The card type, photo, tags, and position are deliberately
- * untouchable here; the dialog restores focus to the Edit title trigger.
+ * Title-only edit. The card type, photo, and position are deliberately
+ * untouchable here; tags have their own editor and the dialog restores focus
+ * to the Edit title trigger.
  */
 function TitleEditDialog({ initialTitle, onClose, onSubmit }: TitleEditDialogProps) {
   const [title, setTitle] = useState(initialTitle);
@@ -249,6 +251,77 @@ function TitleEditDialog({ initialTitle, onClose, onSubmit }: TitleEditDialogPro
   );
 }
 
+interface TagsEditDialogProps {
+  readonly initialTags: readonly string[];
+  readonly onClose: () => void;
+  readonly onSubmit: (tags: readonly string[]) => Promise<void>;
+}
+
+/**
+ * Tag-only edit. The title, type, photo, and position stay untouched; saving
+ * writes the normalized set through the repository so a reload keeps it.
+ */
+function TagsEditDialog({ initialTags, onClose, onSubmit }: TagsEditDialogProps) {
+  const [tags, setTags] = useState<readonly string[]>(initialTags);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+
+    if (saving) {
+      return;
+    }
+
+    setFormError(null);
+    setSaving(true);
+
+    try {
+      await onSubmit(tags);
+    } catch {
+      setFormError('The tags could not be saved. Your changes are still here; try again.');
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      title="Edit card tags"
+      description="Tags help you find this card from the board and the card list. Up to 10 tags are saved with the card."
+      dismissible={!saving}
+      closeOnBackdrop={!saving}
+    >
+      <form className="card-detail-form" onSubmit={handleSubmit} noValidate>
+        <TagInput
+          value={tags}
+          onChange={setTags}
+          label="Card tags"
+          listLabel="Edited card tags"
+          hint="Type a tag and press Enter or comma to add it. Backspace removes the last tag."
+          disabled={saving}
+        />
+
+        {formError !== null ? (
+          <p className="card-detail-form__error" role="alert">
+            {formError}
+          </p>
+        ) : null}
+
+        <div className="nd-dialog__actions">
+          <Button variant="quiet" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save tags'}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 interface DeleteCardDialogProps {
   readonly title: string;
   readonly onClose: () => void;
@@ -335,6 +408,7 @@ export function CardDetailPage({
   const [displayUrl, setDisplayUrl] = useState<string | null>(null);
 
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
+  const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cropSession, setCropSession] = useState<CropSession | null>(null);
 
@@ -719,6 +793,20 @@ export function CardDetailPage({
     setFeedback({ message: 'Card title updated.', tone: 'success' });
   };
 
+  const handleTagsSubmit = async (tags: readonly string[]): Promise<void> => {
+    const target = activeRepository;
+    const currentCard = card;
+
+    if (target === null || currentCard === null) {
+      throw new Error('The card repository is not open.');
+    }
+
+    const updated = await target.updateCard(currentCard.id, { tags });
+    setCard(updated);
+    setTagsDialogOpen(false);
+    setFeedback({ message: 'Card tags updated.', tone: 'success' });
+  };
+
   const handleDeleteConfirmed = async (): Promise<void> => {
     const target = activeRepository;
     const currentCard = card;
@@ -936,7 +1024,15 @@ export function CardDetailPage({
                 </section>
 
                 <section className="card-detail__tags" aria-labelledby="card-tags-title">
-                  <h3 id="card-tags-title">Tags</h3>
+                  <div className="card-detail__tags-header">
+                    <h3 id="card-tags-title">Tags</h3>
+                    <Button
+                      className="card-detail__tag-edit"
+                      onClick={() => setTagsDialogOpen(true)}
+                    >
+                      Edit tags
+                    </Button>
+                  </div>
                   {card.tags.length === 0 ? (
                     <p className="card-detail__muted">No tags yet.</p>
                   ) : (
@@ -1018,6 +1114,14 @@ export function CardDetailPage({
               initialTitle={card.title}
               onClose={() => setTitleDialogOpen(false)}
               onSubmit={handleTitleSubmit}
+            />
+          ) : null}
+
+          {tagsDialogOpen ? (
+            <TagsEditDialog
+              initialTags={card.tags}
+              onClose={() => setTagsDialogOpen(false)}
+              onSubmit={handleTagsSubmit}
             />
           ) : null}
 

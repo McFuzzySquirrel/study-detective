@@ -280,6 +280,7 @@ describe('Capture route', () => {
 
     await user.selectOptions(screen.getByRole('combobox', { name: 'Card type' }), 'source');
     await user.type(screen.getByRole('textbox', { name: 'Title' }), '  Lecture 3  ');
+    await user.type(screen.getByRole('textbox', { name: 'Tags' }), '  Biochemistry  {Enter}');
     await user.click(screen.getByRole('button', { name: 'Save card' }));
 
     expect(await screen.findByRole('heading', { name: 'Case board' })).toBeInTheDocument();
@@ -289,6 +290,7 @@ describe('Capture route', () => {
     const saved = cards.find((card) => card.title === 'Lecture 3');
     expect(saved).toBeDefined();
     expect(saved?.type).toBe('source');
+    expect(saved?.tags).toEqual(['Biochemistry']);
     // Viewport (100, 50) at scale 1 on a 1000x800 screen, plus a 2-card stagger.
     expect(saved?.position).toEqual({ x: 632, y: 482 });
 
@@ -377,6 +379,7 @@ describe('Capture route', () => {
     expect(validator).not.toHaveBeenCalled();
 
     await user.type(screen.getByRole('textbox', { name: 'Topic title' }), '  Carbonyls  ');
+    await user.type(screen.getByRole('textbox', { name: 'Topic tags' }), 'Organic{Enter}');
     await user.click(screen.getByRole('button', { name: 'Add topic' }));
 
     expect(await screen.findByRole('heading', { name: 'Case board' })).toBeInTheDocument();
@@ -387,6 +390,7 @@ describe('Capture route', () => {
     expect(topic).toMatchObject({
       type: 'topic',
       title: 'Carbonyls',
+      tags: ['Organic'],
       position: { x: 600, y: 450 },
     });
     expect(await repository.listAttachments(topic?.id ?? '')).toEqual([]);

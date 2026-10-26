@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T05:18:11.811Z",
+  "lastUpdatedAt": "2026-10-26T05:24:48.111Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -843,10 +843,43 @@
     },
     "SEARCH-1": {
       "taskId": "SEARCH-1",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "ui-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/domain/tags.ts",
+        "src/features/search/TagInput.tsx",
+        "src/features/search/TagInput.css",
+        "src/features/capture/NoteSourceForm.tsx",
+        "src/features/capture/TopicForm.tsx",
+        "src/features/cards/CardDetailPage.tsx",
+        "tests/domain/tags.test.ts",
+        "tests/search/TagInput.test.tsx",
+        "src/features/capture/CapturePage.tsx",
+        "src/features/cards/CardDetail.css",
+        "tests/capture/CaptureFlow.test.tsx",
+        "tests/capture/TopicForm.test.tsx"
+      ],
+      "startedAt": "2026-10-26T05:18:11.889Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/SEARCH-1.2026-10-26T05-24-48-100Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T05:24:48.106Z",
+      "agentOutput": "## SEARCH-1 Result Report\n\nImplemented normalized tags for cards and card forms, with tag persistence wired through capture, topic creation, and card detail editing.\n\n### Files created\n\n- `src/domain/tags.ts` — `normalizeTag` re-export, `addTag`, `removeTag`, `validateTagSet`, tag limits, duplicate and casing rules.\n- `src/features/search/TagInput.tsx` — accessible controlled tag editor.\n- `src/features/search/TagInput.css` — token-only tag chip, counter, status, focus, and 44px target styling.\n- `tests/domain/tags.test.ts` — domain tag rule coverage.\n- `tests/search/TagInput.test.tsx` — keyboard, announcement, target, form wiring, and card-detail reload coverage.\n\n### Files changed\n\n- `src/features/capture/NoteSourceForm.tsx` — tags field and optional `tags` in submitted values.\n- `src/features/capture/TopicForm.tsx` — tags field and optional `tags` in submitted values.\n- `src/features/capture/CapturePage.tsx` — carries tags through pending drafts and forwards them to `importImageCard` / `createCard`.\n- `src/features/cards/CardDetailPage.tsx` — `Edit tags` dialog using `TagInput`, saved through `updateCard`.\n- `src/features/cards/CardDetail.css` — tag header/edit control layout with token-only values.\n- `tests/capture/CaptureFlow.test.tsx` — source and topic capture flows now assert persisted tags.\n- `tests/capture/TopicForm.test.tsx` — tab order updated for the new tag field.\n\n### Validation\n\n- `npm test -- tests/domain/tags.test.ts tests/search/TagInput.test.tsx` — **pass**, 25 tests.\n- `npm run typecheck` — **pass**.\n- Additional checks: full suite **676/676 pass**, `npm run lint` pass, Prettier check pass, `npm run build` pass.\n\n### Acceptance criteria\n\n| Criterion | Result | Evidence |\n|---|---|---|\n| Trim, reject over 24 chars, reject eleventh tag, case-insensitive dedupe | Pass | `tags.test.ts`, `TagInput.test.tsx` |\n| First display casing preserved; duplicates do not replace it | Pass | `addTag` duplicate result and duplicate UI test |\n| Enter/comma add, Backspace removes last, errors announced | Pass | `TagInput.test.tsx` keyboard tests and persistent live status region |\n| Tags persist on notes, sources, topics and survive reload | Pass | CaptureFlow source/topic repository assertions; CardDetail save + unmount/reload test |\n| Remove controls 44px with accessible names | Pass | CSS contract test against `--target-min`; `Remove tag <name>` buttons |\n\n### Keyboard path exercised\n\n- Tab from title → tag input → actions in note/source and topic forms.\n- Enter and comma add; Backspace removes last; Tab to individual remove buttons; Enter activates removal.\n- Card detail: `Edit tags` opens the shared dialog, saves tags, Escape closes, focus returns to the trigger.\n\n### Viewports exercised\n\n- Component/domain tests are jsdom-based. No browser viewport matrix was required for SEARCH-1; phone/tablet browser evidence remains with SEARCH-3/QA. Responsive wrapping is implemented at `max-width: 600px` but was not Playwright-verified here.\n\n### Accessibility evidence\n\n- Tag remove controls use the shared `IconButton` with 44×44 `--target-min` sizing and explicit token focus rings.\n- Tag input has a visible label, hint, `aria-describedby`, `aria-invalid`, `aria-errormessage`, and a permanently mounted polite status region.\n- Focus returns to the tag input after removing a chip; the card-detail dialog traps focus while open and restores the `Edit tags` trigger on save/Escape.\n- Measured token contrast: muted text on surface **7.87:1**, danger text on surface **8.72:1**, tag text on sunken surface **13.50:1**.\n- No raw palette literals or `dangerouslySetInnerHTML` in the new tag UI.\n\n### Shared-file handoff\n\n- `CapturePage.tsx`: `PendingCard` and `PendingTopic` now require `tags`; preserve forwarding to `importImageCard` and `createCard`, including retry drafts.\n- `CardDetailPage.tsx`: tag edits must continue to go through `updateCard` only; title, photo, type, and position stay untouched by the tags dialog.\n- `NoteSourceForm.tsx` / `TopicForm.tsx`: `tags` remains optional when empty for existing caller compatibility.\n- `src/domain/tags.ts` re-exports `normalizeTag` from `src/domain/validation.ts` to keep one authoritative normalization rule; `data-engineer` should preserve that single source during review.\n\n```forge-result\n{\"summary\":\"Implemented SEARCH-1 normalized tags: pure tag rules, accessible TagInput, note/source/topic capture wiring, card-detail tag editing with persistence, and passing targeted tests, full suite, typecheck, lint, formatting, and build.\",\"unresolved\":[],\"interfaces\":[\"src/domain/tags.ts: normalizeTag, addTag, removeTag, validateTagSet, TagAddResult, TagSetValidation\",\"TagInput({ value, onChange, label?, hint?, id?, disabled?, listLabel?, className? })\",\"NoteSourceValues.tags and TopicFormValues.tags are optional readonly string[]\",\"CapturePage pending drafts carry tags into importImageCard and createCard\",\"CardDetailPage Edit tags dialog saves through CaseRepositoryPort.updateCard\"],\"tests\":[\"npm test -- tests/domain/tags.test.ts tests/search/TagInput.test.tsx: pass (25)\",\"npm run typecheck: pass\",\"npm test: pass (676)\",\"npm run lint: pass\",\"npm run build: pass\"],\"warnings\":[\"No Playwright viewport matrix was run for SEARCH-1; browser keyboard/phone search evidence belongs to SEARCH-3 and QA.\",\"Responsive tag wrapping is implemented below 600px but only jsdom component behavior was exercised here.\"],\"validationLimitations\":[\"The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.\"]}\n```\n",
+      "validationLimitations": [
+        "The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task."
+      ],
+      "artifactId": "work-search-1-001",
+      "inputArtifactIds": [
+        "work-cap-4-001",
+        "work-board-4-001",
+        "work-board-5-001",
+        "work-cap-3-001"
+      ]
     },
     "SEARCH-2": {
       "taskId": "SEARCH-2",

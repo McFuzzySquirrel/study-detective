@@ -12,11 +12,14 @@ import type { FormEvent } from 'react';
 import Button from '../../components/Button';
 import Field from '../../components/Field';
 import { TITLE_MAX_LENGTH } from '../../domain/model';
+import TagInput from '../search/TagInput';
 
 import './capture.css';
 
 export type TopicFormValues = {
   readonly title: string;
+  /** Omitted when the topic has no tags. */
+  readonly tags?: readonly string[];
 };
 
 export interface TopicFormProps {
@@ -27,6 +30,7 @@ export interface TopicFormProps {
 
 export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
   const [title, setTitle] = useState('');
+  const [tags, setTags] = useState<readonly string[]>([]);
   const [titleError, setTitleError] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -48,7 +52,7 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
     }
 
     setTitleError(null);
-    onSubmit({ title: trimmed });
+    onSubmit({ title: trimmed, ...(tags.length > 0 ? { tags } : {}) });
   }
 
   return (
@@ -84,6 +88,13 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
             />
           )}
         </Field>
+
+        <TagInput
+          value={tags}
+          onChange={setTags}
+          label="Topic tags"
+          hint="Optional. Type a tag and press Enter or comma to add it. Backspace removes the last tag."
+        />
 
         <div className="capture-form__actions">
           <Button variant="quiet" onClick={onBack}>

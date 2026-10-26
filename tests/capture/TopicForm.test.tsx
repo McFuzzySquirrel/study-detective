@@ -35,6 +35,8 @@ describe('TopicForm', () => {
 
     await user.type(title, '  Carbonyls  ');
     await user.tab();
+    expect(screen.getByRole('textbox', { name: 'Topic tags' })).toHaveFocus();
+    await user.tab();
     expect(screen.getByRole('button', { name: 'Back' })).toHaveFocus();
     await user.tab();
 

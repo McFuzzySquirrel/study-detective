@@ -202,6 +202,19 @@
   border-block-start: var(--border-width) solid var(--color-border);
 }
 
+.card-detail__tags-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.card-detail__tag-edit {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
 .card-detail__tag-list {
   display: flex;
   flex-wrap: wrap;

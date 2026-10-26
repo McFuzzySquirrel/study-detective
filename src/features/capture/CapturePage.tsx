@@ -89,6 +89,7 @@ type PendingCard = {
   readonly type: ImageCardType;
   readonly title: string;
   readonly retainFullResolution: boolean;
+  readonly tags: readonly string[];
   readonly crop: CropRect;
   readonly rotation: Rotation;
   readonly position: ImportImageCardInput['position'];
@@ -96,6 +97,7 @@ type PendingCard = {
 
 type PendingTopic = {
   readonly title: string;
+  readonly tags: readonly string[];
   readonly position: ImportImageCardInput['position'];
 };
 
@@ -511,6 +513,7 @@ export function CapturePage({
           type: draft.type,
           title: draft.title,
           position: draft.position,
+          tags: draft.tags,
           crop: draft.crop,
           rotation: draft.rotation,
           retainFullResolution: draft.retainFullResolution,
@@ -584,6 +587,7 @@ export function CapturePage({
         type: 'topic',
         title: draft.title,
         position: draft.position,
+        tags: draft.tags,
       });
       navigate(casePath);
     } catch {
@@ -624,6 +628,7 @@ export function CapturePage({
       type: values.type,
       title: values.title,
       retainFullResolution: values.retainFullResolution,
+      tags: values.tags ?? [],
       crop: cropResult.crop,
       rotation: cropResult.rotation,
       position,
@@ -643,7 +648,11 @@ export function CapturePage({
       return;
     }
 
-    const draft: PendingTopic = { title: values.title, position };
+    const draft: PendingTopic = {
+      title: values.title,
+      tags: values.tags ?? [],
+      position,
+    };
     void runTopicSave(draft);
   };
 
@@ -833,6 +842,7 @@ export function CapturePage({
           <NoteSourceForm
             initialType={pendingCard?.type ?? initialImageType}
             initialTitle={pendingCard?.title ?? ''}
+            initialTags={pendingCard?.tags ?? []}
             onBack={() => setStep('crop')}
             onSubmit={handleNoteSourceSubmit}
           />
