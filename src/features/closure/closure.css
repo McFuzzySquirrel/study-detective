@@ -224,7 +224,7 @@
  * panel shadow mark it as a secondary surface without taking the board's
  * horizontal space.
  */
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .closure-panel {
     border-start-start-radius: var(--radius-lg);
     border-start-end-radius: var(--radius-lg);

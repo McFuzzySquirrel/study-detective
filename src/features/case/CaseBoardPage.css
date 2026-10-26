@@ -149,6 +149,49 @@
   min-inline-size: 0;
 }
 
+/* ------------------------------------------------------------------------- */
+/* Phone sheets                                                               */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * Below 600 px the header collapses to one Case actions trigger and the side
+ * panels move into Dialog-backed bottom sheets. Every trigger keeps the 44 px
+ * floor; the sheet body stacks actions full width.
+ */
+.case-board-page__sheet-triggers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.case-board-page__sheet-trigger {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  flex: 1 1 10rem;
+}
+
+.case-board-page__sheet-actions {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.case-board-page__sheet-actions .nd-button {
+  inline-size: 100%;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.case-board-page__sheet-legend {
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.case-board-page__sheet {
+  max-block-size: min(86dvh, 44rem);
+}
+
 /*
  * The selected-thread inspector and the canvas share one workspace. On phone
  * and portrait tablet widths they stack with the inspector first, so a

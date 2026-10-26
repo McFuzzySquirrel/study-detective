@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: FIRST-RUN-DEMO-AND-HINTS-3
+**Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1
 **Status**: In Progress
-**Validation Gaps**: 51 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T18:36:34.248Z
+**Validation Gaps**: 55 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T18:53:48.294Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -100,6 +100,8 @@
   - Files: src/features/onboarding/hints.ts, src/features/onboarding/HintPopover.tsx, src/features/onboarding/hints.css, src/features/settings/SettingsPage.tsx, src/app/routes.tsx, tests/onboarding/hints.test.ts, tests/onboarding/HintPopover.test.tsx, tests/settings/SettingsPage.test.tsx
 - [x] Phase FIRST-RUN-DEMO-AND-HINTS-3, Task DEMO-3: Wire first-run seeding, demo removal, and contextual hint triggers (@ui-engineer)
   - Files: src/app/AppBootstrap.tsx, src/App.tsx, src/features/shelf/CaseShelf.tsx, src/features/shelf/CaseCard.tsx, src/features/case/CaseBoardPage.tsx, src/features/recall/RecallPage.tsx, tests/demo/firstRun.test.tsx, e2e/demo.spec.ts, playwright.config.ts, src/features/onboarding/hints.css, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/DeleteCaseDialog.tsx, src/features/shelf/shelf.css, tests/pwa/UpdatePrompt.test.tsx, tests/recall/RecallPage.test.tsx, e2e/fixtures/no-demo-storage.json
+- [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1, Task A11Y-1: Harden tablet, phone, and desktop layouts (@ui-engineer)
+  - Files: src/styles/responsive.css, src/app/AppShell.tsx, src/app/AppShell.css, src/features/shelf/CaseShelf.tsx, src/features/case/CaseBoardPage.tsx, src/features/cards/CardDetailPage.tsx, src/features/recall/RecallPage.tsx, src/features/search/SearchPanel.tsx, src/features/settings/SettingsPage.tsx, tests/a11y/responsive.test.tsx, e2e/responsive.spec.ts, src/components/Dialog.tsx, src/components/components.css, src/features/capture/capture.css, src/features/cards/CardDetail.css, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/CaseBoardPage.css, src/features/case/EmptyBoard.css, src/features/closure/closure.css, src/features/connections/connections.css, src/features/ocr/OcrPanel.css, src/features/onboarding/hints.css, src/features/recall/recall.css, src/features/search/SearchPanel.css, src/features/shelf/shelf.css, src/main.tsx, tests/search/SearchPanel.test.tsx, src/app/useLayoutMode.ts
 
 ## Current Task
 - None currently running
@@ -166,6 +168,10 @@
 - Task DEMO-2: No Playwright/browser reload or viewport matrix was run for DEMO-2 because the task's required validation is unit/component plus typecheck; the browser first-run journey belongs to DEMO-3. Persistence across reload is covered by reconstructing the store over the same injected storage.
 - Task DEMO-3: Long-press hint behavior is component-tested with a mocked coarse-pointer matchMedia; Playwright's configured projects do not emulate touch, so the browser journey exercises the thread-anchor hint instead.
 - Task DEMO-3: Contextual hints are fixed near the viewport bottom rather than geometrically anchored to their trigger; their click-through body avoids blocking the board, but final placement is a human style-review matter.
+- Task A11Y-1: Playwright evidence is Chromium-only; Firefox/WebKit smoke remains A11Y-6 scope.
+- Task A11Y-1: No axe scans were added, per task exclusion.
+- Task A11Y-1: The viewport matrix runs once in the desktop project while setting all four viewports explicitly; the phone sheet journey runs in the phone project, so tablet and desktop projects report the other journey as skipped by design.
+- Task A11Y-1: Safe-area presence is verified by a source contract test because the headless browser resolves env() insets to 0px.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

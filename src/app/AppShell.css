@@ -6,6 +6,7 @@
 .app-frame {
   display: flex;
   flex-direction: column;
+  inline-size: 100%;
   min-block-size: 100vh;
   min-block-size: 100dvh;
   background: var(--color-canvas);
@@ -14,7 +15,7 @@
 
 .app-frame__skip-link {
   position: absolute;
-  inset-block-start: 0;
+  inset-block-start: var(--safe-area-top);
   inset-inline-start: 0;
   z-index: var(--z-skip-link);
   display: inline-flex;
@@ -91,7 +92,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  padding-inline: var(--space-inline);
+  padding-inline: max(var(--space-inline), var(--safe-area-inline-start));
 }
 
 .app-frame__status > * {
@@ -104,7 +105,9 @@
   inline-size: 100%;
   max-inline-size: 72rem;
   margin-inline: auto;
-  padding: var(--space-inline);
+  padding-block: var(--space-inline);
+  padding-inline: max(var(--space-inline), var(--safe-area-inline-start))
+    max(var(--space-inline), var(--safe-area-inline-end));
 }
 
 .app-frame__content:focus-visible {
@@ -192,10 +195,11 @@
   cursor: pointer;
 }
 
-@media (max-width: 30rem) {
+@media (max-width: 37.4375rem) {
   .app-frame__topbar {
     align-items: flex-start;
     flex-direction: column;
+    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
   }
 
   .app-frame__nav {
@@ -205,6 +209,11 @@
   .app-frame__nav a {
     flex: 1 1 auto;
     justify-content: center;
+    min-block-size: var(--target-min);
+  }
+
+  .app-frame__title {
+    font-size: var(--font-size-md);
   }
 }
 

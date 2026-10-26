@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { useLayoutMode } from '../../app/useLayoutMode';
 import Button from '../../components/Button';
 import type { CaseSummary } from '../../domain/model';
 
@@ -34,6 +35,10 @@ export default function CaseShelf({
   onImport,
   storageStatus,
 }: CaseShelfProps) {
+  // The grid is a single column on phone and auto-fills from tablet upward.
+  // The attribute lets the shelf's responsive contract be asserted directly.
+  const layout = useLayoutMode();
+
   // The demo is a first-run example, so it leads the shelf even if a later
   // user case has a nearer exam date. Every other case keeps repository order.
   const orderedCases = [...cases].sort((a, b) => (a.isDemo === b.isDemo ? 0 : a.isDemo ? -1 : 1));
@@ -41,7 +46,7 @@ export default function CaseShelf({
   return (
     <>
       {storageStatus}
-      <ul className="shelf__grid" aria-label="Case files">
+      <ul className="shelf__grid" aria-label="Case files" data-layout={layout}>
         {orderedCases.map((summary) => (
           <li key={summary.id} className="shelf__grid-item">
             <CaseCard
@@ -56,7 +61,11 @@ export default function CaseShelf({
       </ul>
 
       {onImport !== undefined ? (
-        <section className="shelf__backup" aria-labelledby="shelf-backup-title">
+        <section
+          className="shelf__backup"
+          aria-labelledby="shelf-backup-title"
+          data-layout={layout}
+        >
           <div className="shelf__backup-copy">
             <p className="shelf__eyebrow">Backup and restore</p>
             <h3 id="shelf-backup-title">Keep a copy outside this browser</h3>

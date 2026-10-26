@@ -36,7 +36,9 @@ import {
   type BoardSize,
 } from '../../board/viewport';
 import Button from '../../components/Button';
+import Dialog from '../../components/Dialog';
 import Toast from '../../components/Toast';
+import { usePhoneLayout } from '../../app/useLayoutMode';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { ConnectionRepository } from '../../data/connectionRepository';
@@ -241,6 +243,10 @@ export function CaseBoardPage({
   const [backupOpen, setBackupOpen] = useState(false);
   const [restoredConnectionFocusToken, setRestoredConnectionFocusToken] = useState(0);
   const [coarsePointer, setCoarsePointer] = useState(readCoarsePointer);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
+  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
+  const [closureSheetOpen, setClosureSheetOpen] = useState(false);
+  const phoneLayout = usePhoneLayout();
   const activeHintStore = hintStore ?? hintSeenStore;
   const seenHints = useSeenHints(activeHintStore);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
@@ -251,6 +257,13 @@ export function CaseBoardPage({
   const stageRef = useRef<HTMLDivElement>(null);
   const focusHandledRef = useRef<string | null>(null);
   const restoredFocusHandledRef = useRef(0);
+  /**
+   * A phone sheet normally returns focus to the trigger that opened it. When an
+   * action inside the sheet moves the student (selecting a search result or
+   * centring a loose card), the sheet points this ref at the board heading so
+   * closing lands on the new context instead.
+   */
+  const sheetReturnFocusRef = useRef<HTMLElement | null>(null);
 
   const viewport = useStore(activeStore, selectViewport);
   const viewportDirty = useStore(activeStore, selectViewportDirty);
@@ -687,6 +700,9 @@ export function CaseBoardPage({
         // stale snapshot without offering an undo that could resurrect it.
         setConnections((current) => current.filter((candidate) => candidate.id !== target.id));
         if (activeStore.getState().selectedConnectionId === target.id) {
+          // The phone inspector is a sheet; focus should land on the board
+          // heading after the string it described is gone.
+          sheetReturnFocusRef.current = boardHeadingRef.current;
           activeStore.getState().selectConnection(null);
         }
       }
@@ -784,6 +800,42 @@ export function CaseBoardPage({
     },
     [applySearchSelection, cards],
   );
+
+  /**
+   * Closing a phone sheet should land on whatever the action changed. For a
+   * search result or a "Show on board" jump, that is the board heading; a plain
+   * cancel leaves the ref empty so Dialog returns focus to the trigger.
+   */
+  const handleSearchSheetSelect = useCallback(
+    (card: CardRecord): void => {
+      sheetReturnFocusRef.current = boardHeadingRef.current;
+      setSearchSheetOpen(false);
+      applySearchSelection(card);
+    },
+    [applySearchSelection],
+  );
+
+  const handleClosureShowCard = useCallback(
+    (cardId: string): void => {
+      sheetReturnFocusRef.current = boardHeadingRef.current;
+      setClosureSheetOpen(false);
+      handleShowLooseCard(cardId);
+    },
+    [handleShowLooseCard],
+  );
+
+  const handleCloseConnectionDetail = useCallback((): void => {
+    // The phone inspector is a sheet; closing it should land on the board
+    // heading rather than the unrelated trigger that was focused before the
+    // string was picked. The Dialog reads this ref during its cleanup, so focus
+    // is not moved to an inert element while the trap is still active.
+    if (phoneLayout) {
+      sheetReturnFocusRef.current = boardHeadingRef.current;
+    } else {
+      boardHeadingRef.current?.focus();
+    }
+    activeStore.getState().selectConnection(null);
+  }, [activeStore, phoneLayout]);
 
   // The card list's search results navigate here with `?card=<id>` so that
   // "Select" means the same thing on both surfaces: center and select the card.
@@ -903,33 +955,81 @@ export function CaseBoardPage({
           </p>
         </div>
 
-        <div className="case-board-page__actions">
+        {phoneLayout ? (
           <Button
             variant="secondary"
-            onClick={() => setBackupOpen(true)}
-            disabled={visibleStatus !== 'ready' || activeRepository === null}
+            className="case-board-page__sheet-trigger"
+            aria-haspopup="dialog"
+            aria-expanded={actionsSheetOpen}
+            onClick={() => {
+              sheetReturnFocusRef.current = null;
+              setActionsSheetOpen(true);
+            }}
           >
-            Back up case
+            Case actions
           </Button>
-          {visibleStatus === 'ready' && cards.length > 0 ? (
-            <Link className="case-board-page__back" to={`/case/${caseId}/recall`}>
-              Recall
+        ) : (
+          <div className="case-board-page__actions">
+            <Button
+              variant="secondary"
+              onClick={() => setBackupOpen(true)}
+              disabled={visibleStatus !== 'ready' || activeRepository === null}
+            >
+              Back up case
+            </Button>
+            {visibleStatus === 'ready' && cards.length > 0 ? (
+              <Link className="case-board-page__back" to={`/case/${caseId}/recall`}>
+                Recall
+              </Link>
+            ) : null}
+            {caseId.length > 0 ? (
+              <Link className="case-board-page__back" to={`/case/${caseId}/list`}>
+                Open card list
+              </Link>
+            ) : null}
+            <Link className="case-board-page__back" to="/">
+              Back to case shelf
             </Link>
-          ) : null}
-          {caseId.length > 0 ? (
-            <Link className="case-board-page__back" to={`/case/${caseId}/list`}>
-              Open card list
-            </Link>
-          ) : null}
-          <Link className="case-board-page__back" to="/">
-            Back to case shelf
-          </Link>
-        </div>
+          </div>
+        )}
       </header>
 
       <ScaleWarning cardCount={visibleStatus === 'ready' ? cards.length : 0} />
 
-      {visibleStatus === 'ready' && cards.length > 0 ? (
+      {phoneLayout && visibleStatus === 'ready' ? (
+        <div className="case-board-page__sheet-triggers" role="group" aria-label="Board panels">
+          {cards.length > 0 ? (
+            <Button
+              variant="secondary"
+              className="case-board-page__sheet-trigger"
+              aria-haspopup="dialog"
+              aria-expanded={searchSheetOpen}
+              onClick={() => {
+                sheetReturnFocusRef.current = null;
+                setSearchSheetOpen(true);
+              }}
+            >
+              Search and filters
+            </Button>
+          ) : null}
+          {caseRecord !== null ? (
+            <Button
+              variant="secondary"
+              className="case-board-page__sheet-trigger"
+              aria-haspopup="dialog"
+              aria-expanded={closureSheetOpen}
+              onClick={() => {
+                sheetReturnFocusRef.current = null;
+                setClosureSheetOpen(true);
+              }}
+            >
+              Case closure
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
+      {!phoneLayout && visibleStatus === 'ready' && cards.length > 0 ? (
         <SearchPanel
           className="case-board-page__search"
           cards={cards}
@@ -969,7 +1069,7 @@ export function CaseBoardPage({
         </aside>
       ) : null}
 
-      {visibleStatus === 'ready' ? (
+      {!phoneLayout && visibleStatus === 'ready' ? (
         <div className="case-board-page__board-controls" role="group" aria-label="Board controls">
           <ConnectionLegend />
         </div>
@@ -979,7 +1079,7 @@ export function CaseBoardPage({
         className="case-board-page__workspace"
         data-has-detail={detailVisible ? 'true' : 'false'}
       >
-        {detailVisible && selectedDetail !== null ? (
+        {!phoneLayout && detailVisible && selectedDetail !== null ? (
           <ConnectionDetail
             connection={selectedDetail.connection}
             fromCard={selectedDetail.fromCard}
@@ -992,10 +1092,7 @@ export function CaseBoardPage({
                 selectedDetail.toCard.title,
               )
             }
-            onClose={() => {
-              activeStore.getState().selectConnection(null);
-              boardHeadingRef.current?.focus();
-            }}
+            onClose={handleCloseConnectionDetail}
           />
         ) : null}
 
@@ -1067,7 +1164,7 @@ export function CaseBoardPage({
           ) : null}
         </div>
 
-        {visibleStatus === 'ready' && caseRecord !== null ? (
+        {!phoneLayout && visibleStatus === 'ready' && caseRecord !== null ? (
           <ClosurePanel
             caseRecord={caseRecord}
             readiness={readiness}
@@ -1081,6 +1178,138 @@ export function CaseBoardPage({
           />
         ) : null}
       </div>
+
+      {/*
+        Phone surfaces. Each side panel keeps its tablet/desktop inline form and
+        gets one modal sheet below 600 px, so every action stays reachable and
+        focus is trapped only while the sheet is open.
+      */}
+      {phoneLayout ? (
+        <Dialog
+          open={actionsSheetOpen}
+          onClose={() => setActionsSheetOpen(false)}
+          title="Case actions"
+          description="Back up, switch to recall, open the keyboard card list, or leave the case."
+          size="lg"
+          className="case-board-page__sheet case-board-page__sheet--actions"
+          returnFocusRef={sheetReturnFocusRef}
+        >
+          <div className="case-board-page__sheet-actions">
+            <Button
+              variant="primary"
+              fullWidth
+              disabled={visibleStatus !== 'ready' || activeRepository === null}
+              onClick={() => {
+                setActionsSheetOpen(false);
+                setBackupOpen(true);
+              }}
+            >
+              Back up case
+            </Button>
+
+            {visibleStatus === 'ready' && cards.length > 0 ? (
+              <Link
+                className="nd-button nd-button--secondary nd-button--lg"
+                to={`/case/${caseId}/recall`}
+                onClick={() => setActionsSheetOpen(false)}
+              >
+                Recall
+              </Link>
+            ) : null}
+
+            {caseId.length > 0 ? (
+              <Link
+                className="nd-button nd-button--secondary nd-button--lg"
+                to={`/case/${caseId}/list`}
+                onClick={() => setActionsSheetOpen(false)}
+              >
+                Open card list
+              </Link>
+            ) : null}
+
+            <Link
+              className="nd-button nd-button--quiet nd-button--lg"
+              to="/"
+              onClick={() => setActionsSheetOpen(false)}
+            >
+              Back to case shelf
+            </Link>
+          </div>
+
+          <div className="case-board-page__sheet-legend">
+            <ConnectionLegend defaultOpen={false} />
+          </div>
+        </Dialog>
+      ) : null}
+
+      {phoneLayout ? (
+        <Dialog
+          open={searchSheetOpen}
+          onClose={() => setSearchSheetOpen(false)}
+          title="Search and filters"
+          description="Search titles, tags, and stored OCR text, then choose a result to centre it on the board."
+          size="lg"
+          className="case-board-page__sheet case-board-page__sheet--search"
+          returnFocusRef={sheetReturnFocusRef}
+        >
+          <SearchPanel
+            variant="sheet"
+            cards={cards}
+            onSelectCard={handleSearchSheetSelect}
+            title="Search this case"
+          />
+        </Dialog>
+      ) : null}
+
+      {phoneLayout && caseRecord !== null ? (
+        <Dialog
+          open={closureSheetOpen}
+          onClose={() => setClosureSheetOpen(false)}
+          title="Case closure"
+          description="Derived readiness, loose threads, and the close or reopen action for this case."
+          size="lg"
+          className="case-board-page__sheet case-board-page__sheet--closure"
+          returnFocusRef={sheetReturnFocusRef}
+        >
+          <ClosurePanel
+            caseRecord={caseRecord}
+            readiness={readiness}
+            busy={caseLifecycle.busy}
+            error={caseLifecycle.error}
+            onCloseCase={caseLifecycle.closeCase}
+            onReopenCase={caseLifecycle.reopenCase}
+            cardHref={(cardId) => `/case/${caseId}/card/${cardId}`}
+            onShowCard={handleClosureShowCard}
+            onClearError={caseLifecycle.clearError}
+          />
+        </Dialog>
+      ) : null}
+
+      {phoneLayout && detailVisible && selectedDetail !== null ? (
+        <Dialog
+          open
+          onClose={handleCloseConnectionDetail}
+          title="Connection details"
+          description={`“${selectedDetail.fromCard.title}” and “${selectedDetail.toCard.title}”`}
+          className="case-board-page__sheet case-board-page__sheet--connection"
+          returnFocusRef={sheetReturnFocusRef}
+        >
+          <ConnectionDetail
+            connection={selectedDetail.connection}
+            fromCard={selectedDetail.fromCard}
+            toCard={selectedDetail.toCard}
+            onRetype={(type) => handleConnectionRetype(selectedDetail.connection, type)}
+            onDelete={() =>
+              handleConnectionDelete(
+                selectedDetail.connection,
+                selectedDetail.fromCard.title,
+                selectedDetail.toCard.title,
+              )
+            }
+            onClose={handleCloseConnectionDetail}
+          />
+        </Dialog>
+      ) : null}
 
       <ConnectionTypeMenu
         open={connection.menu !== null}

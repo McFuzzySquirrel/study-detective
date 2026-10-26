@@ -23,6 +23,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Link, useNavigate, useParams } from 'react-router';
 import { useStore } from 'zustand';
 
+import { usePhoneLayout } from '../../app/useLayoutMode';
 import { boardStore, selectViewport } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
@@ -148,6 +149,7 @@ export function RecallPage({
   const activeStore = store ?? boardStore;
   const activeScratchStore = scratchStore ?? recallStore;
   const activeHintStore = hintStore ?? hintSeenStore;
+  const phoneLayout = usePhoneLayout();
   const seenHints = useSeenHints(activeHintStore);
   const scratch = useScratchConnections({ store: activeScratchStore });
   const viewport = useStore(activeStore, selectViewport);
@@ -505,6 +507,7 @@ export function RecallPage({
       aria-labelledby="recall-page-title"
       aria-busy={visibleStatus === 'loading'}
       data-testid="recall-page"
+      data-layout={phoneLayout ? 'phone' : 'wide'}
       data-case-id={caseId}
       data-recall-status={visibleStatus}
       data-recall-scratch-count={scratchCount}
@@ -531,8 +534,9 @@ export function RecallPage({
             Recall
           </h2>
           <p className="recall-page__summary">
-            The strings are hidden, but every card title, image, and position stays. Rebuild the
-            connections from memory, then check your work. Nothing drawn here is saved.
+            {phoneLayout
+              ? 'Strings are hidden; cards, images, and positions stay. Rebuild the connections from memory, then check your work. Nothing drawn here is saved.'
+              : 'The strings are hidden, but every card title, image, and position stays. Rebuild the connections from memory, then check your work. Nothing drawn here is saved.'}
           </p>
         </div>
 

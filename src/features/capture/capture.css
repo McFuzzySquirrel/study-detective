@@ -302,7 +302,7 @@
 /* Small screens                                                              */
 /* ------------------------------------------------------------------------- */
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .capture__step {
     padding: var(--space-4);
     padding-block-end: calc(var(--space-4) + var(--safe-area-bottom));

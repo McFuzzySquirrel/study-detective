@@ -550,7 +550,7 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .connection-picker__existing-item,
   .connection-picker__edit-actions {
     align-items: stretch;

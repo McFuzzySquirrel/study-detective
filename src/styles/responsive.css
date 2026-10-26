@@ -1,0 +1,333 @@
+/*
+ * Cross-screen responsive layer.
+ *
+ * Breakpoints (also owned by `src/app/useLayoutMode.ts`):
+ *
+ * - phone: below 600 px (`max-width: 37.4375rem`)
+ * - tablet: 600–1199 px
+ * - desktop: 1200 px and up (`min-width: 75rem`)
+ *
+ * The rules here are deliberately layout-only. Palette, motion, and target
+ * values stay in tokens.css and each screen's own stylesheet. Nothing hides
+ * content to avoid overflow: screens wrap, stack, and scroll inside their own
+ * region so the document itself never gains a horizontal scrollbar.
+ */
+
+:root {
+  /* Safe-area helpers. iOS reports 0px on devices without insets, so these
+     values are safe on every platform. */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-inline-start: env(safe-area-inset-left, 0px);
+  --safe-area-inline-end: env(safe-area-inset-right, 0px);
+
+  /* Fixed and sticky surfaces add these to their normal spacing. */
+  --layout-topbar-padding-block: calc(var(--space-2) + var(--safe-area-top));
+  --layout-bottom-padding: calc(var(--space-6) + var(--safe-area-bottom));
+}
+
+/* ------------------------------------------------------------------------- */
+/* Shared containment                                                        */
+/* ------------------------------------------------------------------------- */
+
+/*
+ * Every screen is a grid or flex container with `min-inline-size: 0`, so a long
+ * title, tag, or OCR snippet wraps inside its column instead of widening the
+ * page. `max-inline-size: 100%` keeps the app frame inside the visual viewport
+ * even when the address bar changes the layout viewport.
+ */
+.app-frame,
+.app-frame__topbar,
+.app-frame__content,
+.shelf,
+.shelf__grid,
+.case-board-page,
+.case-board-page__workspace,
+.case-board-page__stage,
+.card-detail,
+.card-detail__layout,
+.recall-page,
+.recall-page__stage,
+.settings-page,
+.hint-settings,
+.search-panel {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.app-frame__content > *,
+.case-board-page > *,
+.card-detail > *,
+.recall-page > *,
+.settings-page > *,
+.shelf > * {
+  min-inline-size: 0;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-inline-size: 100%;
+}
+
+/* Long unbroken user/imported values must never force horizontal scroll. */
+.case-card__title,
+.case-card__subject,
+.case-card__meta dd,
+.search-panel__active-label,
+.search-panel__result-title,
+.search-panel__result-context,
+.card-detail__title,
+.card-detail__tag,
+.recall-summary__pair-titles,
+.closure-panel__thread-link {
+  overflow-wrap: anywhere;
+}
+
+/*
+ * The shell header is sticky so the skip link and primary navigation remain
+ * reachable on long phone screens. The top inset protects it from a notch.
+ */
+.app-frame__topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 20;
+  padding-block-start: var(--layout-topbar-padding-block);
+  padding-inline-start: max(var(--space-inline), var(--safe-area-inline-start));
+  padding-inline-end: max(var(--space-inline), var(--safe-area-inline-end));
+  background-color: var(--color-canvas);
+}
+
+.app-frame__content {
+  padding-inline-start: max(var(--space-inline), var(--safe-area-inline-start));
+  padding-inline-end: max(var(--space-inline), var(--safe-area-inline-end));
+}
+
+/* A fixed toast stack already clears the bottom inset; mirror the token here so
+   a future toast placement change cannot silently drop the safe area. */
+.nd-toast-region {
+  inset-block-end: max(var(--space-4), var(--safe-area-bottom));
+}
+
+/* ------------------------------------------------------------------------- */
+/* Phone: below 600 px                                                       */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 37.4375rem) {
+  .app-frame__content {
+    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
+    padding-block-end: var(--layout-bottom-padding);
+  }
+
+  .app-frame__topbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
+  }
+
+  .app-frame__nav {
+    inline-size: 100%;
+  }
+
+  .app-frame__nav a {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .app-frame__status {
+    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
+  }
+
+  /*
+   * Dialogs become bottom sheets. The panel is anchored to the bottom edge,
+   * keeps its title and close control visible, and reserves the home-indicator
+   * inset below its actions. The actions themselves stay column-reverse and
+   * full width so the primary action is the last, largest target.
+   */
+  .nd-dialog {
+    align-items: end;
+    padding: 0;
+  }
+
+  .nd-dialog__panel,
+  .nd-dialog__panel[data-size='sm'],
+  .nd-dialog__panel[data-size='lg'] {
+    inline-size: 100%;
+    max-block-size: calc(100dvh - var(--safe-area-top) - var(--space-4));
+    padding-block-end: calc(var(--space-6) + var(--safe-area-bottom));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .nd-dialog__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .nd-dialog__actions .nd-button,
+  .case-board-page__sheet-actions .nd-button,
+  .card-detail__sheet .nd-button {
+    min-block-size: var(--target-min);
+    min-inline-size: var(--target-min);
+    inline-size: 100%;
+  }
+
+  .shelf__header,
+  .case-board-page__header,
+  .recall-page__header,
+  .settings-page__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shelf__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-board-page__title,
+  .recall-page__title,
+  .settings-page__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .case-board-page__actions,
+  .case-board-page__board-controls {
+    justify-content: flex-start;
+  }
+
+  .case-board-page__sheet-triggers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .case-board-page__sheet-trigger {
+    min-block-size: var(--target-min);
+    min-inline-size: var(--target-min);
+    inline-size: 100%;
+  }
+
+  .case-board-page__stage,
+  .recall-page__stage {
+    min-block-size: clamp(20rem, calc(100dvh - 20rem), 40rem);
+  }
+
+  .case-board-page__workspace[data-has-detail='true'],
+  .case-board-page__workspace[data-has-detail='false'] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'stage';
+  }
+
+  .card-detail__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .card-detail__image {
+    max-block-size: min(60vh, 30rem);
+  }
+
+  .card-detail__sheet-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    min-block-size: var(--target-min);
+    min-inline-size: var(--target-min);
+  }
+
+  .hint-settings {
+    padding: var(--space-4);
+  }
+
+  .hint-settings__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-page .nd-button {
+    min-block-size: var(--target-min);
+  }
+
+  .search-panel__bar-actions {
+    inline-size: 100%;
+  }
+
+  .search-panel__bar-actions .nd-button {
+    flex: 1 1 auto;
+  }
+
+  /* A search panel inside a real bottom sheet is content, not the sheet. Its
+     own full-height phone rule from SearchPanel.css is reset here. */
+  .search-panel--sheet {
+    min-block-size: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Tablet: 600–1199 px                                                       */
+/* ------------------------------------------------------------------------- */
+
+@media (min-width: 37.5rem) and (max-width: 74.9375rem) {
+  .app-frame__content {
+    padding-inline: max(var(--space-4), var(--safe-area-inline-start));
+  }
+
+  .case-board-page__header,
+  .recall-page__header,
+  .shelf__header {
+    gap: var(--space-3);
+  }
+
+  /*
+   * Tablet portrait keeps the single reading column; landscape at 1024 px and
+   * above lets the board and closure panel share the width through their own
+   * media query. The card detail photo and actions also stay stacked until the
+   * page has enough room for a readable action column.
+   */
+  .card-detail__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .case-board-page__stage {
+    min-block-size: clamp(24rem, calc(100dvh - 18rem), 48rem);
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Desktop: 1200 px and up                                                   */
+/* ------------------------------------------------------------------------- */
+
+@media (min-width: 75rem) {
+  .app-frame__content {
+    max-inline-size: 80rem;
+    padding-inline: max(var(--space-inline), var(--safe-area-inline-start));
+  }
+
+  .shelf__grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  }
+
+  .case-board-page__header,
+  .recall-page__header,
+  .shelf__header {
+    align-items: flex-start;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                            */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .app-frame__topbar {
+    transition: none;
+  }
+
+  .app-frame__topbar,
+  .app-frame__content {
+    scroll-behavior: auto;
+  }
+}

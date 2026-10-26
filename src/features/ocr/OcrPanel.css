@@ -206,7 +206,7 @@
 /* Small screens                                                              */
 /* ------------------------------------------------------------------------- */
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .ocr-panel {
     padding: var(--space-3);
   }

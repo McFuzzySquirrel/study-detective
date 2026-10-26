@@ -245,12 +245,34 @@
   font-size: var(--font-size-sm);
 }
 
-@media (max-width: 599px) {
+@media (max-width: 37.4375rem) {
+  .settings-page {
+    padding-block-end: calc(var(--space-4) + var(--safe-area-bottom));
+  }
+
+  .settings-page__title {
+    font-size: var(--font-size-xl);
+  }
+
   .hint-settings {
     padding: var(--space-4);
   }
 
+  .hint-settings__item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .hint-settings__replay {
     inline-size: 100%;
+  }
+
+  .hint-settings__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hint-settings__footer .nd-button {
+    min-block-size: var(--target-min);
   }
 }

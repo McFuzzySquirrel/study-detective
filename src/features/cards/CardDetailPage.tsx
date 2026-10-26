@@ -11,6 +11,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
+import { usePhoneLayout } from '../../app/useLayoutMode';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
 import Field from '../../components/Field';
@@ -473,6 +474,8 @@ export function CardDetailPage({
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [cropSession, setCropSession] = useState<CropSession | null>(null);
+  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
+  const phoneLayout = usePhoneLayout();
 
   const [replacing, setReplacing] = useState(false);
   const [replaceProgress, setReplaceProgress] = useState<ReplaceStage | null>(null);
@@ -997,6 +1000,130 @@ export function CardDetailPage({
     navigate('/');
   };
 
+  /**
+   * The action and tag sidebar. On tablet and desktop it is the narrow column
+   * beside the photo; below 600 px the same element moves into a modal bottom
+   * sheet so every card action keeps a 44 px target without a long scroll.
+   */
+  const cardSidebar =
+    card === null ? null : (
+      <div className="card-detail__sidebar">
+        <section className="card-detail__actions" aria-labelledby="card-actions-title">
+          <h3 id="card-actions-title">Card actions</h3>
+          <div className="card-detail__action-grid">
+            <Button className="card-detail__action" onClick={() => setTitleDialogOpen(true)}>
+              Edit title
+            </Button>
+
+            {card.type === 'topic' ? null : (
+              <>
+                <Button
+                  className="card-detail__action"
+                  disabled={replacing}
+                  onClick={() => replaceInputRef.current?.click()}
+                >
+                  Replace photo
+                </Button>
+                <Button
+                  ref={cropTriggerRef}
+                  className="card-detail__action"
+                  disabled={replacing || originalAttachment === null}
+                  onClick={handleOpenCrop}
+                >
+                  Crop/rotate
+                </Button>
+              </>
+            )}
+
+            <Button
+              className="card-detail__action"
+              variant="danger"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              Delete card
+            </Button>
+
+            <Button
+              className="card-detail__action"
+              onClick={() => {
+                setFeedback(null);
+                setPickerIntent('connect');
+              }}
+            >
+              Connect to…
+            </Button>
+
+            {card.type === 'note' ? (
+              <Button
+                className="card-detail__action"
+                onClick={() => {
+                  setFeedback(null);
+                  setPickerIntent('attach-source');
+                }}
+              >
+                Attach source
+              </Button>
+            ) : null}
+          </div>
+
+          <p className="card-detail__hint">
+            Connect to… builds a thread from this card without the board. A Study Note can also
+            attach a Source as provenance.
+          </p>
+
+          {card.type === 'topic' ? null : (
+            <p className="card-detail__hint">
+              Replace photo uses a new image. Crop/rotate reuses the retained original, so you can
+              refine this card again later.
+            </p>
+          )}
+
+          <input
+            ref={replaceInputRef}
+            className="card-detail__file"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            tabIndex={-1}
+            aria-hidden="true"
+            disabled={replacing}
+            data-testid="card-replace-photo"
+            onChange={(event) => {
+              const input = event.currentTarget;
+              const file = input.files?.[0];
+              input.value = '';
+              if (file !== undefined) {
+                handleReplaceFile(file);
+              }
+            }}
+          />
+        </section>
+
+        <section className="card-detail__tags" aria-labelledby="card-tags-title">
+          <div className="card-detail__tags-header">
+            <h3 id="card-tags-title">Tags</h3>
+            <Button className="card-detail__tag-edit" onClick={() => setTagsDialogOpen(true)}>
+              Edit tags
+            </Button>
+          </div>
+          {card.tags.length === 0 ? (
+            <p className="card-detail__muted">No tags yet.</p>
+          ) : (
+            <ul className="card-detail__tag-list" aria-label="Card tags">
+              {card.tags.map((tag) => (
+                <li key={tag} className="card-detail__tag">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <p className="card-detail__record">
+          Card record <code>{card.id}</code>
+        </p>
+      </div>
+    );
+
   return (
     <section
       className="card-detail"
@@ -1126,127 +1253,18 @@ export function CardDetailPage({
                 ) : null}
               </section>
 
-              <div className="card-detail__sidebar">
-                <section className="card-detail__actions" aria-labelledby="card-actions-title">
-                  <h3 id="card-actions-title">Card actions</h3>
-                  <div className="card-detail__action-grid">
-                    <Button
-                      className="card-detail__action"
-                      onClick={() => setTitleDialogOpen(true)}
-                    >
-                      Edit title
-                    </Button>
-
-                    {card.type === 'topic' ? null : (
-                      <>
-                        <Button
-                          className="card-detail__action"
-                          disabled={replacing}
-                          onClick={() => replaceInputRef.current?.click()}
-                        >
-                          Replace photo
-                        </Button>
-                        <Button
-                          ref={cropTriggerRef}
-                          className="card-detail__action"
-                          disabled={replacing || originalAttachment === null}
-                          onClick={handleOpenCrop}
-                        >
-                          Crop/rotate
-                        </Button>
-                      </>
-                    )}
-
-                    <Button
-                      className="card-detail__action"
-                      variant="danger"
-                      onClick={() => setDeleteDialogOpen(true)}
-                    >
-                      Delete card
-                    </Button>
-
-                    <Button
-                      className="card-detail__action"
-                      onClick={() => {
-                        setFeedback(null);
-                        setPickerIntent('connect');
-                      }}
-                    >
-                      Connect to…
-                    </Button>
-
-                    {card.type === 'note' ? (
-                      <Button
-                        className="card-detail__action"
-                        onClick={() => {
-                          setFeedback(null);
-                          setPickerIntent('attach-source');
-                        }}
-                      >
-                        Attach source
-                      </Button>
-                    ) : null}
-                  </div>
-
-                  <p className="card-detail__hint">
-                    Connect to… builds a thread from this card without the board. A Study Note can
-                    also attach a Source as provenance.
-                  </p>
-
-                  {card.type === 'topic' ? null : (
-                    <p className="card-detail__hint">
-                      Replace photo uses a new image. Crop/rotate reuses the retained original, so
-                      you can refine this card again later.
-                    </p>
-                  )}
-
-                  <input
-                    ref={replaceInputRef}
-                    className="card-detail__file"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    tabIndex={-1}
-                    aria-hidden="true"
-                    disabled={replacing}
-                    data-testid="card-replace-photo"
-                    onChange={(event) => {
-                      const input = event.currentTarget;
-                      const file = input.files?.[0];
-                      input.value = '';
-                      if (file !== undefined) {
-                        handleReplaceFile(file);
-                      }
-                    }}
-                  />
-                </section>
-
-                <section className="card-detail__tags" aria-labelledby="card-tags-title">
-                  <div className="card-detail__tags-header">
-                    <h3 id="card-tags-title">Tags</h3>
-                    <Button
-                      className="card-detail__tag-edit"
-                      onClick={() => setTagsDialogOpen(true)}
-                    >
-                      Edit tags
-                    </Button>
-                  </div>
-                  {card.tags.length === 0 ? (
-                    <p className="card-detail__muted">No tags yet.</p>
-                  ) : (
-                    <ul className="card-detail__tag-list" aria-label="Card tags">
-                      {card.tags.map((tag) => (
-                        <li key={tag} className="card-detail__tag">
-                          {tag}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </section>
-
-                <p className="card-detail__record">
-                  Card record <code>{card.id}</code>
-                </p>
-              </div>
+              {phoneLayout ? (
+                <Button
+                  className="card-detail__sheet-trigger"
+                  aria-haspopup="dialog"
+                  aria-expanded={actionsSheetOpen}
+                  onClick={() => setActionsSheetOpen(true)}
+                >
+                  Card actions and tags
+                </Button>
+              ) : (
+                cardSidebar
+              )}
             </div>
           )}
 
@@ -1317,6 +1335,19 @@ export function CardDetailPage({
                 </Button>
               </div>
             </section>
+          ) : null}
+
+          {phoneLayout ? (
+            <Dialog
+              open={actionsSheetOpen}
+              onClose={() => setActionsSheetOpen(false)}
+              title="Card actions and tags"
+              description="Edit the title or tags, replace the photo, connect this card, or delete it."
+              size="lg"
+              className="card-detail__sheet"
+            >
+              {cardSidebar}
+            </Dialog>
           ) : null}
 
           {titleDialogOpen ? (

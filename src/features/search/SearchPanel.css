@@ -21,6 +21,18 @@
   border-radius: var(--radius-md);
 }
 
+/*
+ * Sheet variant: the phone Dialog already owns the sheet surface, safe-area
+ * padding, title, and close control. The panel inside it is plain content.
+ */
+.search-panel--sheet {
+  min-block-size: 0;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
 .search-panel__header {
   display: grid;
   gap: var(--space-1);
@@ -327,7 +339,7 @@
   outline-offset: var(--focus-ring-offset);
 }
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .search-panel {
     min-block-size: 100dvh;
     padding: var(--space-4) var(--space-3) calc(var(--space-6) + var(--safe-area-bottom));

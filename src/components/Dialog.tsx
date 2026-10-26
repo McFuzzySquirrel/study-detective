@@ -19,6 +19,21 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
+/**
+ * Open dialogs by mount order. Only the newest dialog may handle Escape or
+ * redirect focus. Without this, a confirmation opened from inside a sheet would
+ * let one Escape press close both surfaces, and both traps would fight over
+ * focus. A dialog removes itself when its effect cleans up.
+ */
+const dialogStack: symbol[] = [];
+
+function removeFromStack(token: symbol): void {
+  const index = dialogStack.lastIndexOf(token);
+  if (index !== -1) {
+    dialogStack.splice(index, 1);
+  }
+}
+
 function getFocusable(container: HTMLElement | null): HTMLElement[] {
   if (!container) {
     return [];
@@ -118,9 +133,16 @@ export default function Dialog({
     const overlay = overlayRef.current;
     const previouslyFocused =
       document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const explicitReturn = returnFocusRef?.current ?? null;
+    // Keep the ref object itself stable for the cleanup. Its `current` value is
+    // deliberately read at close time so an action inside the dialog can move
+    // the return target to the new context before the sheet unmounts.
+    const returnFocusTarget = returnFocusRef;
+    const dialogToken = Symbol('notes-detective-dialog');
     const inertedSiblings: HTMLElement[] = [];
     const previousOverflow = document.body.style.overflow;
+
+    dialogStack.push(dialogToken);
+    const isTopmost = (): boolean => dialogStack[dialogStack.length - 1] === dialogToken;
 
     if (overlay) {
       Array.from(document.body.children).forEach((child) => {
@@ -153,6 +175,13 @@ export default function Dialog({
     initialTarget?.focus();
 
     const handleKeyDown = (event: KeyboardEvent): void => {
+      // A newer dialog owns the keyboard while it is open. The outer sheet
+      // keeps its listeners attached so focus resumes there after the inner
+      // confirmation closes.
+      if (!isTopmost()) {
+        return;
+      }
+
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
@@ -195,7 +224,7 @@ export default function Dialog({
     };
 
     const handleFocusIn = (event: FocusEvent): void => {
-      if (!panel) {
+      if (!panel || !isTopmost()) {
         return;
       }
 
@@ -210,11 +239,15 @@ export default function Dialog({
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
       document.removeEventListener('focusin', handleFocusIn, true);
+      removeFromStack(dialogToken);
 
       inertedSiblings.forEach((element) => element.removeAttribute('inert'));
       document.body.style.overflow = previousOverflow;
 
-      const explicitReturnElement = explicitReturn;
+      // Read the return target at close time, not open time. A surface that
+      // moves the student somewhere (search selection, "Show on board") can
+      // point the ref at the new landmark while the dialog is still open.
+      const explicitReturnElement = returnFocusTarget?.current ?? null;
       const target =
         explicitReturnElement ?? (previouslyFocused?.isConnected ? previouslyFocused : null);
 

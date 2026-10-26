@@ -57,6 +57,12 @@ export interface SearchPanelProps {
   readonly title?: string | undefined;
   /** Initial state of the filter drawer. Defaults to closed. */
   readonly defaultFiltersOpen?: boolean | undefined;
+  /**
+   * `inline` is the tablet/desktop reading column. `sheet` is the same panel
+   * mounted inside a phone bottom sheet, so it must not claim a full viewport
+   * height or draw its own card border around the sheet.
+   */
+  readonly variant?: 'inline' | 'sheet' | undefined;
   /** Debounce for the query. Defaults to the contract's 150 ms. */
   readonly debounceMs?: number | undefined;
   /** Notified when the query or filters begin/stop narrowing the result set. */
@@ -124,6 +130,7 @@ export default function SearchPanel({
   id,
   title = 'Search this case',
   defaultFiltersOpen = false,
+  variant = 'inline',
   debounceMs = SEARCH_DEBOUNCE_MS,
   onActiveChange,
   className,
@@ -255,10 +262,11 @@ export default function SearchPanel({
 
   return (
     <section
-      className={joinClassNames('search-panel', className)}
+      className={joinClassNames('search-panel', `search-panel--${variant}`, className)}
       aria-labelledby={titleId}
       data-search-active={searchActive ? 'true' : 'false'}
       data-result-count={results.length}
+      data-variant={variant}
     >
       <header className="search-panel__header">
         <h3 id={titleId} className="search-panel__title">

@@ -10,6 +10,7 @@
 import { useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 
+import { useLayoutMode } from '../../app/useLayoutMode';
 import Button from '../../components/Button';
 import HintPopover from '../onboarding/HintPopover';
 import { HINTS, getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
@@ -23,6 +24,9 @@ export interface SettingsPageProps {
 }
 
 export function SettingsPage({ hintStore = hintSeenStore }: SettingsPageProps = {}) {
+  // Settings is a short reading page at every width; the mode attribute keeps
+  // its phone/tablet/desktop layout testable without a second media query.
+  const layout = useLayoutMode();
   const seen = useSeenHints(hintStore);
   const [activeHint, setActiveHint] = useState<HintId | null>(null);
   const [announcement, setAnnouncement] = useState('');
@@ -55,7 +59,12 @@ export function SettingsPage({ hintStore = hintSeenStore }: SettingsPageProps = 
   const activeDefinition = activeHint === null ? null : getHint(activeHint);
 
   return (
-    <section className="settings-page" aria-labelledby="settings-title">
+    <section
+      className="settings-page"
+      aria-labelledby="settings-title"
+      data-layout={layout}
+      data-testid="settings-page"
+    >
       <header className="settings-page__header">
         <p className="settings-page__eyebrow">Install preferences</p>
         <h2 id="settings-title" className="settings-page__title">

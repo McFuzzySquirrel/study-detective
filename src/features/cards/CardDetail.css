@@ -160,6 +160,27 @@
   border-radius: var(--radius-lg);
 }
 
+/*
+ * On a phone the sidebar belongs to the bottom sheet, so the sheet supplies the
+ * surface and the sidebar becomes plain content. The trigger is the only
+ * sidebar entry point in that layout and keeps the 44 px target floor.
+ */
+.card-detail__sheet {
+  max-block-size: min(86dvh, 46rem);
+}
+
+.card-detail__sheet .card-detail__sidebar {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.card-detail__sheet-trigger {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
 .card-detail__actions {
   display: grid;
   gap: var(--space-3);
@@ -332,11 +353,19 @@
   }
 }
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
+  .card-detail {
+    padding-block-end: calc(var(--space-4) + var(--safe-area-bottom));
+  }
+
   .card-detail__photo,
   .card-detail__sidebar {
     padding: var(--space-3);
     padding-block-end: calc(var(--space-3) + var(--safe-area-bottom));
+  }
+
+  .card-detail__sheet .card-detail__sidebar {
+    padding: 0;
   }
 
   .card-detail__action-grid {

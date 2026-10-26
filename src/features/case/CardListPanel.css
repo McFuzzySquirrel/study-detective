@@ -177,7 +177,7 @@
   min-inline-size: var(--target-min);
 }
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .card-list {
     gap: var(--space-6);
   }

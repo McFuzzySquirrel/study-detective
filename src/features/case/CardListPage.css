@@ -132,7 +132,7 @@
   font-weight: var(--font-weight-semibold);
 }
 
-@media (max-width: 37.5rem) {
+@media (max-width: 37.4375rem) {
   .card-list-page__header {
     align-items: stretch;
   }

@@ -502,7 +502,7 @@ describe('SearchPanel CSS contract', () => {
       'var(--color-focus-ring)',
     );
 
-    const phone = mediaBody(css, 'max-width: 37.5rem');
+    const phone = mediaBody(css, 'max-width: 37.4375rem');
     expect(phone).toContain('.search-panel');
     expect(phone).toContain('min-block-size: 100dvh');
 
