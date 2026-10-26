@@ -177,7 +177,11 @@ describe('CardListPage grouping and empty state', () => {
     expect(within(sources).getByText('Source')).toBeInTheDocument();
     expect(within(topics).getByText('Topic')).toBeInTheDocument();
 
-    expect(within(topics).getByText('1 string attached')).toBeInTheDocument();
+    expect(
+      within(topics).getByRole('status', {
+        name: 'Topic status: Developing, 1 linked note',
+      }),
+    ).toBeInTheDocument();
     expect(within(notes).getByText('Tags:')).toBeInTheDocument();
     expect(within(notes).getByText(/lecture, transport/)).toBeInTheDocument();
 
@@ -350,7 +354,9 @@ describe('CardListPage keyboard actions', () => {
 
     expect(screen.getByRole('link', { name: `Open detail for ${NOTE_TITLE}` })).toHaveFocus();
     expect(
-      within(screen.getByRole('region', { name: /Topics/ })).getByText('1 string attached'),
+      within(screen.getByRole('region', { name: /Topics/ })).getByRole('status', {
+        name: 'Topic status: Developing, 1 linked note',
+      }),
     ).toBeInTheDocument();
   });
 });

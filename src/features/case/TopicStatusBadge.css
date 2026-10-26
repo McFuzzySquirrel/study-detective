@@ -1,0 +1,79 @@
+/*
+ * Topic status chip. Text plus a distinct icon carries the state, so tone is a
+ * reinforcement rather than the only signal. Every colour, space, radius, and
+ * duration comes from tokens.css; no palette literal lives here.
+ *
+ * The chip is non-interactive, so it has no target floor. It still wraps long
+ * counts and never forces page-level horizontal scrolling on a phone.
+ */
+
+.topic-status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-self: start;
+  gap: var(--space-1);
+  max-inline-size: 100%;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-control);
+  overflow-wrap: anywhere;
+  transition:
+    background-color var(--motion-duration-fast) var(--motion-ease-standard),
+    color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.topic-status__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  inline-size: 1rem;
+  block-size: 1rem;
+  color: currentColor;
+}
+
+.topic-status__icon svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.topic-status__label {
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+}
+
+.topic-status__separator {
+  color: currentColor;
+}
+
+.topic-status__count {
+  font-weight: var(--font-weight-regular);
+}
+
+.topic-status[data-status='orphan'] {
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-border-strong);
+}
+
+.topic-status[data-status='developing'] {
+  color: var(--color-warning-ink);
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.topic-status[data-status='solved'] {
+  color: var(--color-success-ink);
+  background-color: var(--color-success);
+  border-color: var(--color-success-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topic-status {
+    transition: none;
+  }
+}

@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RECALL-MODE-2
+**Phase**: CASE-CLOSURE-2
 **Status**: In Progress
-**Validation Gaps**: 46 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T17:32:14.879Z
+**Validation Gaps**: 47 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T17:38:40.363Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -66,6 +66,8 @@
   - Files: src/domain/readiness.ts, tests/domain/readiness.test.ts
 - [x] Phase CASE-CLOSURE-2, Task CLOSE-2: Build the closure panel, close, closed-with-threads, and reopen (@ui-engineer)
   - Files: src/features/closure/ClosurePanel.tsx, src/features/closure/useCaseLifecycle.ts, src/domain/caseLifecycle.ts, src/data/caseRepository.ts, src/features/case/CaseBoardPage.tsx, src/features/shelf/CaseCard.tsx, tests/features/closure/ClosurePanel.test.tsx, tests/domain/caseLifecycle.test.ts, e2e/closure.spec.ts, src/domain/model.ts, src/features/case/CaseBoardPage.css, src/features/shelf/shelf.css, tests/domain/model.test.ts, tests/domain/validation.test.ts, tests/shelf/CaseFormDialog.test.tsx, src/features/closure/closure.css
+- [x] Phase CASE-CLOSURE-2, Task CLOSE-3: Show topic status in card detail and the card list (@ui-engineer)
+  - Files: src/features/case/TopicStatusBadge.tsx, src/features/case/CardListPanel.tsx, src/features/cards/CardDetailPage.tsx, tests/case/TopicStatusBadge.test.tsx, tests/case/CardListPanel.test.tsx, src/features/case/TopicStatusBadge.css
 - [x] Phase RECALL-MODE-1, Task RECALL-1: Implement scratch connections and recall comparison (@board-engineer)
   - Files: src/features/recall/recallStore.ts, src/features/recall/compareConnections.ts, tests/recall/compareConnections.test.ts, tests/recall/recallStore.test.ts
 - [x] Phase RECALL-MODE-2, Task RECALL-2: Build the recall route, hidden strings, and scratch drawing (@board-engineer)
@@ -95,7 +97,6 @@
 - None currently running
 
 ## Remaining
-- [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-1: Phase 1: Demo content and seeding
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
@@ -140,6 +141,7 @@
 - Task CLOSE-1: No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.
 - Task CLOSE-1: Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note.
 - Task CLOSE-2: Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair.
+- Task CLOSE-3: Responsive visual behavior at 390x844/768x1024/1280x800 was not exercised in a real browser for this task; the CSS uses wrapping and tokens only, and the browser matrix remains with A11Y hardening.
 - Task RECALL-1: Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.
 - Task RECALL-1: No browser journey applies to this unit-only task.
 - Task RECALL-2: 45 FPS at 150 cards on the target tablet was not measured; board-feel and FPS still require human review.

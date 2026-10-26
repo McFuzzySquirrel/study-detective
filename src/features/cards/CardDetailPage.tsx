@@ -7,7 +7,7 @@
  * no Dexie table is opened here, and the view owns every object URL it creates.
  */
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -29,6 +29,9 @@ import type {
   ConnectionRecord,
 } from '../../domain/model';
 import { TITLE_MAX_LENGTH } from '../../domain/model';
+import { deriveReadiness } from '../../domain/readiness';
+import type { TopicReadiness } from '../../domain/readiness';
+import TopicStatusBadge from '../case/TopicStatusBadge';
 import { FULL_CROP, type CropRect, type Rotation } from '../capture/imagePipeline';
 import CropRotateEditor from '../capture/CropRotateEditor';
 import type { CropResult } from '../capture/CropRotateEditor';
@@ -476,6 +479,22 @@ export function CardDetailPage({
   const [replaceError, setReplaceError] = useState<string | null>(null);
   const [failedJob, setFailedJob] = useState<ReplacementJob | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
+
+  /**
+   * Topic status is read from the graph for every render. Connection handlers
+   * replace the local `connections` snapshot, so adding or removing a string
+   * updates the badge here without remounting the route or reading storage.
+   */
+  const topicReadiness = useMemo(() => {
+    const byCardId = new Map<string, TopicReadiness>();
+    for (const topic of deriveReadiness(cards, connections).topics) {
+      byCardId.set(topic.cardId, topic);
+    }
+    return byCardId;
+  }, [cards, connections]);
+
+  const currentTopicReadiness =
+    card !== null && card.type === 'topic' ? topicReadiness.get(card.id) : undefined;
 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const loadedCardIdRef = useRef<string | null>(null);
@@ -1049,6 +1068,13 @@ export function CardDetailPage({
             <p className="card-detail__type" data-card-type={card.type}>
               {TYPE_LABELS[card.type]}
             </p>
+            {card.type === 'topic' && currentTopicReadiness !== undefined ? (
+              <TopicStatusBadge
+                cardType={card.type}
+                status={currentTopicReadiness.status}
+                linkedNoteCount={currentTopicReadiness.linkedNoteCount}
+              />
+            ) : null}
             <h2 id={titleId} ref={headingRef} className="card-detail__title" tabIndex={-1}>
               {card.title}
             </h2>

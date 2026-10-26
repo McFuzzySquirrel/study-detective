@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 import Button from '../../components/Button';
@@ -7,10 +7,14 @@ import type { ToastTone } from '../../components/Toast';
 import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import type { CardRecord, CardType, ConnectionRecord } from '../../domain/model';
 import { CARD_TYPES } from '../../domain/model';
+import { deriveReadiness } from '../../domain/readiness';
+import type { TopicReadiness } from '../../domain/readiness';
 import ConnectionPicker from '../connections/ConnectionPicker';
 import type { ConnectionPickerIntent } from '../connections/ConnectionPicker';
 import { connectionTypeLabel } from '../connections/useUndoDeleteConnection';
 import SearchPanel from '../search/SearchPanel';
+
+import TopicStatusBadge from './TopicStatusBadge';
 
 import './CardListPanel.css';
 
@@ -39,16 +43,12 @@ function countCardStrings(connections: readonly ConnectionRecord[], cardId: stri
   ).length;
 }
 
-function topicStatusText(stringCount: number): string {
-  if (stringCount === 0) {
-    return 'No strings yet';
-  }
-  return `${stringCount} ${stringCount === 1 ? 'string' : 'strings'} attached`;
-}
+/** Stable fallback so the readiness memo is not invalidated by a fresh array. */
+const NO_CONNECTIONS: readonly ConnectionRecord[] = [];
 
 export interface CardListPanelProps {
   readonly cards: readonly CardRecord[];
-  /** Strings are read only to derive the topic-status slot; none are created here. */
+  /** Current-case strings; readiness is derived from them on every render. */
   readonly connections?: readonly ConnectionRecord[];
   readonly onEdit: (card: CardRecord) => void;
   readonly onDelete: (card: CardRecord) => void;
@@ -72,6 +72,8 @@ interface CardListGroupProps {
   readonly type: CardType;
   readonly cards: readonly CardRecord[];
   readonly connections: readonly ConnectionRecord[];
+  /** Derived per-topic readiness for this render, keyed by card ID. */
+  readonly topicReadiness: ReadonlyMap<string, TopicReadiness>;
   readonly onEdit: (card: CardRecord) => void;
   readonly onDelete: (card: CardRecord) => void;
   readonly onConnect: (card: CardRecord, intent: ConnectionPickerIntent) => void;
@@ -81,6 +83,7 @@ function CardListGroup({
   type,
   cards,
   connections,
+  topicReadiness,
   onEdit,
   onDelete,
   onConnect,
@@ -100,6 +103,7 @@ function CardListGroup({
       <ul className="card-list__cards">
         {cards.map((card) => {
           const stringCount = countCardStrings(connections, card.id);
+          const topic = card.type === 'topic' ? topicReadiness.get(card.id) : undefined;
           return (
             <li key={card.id} className="card-list__item">
               <article
@@ -116,13 +120,13 @@ function CardListGroup({
                   </h4>
 
                   {card.type === 'topic' ? (
-                    <p
-                      className="card-list__status"
-                      data-topic-status={stringCount === 0 ? 'loose' : 'connected'}
-                    >
-                      <span className="visually-hidden">Topic status: </span>
-                      {topicStatusText(stringCount)}
-                    </p>
+                    topic === undefined ? null : (
+                      <TopicStatusBadge
+                        cardType={card.type}
+                        status={topic.status}
+                        linkedNoteCount={topic.linkedNoteCount}
+                      />
+                    )
                   ) : (
                     <p className="card-list__status card-list__status--muted">
                       {stringCount} {stringCount === 1 ? 'string' : 'strings'} attached
@@ -196,7 +200,7 @@ function CardListGroup({
  */
 export default function CardListPanel({
   cards,
-  connections = [],
+  connections = NO_CONNECTIONS,
   onEdit,
   onDelete,
   connectionRepository,
@@ -215,6 +219,19 @@ export default function CardListPanel({
     readonly message: string;
     readonly tone: ToastTone;
   } | null>(null);
+
+  /**
+   * Status is derived from the graph on every render, so a connection saved or
+   * deleted through the picker (or refreshed by the page) changes the badge in
+   * place. Nothing is cached in the card record.
+   */
+  const topicReadiness = useMemo(() => {
+    const byCardId = new Map<string, TopicReadiness>();
+    for (const topic of deriveReadiness(cards, connections).topics) {
+      byCardId.set(topic.cardId, topic);
+    }
+    return byCardId;
+  }, [cards, connections]);
 
   const handleSearchSelect = useCallback(
     (card: CardRecord): void => {
@@ -301,6 +318,7 @@ export default function CardListPanel({
               type={type}
               cards={group}
               connections={connections}
+              topicReadiness={topicReadiness}
               onEdit={onEdit}
               onDelete={onDelete}
               onConnect={openPicker}
