@@ -1,4 +1,6 @@
 node_modules/
+# Generated from pinned packages by scripts/copy-ocr-assets.mjs on install/dev/build.
+public/ocr/
 docs/engine-run.log
 docs/artifacts/
 dist/

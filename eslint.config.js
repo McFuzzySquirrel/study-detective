@@ -12,6 +12,8 @@ export default tseslint.config(
       'node_modules',
       'playwright-report',
       'test-results',
+      // Generated from pinned tesseract.js packages by scripts/copy-ocr-assets.mjs.
+      'public/ocr',
       '.opencode',
       'docs',
     ],
