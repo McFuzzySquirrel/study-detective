@@ -149,6 +149,16 @@ hr {
 
 /* Utilities shared by primitives and screens. */
 
+/*
+ * Motion intents. A surface marks the kind of motion it owns so the
+ * reduced-motion rules below can neutralize the whole category in one place.
+ * The v1 board renders pin, string, and camera final states synchronously, so
+ * the markers have no declarations of their own; they are inert until a future
+ * renderer animates them, and the reduced-motion selector is already waiting.
+ * `src/app/motionPreference.ts` exports the same class names for the component
+ * and CSS contract tests.
+ */
+
 .visually-hidden {
   position: absolute;
   inline-size: 1px;
@@ -185,6 +195,47 @@ hr {
   transform: translateY(0);
 }
 
+/*
+ * Reduced motion has two entry points and one outcome.
+ *
+ * 1. `prefers-reduced-motion: reduce` is the platform floor. It applies before
+ *    React mounts and stays on even if the in-app toggle is untouched.
+ * 2. `[data-motion='reduced']` is the in-app Appearance choice. It applies in
+ *    the same frame as the toggle and also covers a later OS change while the
+ *    page is open.
+ *
+ * Both remove animation and transition effects rather than shortening them to
+ * 0.01ms, so no pin drop, string draw, camera tween, page transition, or pulse
+ * can run a final frame. `scroll-behavior` is reset too, which disables smooth
+ * scroll auto-panning between regions.
+ */
+:root[data-motion='reduced'] {
+  scroll-behavior: auto;
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation: none !important;
+  animation-duration: var(--motion-duration-none) !important;
+  animation-delay: var(--motion-duration-none) !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  transition-duration: var(--motion-duration-none) !important;
+  transition-delay: var(--motion-duration-none) !important;
+  scroll-behavior: auto !important;
+}
+
+:root[data-motion='reduced'] .motion-pin-drop,
+:root[data-motion='reduced'] .motion-string-draw,
+:root[data-motion='reduced'] .motion-auto-pan,
+:root[data-motion='reduced'] .motion-page-transition,
+:root[data-motion='reduced'] .motion-pulse {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -193,9 +244,13 @@ hr {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation: none !important;
+    animation-duration: var(--motion-duration-none) !important;
+    animation-delay: var(--motion-duration-none) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition: none !important;
+    transition-duration: var(--motion-duration-none) !important;
+    transition-delay: var(--motion-duration-none) !important;
     scroll-behavior: auto !important;
   }
 

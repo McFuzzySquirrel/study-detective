@@ -40,6 +40,7 @@ import Dialog from '../../components/Dialog';
 import Toast from '../../components/Toast';
 import { usePhoneLayout } from '../../app/useLayoutMode';
 import { FOCUS_SEARCH_EVENT } from '../../app/focus';
+import { motionBehavior, useMotionPreference } from '../../app/motionPreference';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { ConnectionRepository } from '../../data/connectionRepository';
@@ -248,6 +249,10 @@ export function CaseBoardPage({
   const [searchSheetOpen, setSearchSheetOpen] = useState(false);
   const [closureSheetOpen, setClosureSheetOpen] = useState(false);
   const phoneLayout = usePhoneLayout();
+  const motion = useMotionPreference();
+  // Auto-pan is a camera jump. The policy makes that explicit under reduced
+  // motion; nothing in this page schedules a camera tween or smooth scroll.
+  const autoPan = motionBehavior(motion.reduced).autoPan;
   const activeHintStore = hintStore ?? hintSeenStore;
   const seenHints = useSeenHints(activeHintStore);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
@@ -1116,7 +1121,12 @@ export function CaseBoardPage({
           />
         ) : null}
 
-        <div className="case-board-page__stage" ref={stageRef}>
+        <div
+          className="case-board-page__stage"
+          ref={stageRef}
+          data-motion={motion.reduced ? 'reduced' : 'full'}
+          data-motion-auto-pan={autoPan}
+        >
           {visibleStatus === 'loading' ? (
             <p className="case-board-page__status" role="status">
               Opening the case…

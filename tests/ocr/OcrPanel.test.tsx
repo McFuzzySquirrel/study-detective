@@ -377,7 +377,7 @@ describe('OcrPanel accessibility contract', () => {
     expect(inline).toBeGreaterThanOrEqual(44);
 
     expect(declarationsFor(css, '.ocr-panel__text:focus-visible').get('outline')).toContain(
-      'var(--color-focus-ring)',
+      'var(--color-focus-ring-on-paper)',
     );
     expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
 

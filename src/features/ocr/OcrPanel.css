@@ -126,6 +126,32 @@
   text-transform: uppercase;
 }
 
+/*
+ * The suggestion panel is the one paper surface that contains controls. The
+ * shared light focus ring and the quiet button's light ink are not visible on
+ * sepia, so this scope uses the paper ink and the dark paper focus ring. The
+ * dark border also gives the primary action a 3:1 boundary against the paper.
+ */
+.ocr-panel__suggestion .nd-button {
+  border-color: var(--color-paper-ink);
+}
+
+.ocr-panel__suggestion .nd-button--quiet {
+  color: var(--color-paper-ink);
+  background-color: transparent;
+  border-color: var(--color-paper-ink);
+}
+
+.ocr-panel__suggestion .nd-button--quiet:hover:not(:disabled) {
+  color: var(--color-paper-ink);
+  background-color: var(--color-paper-edge);
+  border-color: var(--color-paper-ink);
+}
+
+.ocr-panel__suggestion .nd-button--quiet:focus-visible {
+  outline-color: var(--color-focus-ring-on-paper);
+}
+
 .ocr-panel__suggestion-text {
   color: var(--color-paper-ink);
   font-size: var(--font-size-md);
@@ -166,7 +192,7 @@
 }
 
 .ocr-panel__text:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring-on-paper);
   outline-offset: var(--focus-ring-offset);
 }
 

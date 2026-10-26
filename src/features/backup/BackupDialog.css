@@ -215,6 +215,7 @@
   align-items: flex-start;
   gap: var(--space-3);
   min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
   padding: var(--space-3);
   color: var(--color-ink);
   background-color: var(--color-surface-sunken);

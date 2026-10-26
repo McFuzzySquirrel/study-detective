@@ -7,10 +7,12 @@
  * accessible controls; `usePixiApp` owns renderer and texture teardown.
  */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 
+import { motionBehavior, useMotionPreference } from '../app/motionPreference';
+import type { MotionStore } from '../app/motionPreference';
 import Button from '../components/Button';
 
 import type { BoardSnapshot, BoardStringConnection } from './BoardScene';
@@ -98,6 +100,8 @@ export interface BoardCanvasProps {
    * capture route.
    */
   readonly cardLimitReached?: boolean | undefined;
+  /** Injected motion store for component tests and future composition. */
+  readonly motionStore?: MotionStore | undefined;
 }
 
 function formatViewportValue(value: number): string {
@@ -106,35 +110,6 @@ function formatViewportValue(value: number): string {
 
 function formatScale(value: number): string {
   return value.toFixed(4);
-}
-
-function readReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-/** Track the OS motion preference so a mid-session change updates the lift. */
-function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(readReducedMotion);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-      return;
-    }
-
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = (): void => {
-      setReduced(query.matches);
-    };
-
-    handleChange();
-    query.addEventListener('change', handleChange);
-    return () => query.removeEventListener('change', handleChange);
-  }, []);
-
-  return reduced;
 }
 
 /** The styled canvas surface, controls, and recoverable renderer states. */
@@ -148,6 +123,7 @@ export function BoardCanvas({
   onCardTap,
   onConnectionDrop,
   cardLimitReached = false,
+  motionStore,
 }: BoardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeStore = store ?? boardStore;
@@ -155,7 +131,8 @@ export function BoardCanvas({
   const selectedCardId = useStore(activeStore, selectSelectedCardId);
   const hoveredCardId = useStore(activeStore, selectHoveredCardId);
   const selectedConnectionId = useStore(activeStore, selectSelectedConnectionId);
-  const reducedMotion = usePrefersReducedMotion();
+  const { reduced: reducedMotion } = useMotionPreference(motionStore);
+  const behavior = motionBehavior(reducedMotion);
   const navigate = useNavigate();
   const recall = mode === 'recall';
   const canvasTitle = recall ? 'Recall board canvas' : 'Case board canvas';
@@ -546,10 +523,12 @@ export function BoardCanvas({
 
   return (
     <section
-      className="board-canvas"
+      className="board-canvas motion-pin-drop motion-string-draw motion-auto-pan"
       aria-label={recall ? 'Recall board' : 'Case board'}
       data-testid="board-canvas"
       data-board-mode={mode}
+      data-motion={reducedMotion ? 'reduced' : 'full'}
+      data-motion-auto-pan={behavior.autoPan}
       data-board-viewport-x={formatViewportValue(viewport.x)}
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}

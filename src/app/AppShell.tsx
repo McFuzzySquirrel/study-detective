@@ -49,7 +49,7 @@ export default function AppShell({ children, storageStatus }: AppShellProps) {
         {storageStatus}
       </div>
 
-      <main id="main-content" className="app-frame__content" tabIndex={-1}>
+      <main id="main-content" className="app-frame__content motion-page-transition" tabIndex={-1}>
         {children}
       </main>
 

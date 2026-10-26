@@ -7,9 +7,11 @@
  * when it is dismissed, and Reset all clears the install-level state.
  */
 
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { MouseEvent } from 'react';
 
+import { useMotionPreference } from '../../app/motionPreference';
+import type { MotionStore } from '../../app/motionPreference';
 import { useLayoutMode } from '../../app/useLayoutMode';
 import Button from '../../components/Button';
 import { ShortcutList } from '../../components/ShortcutList';
@@ -18,21 +20,43 @@ import { HINTS, getHint, hintSeenStore, useSeenHints } from '../onboarding/hints
 import type { HintId, HintSeenStore } from '../onboarding/hints';
 
 import '../onboarding/hints.css';
+import './settings.css';
 
 export interface SettingsPageProps {
   /** Injected seen store for component tests and future composition. */
   readonly hintStore?: HintSeenStore | undefined;
+  /** Injected motion store for component tests and future composition. */
+  readonly motionStore?: MotionStore | undefined;
 }
 
-export function SettingsPage({ hintStore = hintSeenStore }: SettingsPageProps = {}) {
+export function SettingsPage({ hintStore = hintSeenStore, motionStore }: SettingsPageProps = {}) {
   // Settings is a short reading page at every width; the mode attribute keeps
   // its phone/tablet/desktop layout testable without a second media query.
   const layout = useLayoutMode();
   const seen = useSeenHints(hintStore);
+  const motion = useMotionPreference(motionStore);
   const [activeHint, setActiveHint] = useState<HintId | null>(null);
   const [announcement, setAnnouncement] = useState('');
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const resetButtonRef = useRef<HTMLButtonElement>(null);
+
+  const motionBaseId = `motion-${useId().replace(/:/g, '')}`;
+  const motionToggleId = `${motionBaseId}-toggle`;
+  const motionLabelId = `${motionBaseId}-label`;
+  const motionNoteId = `${motionBaseId}-note`;
+  const motionStatusId = `${motionBaseId}-status`;
+
+  // The device preference is the floor. An explicit "on" is persisted for a
+  // device that does not ask for reduced motion; the control is disabled when
+  // the device itself has already asked, because turning it off could not
+  // override the platform floor.
+  const motionDisabled = motion.systemReduced;
+  const motionNote = motionDisabled
+    ? 'Your device asks for reduced motion, so this setting stays on while that preference is active.'
+    : 'Defaults to your device setting. Changing it applies immediately and is saved on this device.';
+  const motionStatus = motion.reduced
+    ? 'Reduced motion is on. Pins, strings, camera pans, and page transitions stay still.'
+    : 'Motion is on. Pins, strings, and page transitions follow your device.';
 
   const openHint = (event: MouseEvent<HTMLButtonElement>, hintId: HintId): void => {
     returnFocusRef.current = event.currentTarget;
@@ -76,6 +100,62 @@ export function SettingsPage({ hintStore = hintSeenStore }: SettingsPageProps = 
           miss.
         </p>
       </header>
+
+      <section
+        className="appearance-settings"
+        aria-labelledby="appearance-title"
+        data-testid="appearance-settings"
+      >
+        <div className="appearance-settings__header">
+          <h3 id="appearance-title" className="appearance-settings__title">
+            Appearance
+          </h3>
+          <p className="appearance-settings__intro">
+            Motion is the only display preference in this version. It follows your device until you
+            change it here.
+          </p>
+        </div>
+
+        <label
+          className="appearance-settings__toggle"
+          htmlFor={motionToggleId}
+          data-disabled={motionDisabled ? 'true' : 'false'}
+        >
+          <input
+            id={motionToggleId}
+            type="checkbox"
+            className="appearance-settings__checkbox"
+            checked={motion.reduced}
+            disabled={motionDisabled}
+            aria-labelledby={motionLabelId}
+            aria-describedby={`${motionNoteId} ${motionStatusId}`}
+            data-testid="motion-toggle"
+            data-motion-reduced={motion.reduced ? 'true' : 'false'}
+            data-motion-preference={motion.preference}
+            onChange={(event) => {
+              motion.setReduced(event.currentTarget.checked);
+            }}
+          />
+          <span className="appearance-settings__copy">
+            <span id={motionLabelId} className="appearance-settings__label">
+              Reduce motion
+            </span>
+            <span id={motionNoteId} className="appearance-settings__hint">
+              {motionNote}
+            </span>
+          </span>
+        </label>
+
+        <p
+          id={motionStatusId}
+          className="appearance-settings__status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="motion-status"
+        >
+          {motionStatus}
+        </p>
+      </section>
 
       <section className="shortcut-settings" aria-labelledby="keyboard-shortcuts-title">
         <div className="shortcut-settings__header">

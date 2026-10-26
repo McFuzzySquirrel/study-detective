@@ -50,6 +50,13 @@
   --color-border-strong: #8b7358;
   --color-control-border: #a58f72;
   --color-focus-ring: #8fd3ff;
+  /*
+   * The focus ring is surface-aware. The light ring is visible on every dark
+   * board, panel, and control surface; the sepia paper reading surface and the
+   * amber status chip need a dark ring instead (>= 3:1 non-text contrast).
+   */
+  --color-focus-ring-on-paper: #1d4e6b;
+  --color-focus-ring-on-warning: #201810;
 
   /* ---- Actions and status ---------------------------------------------- */
   --color-accent: #8c2a2a;
@@ -123,6 +130,7 @@
   --radius-pill: 999px;
 
   /* ---- Motion ----------------------------------------------------------- */
+  --motion-duration-none: 0ms;
   --motion-duration-fast: 120ms;
   --motion-duration-base: 180ms;
   --motion-duration-slow: 320ms;

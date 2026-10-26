@@ -110,7 +110,7 @@ export default function TopicStatusBadge({
 
   return (
     <p
-      className={['topic-status', className].filter(Boolean).join(' ')}
+      className={['topic-status', 'motion-pulse', className].filter(Boolean).join(' ')}
       data-status={safeStatus}
       role="status"
       aria-label={`Topic status: ${label}, ${countLabel}`}
