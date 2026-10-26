@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RELEASE-AND-FIELD-REVIEW-1
+**Phase**: RELEASE-AND-FIELD-REVIEW-2
 **Status**: In Progress
-**Validation Gaps**: 72 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T21:19:52.875Z
+**Validation Gaps**: 76 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T21:34:53.960Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -116,12 +116,13 @@
   - Files: .github/workflows/ci.yml, package.json, vitest.config.ts, scripts/validate-workflows.mjs, tests/release/ciConfig.test.ts, package-lock.json, vitest.coverage.ts
 - [x] Phase RELEASE-AND-FIELD-REVIEW-1, Task REL-2: Deploy to GitHub Pages with a verified base path and local preview (@release-engineer)
   - Files: .github/workflows/deploy-pages.yml, vite.config.ts, scripts/check-pages-build.mjs, docs/DEPLOYMENT.md, tests/release/pagesConfig.test.ts
+- [x] Phase RELEASE-AND-FIELD-REVIEW-2, Task REL-3: Verify installable offline PWA, same-origin requests, and precache budget (@qa-engineer)
+  - Files: e2e/pwa.spec.ts, scripts/check-bundle-budget.mjs, tests/release/bundleBudget.test.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase RELEASE-AND-FIELD-REVIEW-2: Phase 2: Offline release verification
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-3: Phase 3: Documentation and human gate
 
 ## Blockers
@@ -200,6 +201,10 @@
 - Task REL-2: The deployed URL, install prompt, and offline behavior were not observed on real hardware; those remain human acceptance evidence.
 - Task REL-2: The runtime network-panel audit was not run; only static index/manifest origin scanning and the Pages build check were performed.
 - Task REL-2: No tablet, phone, or desktop field journey was performed, and docs/reviews/final-acceptance.json was not created.
+- Task REL-3: The browser-native install prompt and Add to Home Screen flow require a human reviewer; only installability prerequisites and service-worker control are automated.
+- Task REL-3: The deployed GitHub Pages URL was not visited; REL-3 uses the production preview and the deployed field journey remains REL-HR-1.
+- Task REL-3: Firefox and WebKit PWA paths are outside this spec; A11Y-6 owns the compat smoke path.
+- Task REL-3: Offline OCR proves cached delivery and response bytes, not a completed recognition run.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

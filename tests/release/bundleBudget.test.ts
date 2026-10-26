@@ -1,0 +1,283 @@
+/**
+ * REL-3 service-worker precache budget evidence.
+ *
+ * The checker is exercised as a command against temporary build directories, so
+ * these tests do not depend on whatever `dist/` happens to contain. Each test
+ * writes a Workbox-shaped `sw.js`, real files with known sizes, and asserts the
+ * parsed total and the exit status. A budget that is never tested above its
+ * threshold would let an oversized release ship.
+ */
+
+import { spawnSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { afterEach, describe, expect, it } from 'vitest';
+
+type PrecacheEntryFixture = {
+  readonly url: string;
+  readonly revision?: string | null;
+  readonly bytes?: number;
+  readonly contents?: string | Buffer;
+};
+
+type FixtureOptions = {
+  readonly entries?: readonly PrecacheEntryFixture[];
+  readonly swSource?: string;
+  readonly missing?: readonly string[];
+  readonly writeServiceWorker?: boolean;
+};
+
+type CommandResult = {
+  readonly status: number | null;
+  readonly stdout: string;
+  readonly stderr: string;
+};
+
+const testDirectory = dirname(fileURLToPath(import.meta.url));
+const repositoryRoot = resolve(testDirectory, '../..');
+const checkerPath = resolve(repositoryRoot, 'scripts/check-bundle-budget.mjs');
+
+const temporaryRoots: string[] = [];
+
+afterEach(() => {
+  for (const root of temporaryRoots.splice(0)) {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function workboxManifest(entries: readonly PrecacheEntryFixture[]): string {
+  const serialized = entries
+    .map((entry) => {
+      const revision =
+        entry.revision === undefined || entry.revision === null
+          ? 'null'
+          : JSON.stringify(entry.revision);
+      return `{url:${JSON.stringify(entry.url)},revision:${revision}}`;
+    })
+    .join(',');
+
+  return `self.precacheAndRoute([${serialized}],{});\n`;
+}
+
+function createFixture(options: FixtureOptions = {}): {
+  readonly root: string;
+  readonly dist: string;
+  readonly swPath: string;
+} {
+  const root = mkdtempSync(join(tmpdir(), 'notes-detective-precache-'));
+  temporaryRoots.push(root);
+
+  const dist = join(root, 'dist');
+  mkdirSync(dist, { recursive: true });
+
+  const entries = options.entries ?? [];
+  for (const entry of entries) {
+    if ((options.missing ?? []).includes(entry.url)) {
+      continue;
+    }
+
+    const filePath = join(dist, entry.url);
+    mkdirSync(dirname(filePath), { recursive: true });
+    writeFileSync(filePath, entry.contents ?? Buffer.alloc(entry.bytes ?? 0, 7));
+  }
+
+  const swPath = join(dist, 'sw.js');
+  if (options.writeServiceWorker !== false) {
+    writeFileSync(swPath, options.swSource ?? workboxManifest(entries), 'utf8');
+  }
+
+  return { root, dist, swPath };
+}
+
+function runChecker(args: readonly string[]): CommandResult {
+  const result = spawnSync(process.execPath, [checkerPath, ...args], {
+    encoding: 'utf8',
+    cwd: repositoryRoot,
+  });
+
+  return { status: result.status, stdout: result.stdout, stderr: result.stderr };
+}
+
+function readJson(result: CommandResult): Record<string, unknown> {
+  const parsed: unknown = JSON.parse(result.stdout);
+  if (!isRecord(parsed)) {
+    throw new Error('The budget checker did not print a JSON object.');
+  }
+  return parsed;
+}
+
+describe('service-worker precache parser', () => {
+  it('reads the generated Workbox manifest and sums the emitted bytes', () => {
+    const fixture = createFixture({
+      entries: [
+        { url: 'index.html', revision: 'hash-index', bytes: 1024 },
+        { url: 'assets/app.js', revision: 'hash-app', bytes: 2048 },
+        { url: 'ocr/eng.traineddata.gz', revision: 'hash-ocr', bytes: 4096 },
+      ],
+    });
+
+    const result = runChecker(['--sw', fixture.swPath, '--json']);
+
+    expect(result.status).toBe(0);
+    const parsed = readJson(result);
+    expect(parsed.pass).toBe(true);
+    expect(parsed.entryCount).toBe(3);
+    expect(parsed.totalBytes).toBe(7168);
+    expect(parsed.budgetBytes).toBe(25 * 1024 * 1024);
+    expect(parsed.totalMib).toBe(0.01);
+    expect(parsed.entries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ url: 'index.html', bytes: 1024 }),
+        expect.objectContaining({ url: 'assets/app.js', bytes: 2048 }),
+        expect.objectContaining({ url: 'ocr/eng.traineddata.gz', bytes: 4096 }),
+      ]),
+    );
+  });
+
+  it('accepts reordered fields, comments, single quotes, and an extra integrity field', () => {
+    const fixture = createFixture({
+      entries: [
+        { url: 'assets/app.js', revision: null, bytes: 10 },
+        { url: 'icons/icon-192.png', revision: 'abc123', bytes: 20 },
+      ],
+      swSource: `// generated by workbox
+self.precacheAndRoute([
+  {
+    integrity: 'sha384-deadbeef',
+    revision: null,
+    url: './assets/app.js',
+  },
+  { url: 'icons/icon-192.png', revision: 'abc123' },
+], {});
+`,
+    });
+
+    const result = runChecker(['--sw', fixture.swPath, '--json']);
+
+    expect(result.status).toBe(0);
+    const parsed = readJson(result);
+    expect(parsed.totalBytes).toBe(30);
+    expect(parsed.entries).toEqual([
+      expect.objectContaining({ url: 'assets/app.js', revision: null, bytes: 10 }),
+      expect.objectContaining({ url: 'icons/icon-192.png', revision: 'abc123', bytes: 20 }),
+    ]);
+  });
+
+  it('fails when the service worker has no precacheAndRoute manifest', () => {
+    const fixture = createFixture({
+      swSource: "self.addEventListener('install', () => {});\n",
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Precache budget check failed:');
+    expect(result.stderr).toContain('precacheAndRoute');
+  });
+
+  it('fails when the precache manifest has no entries', () => {
+    const fixture = createFixture({ swSource: 'self.precacheAndRoute([], {});\n' });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('contains no entries');
+  });
+
+  it('rejects a duplicate precache URL rather than counting it twice', () => {
+    const fixture = createFixture({
+      entries: [
+        { url: 'assets/app.js', revision: 'one', bytes: 4 },
+        { url: './assets/app.js', revision: 'two', bytes: 4 },
+      ],
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('lists "assets/app.js" twice');
+  });
+});
+
+describe('service-worker precache budget', () => {
+  it('passes at exactly the budget and fails one byte above it', () => {
+    const fixture = createFixture({
+      entries: [{ url: 'assets/app.js', revision: 'hash', bytes: 100 }],
+    });
+
+    const atBudget = runChecker(['--sw', fixture.swPath, '--budget-bytes', '100']);
+    expect(atBudget.status).toBe(0);
+    expect(atBudget.stdout).toContain('PASS');
+
+    const overBudget = runChecker(['--sw', fixture.swPath, '--budget-bytes', '99']);
+    expect(overBudget.status).toBe(1);
+    expect(overBudget.stderr).toContain('exceeds the');
+    expect(overBudget.stderr).toContain('100 bytes');
+  });
+
+  it('fails when the manifest lists a file that is missing from the build', () => {
+    const fixture = createFixture({
+      entries: [
+        { url: 'assets/app.js', revision: 'hash', bytes: 10 },
+        { url: 'assets/missing.js', revision: 'hash', bytes: 10 },
+      ],
+      missing: ['assets/missing.js'],
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('assets/missing.js');
+    expect(result.stderr).toContain('missing from the build');
+  });
+
+  it('fails on an external precache URL', () => {
+    const fixture = createFixture({
+      entries: [{ url: 'https://cdn.example.com/app.js', revision: 'hash', bytes: 10 }],
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('absolute URL');
+  });
+
+  it('fails on a URL that escapes the build directory', () => {
+    const fixture = createFixture({
+      entries: [{ url: '../outside.js', revision: 'hash', bytes: 10 }],
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('escapes the build directory');
+  });
+
+  it('fails with a build instruction when the service worker is missing', () => {
+    const fixture = createFixture({
+      entries: [{ url: 'assets/app.js', revision: 'hash', bytes: 10 }],
+      writeServiceWorker: false,
+    });
+
+    const result = runChecker(['--sw', fixture.swPath]);
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Service worker not found');
+    expect(result.stderr).toContain('npm run build');
+  });
+
+  it('prints help that names the 25 MiB default budget', () => {
+    const result = runChecker(['--help']);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('25 MiB');
+    expect(result.stdout).toContain('--budget-bytes');
+  });
+});
