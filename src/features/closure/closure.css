@@ -1,0 +1,242 @@
+/*
+ * Case-closure panel styles.
+ *
+ * Every colour, target, and motion value comes from tokens.css. The panel is
+ * deliberately quiet: a stamped badge, plain loose-thread rows, and one
+ * primary action, with no celebration or score language.
+ */
+
+.closure-panel {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.closure-panel__header {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.closure-panel__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.closure-panel__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+.closure-panel__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.closure-panel__badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  justify-self: start;
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-accent-ink);
+  background-color: var(--color-accent);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.closure-panel__badge[data-state='closed-loose'] {
+  color: var(--color-warning-ink);
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.closure-panel__badge-label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.closure-panel__badge-date {
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.closure-panel__readiness {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-control);
+}
+
+.closure-panel__readiness[data-ready='false'] {
+  color: var(--color-danger-text);
+}
+
+.closure-panel__hint,
+.closure-panel__clear,
+.closure-panel__reason {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.closure-panel__clear {
+  padding: var(--space-3);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-success);
+  border-radius: var(--radius-sm);
+}
+
+.closure-panel__threads {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.closure-panel__threads-title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.closure-panel__thread-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.closure-panel__thread {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-warning);
+  border-radius: var(--radius-sm);
+}
+
+.closure-panel__thread-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.closure-panel__thread-link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  color: var(--color-link);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+  overflow-wrap: anywhere;
+}
+
+.closure-panel__thread-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.closure-panel__thread-kind {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.closure-panel__thread-reason {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.closure-panel__thread-action {
+  justify-self: start;
+}
+
+.closure-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.closure-panel__actions .nd-button {
+  flex: 1 1 10rem;
+}
+
+.closure-panel__error {
+  margin: 0;
+  padding: var(--space-3);
+  color: var(--color-danger-text);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.closure-panel__dialog-copy {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+/*
+ * Phone widths stack the panel above the board. The sheet-like top corners and
+ * panel shadow mark it as a secondary surface without taking the board's
+ * horizontal space.
+ */
+@media (max-width: 37.5rem) {
+  .closure-panel {
+    border-start-start-radius: var(--radius-lg);
+    border-start-end-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closure-panel,
+  .closure-panel__badge,
+  .closure-panel__thread {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RECALL-MODE-1
+**Phase**: RECALL-MODE-2
 **Status**: In Progress
-**Validation Gaps**: 42 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T16:45:09.064Z
+**Validation Gaps**: 43 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T16:58:27.844Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -64,6 +64,8 @@
   - Files: docs/reviews/board-feel.json
 - [x] Phase CASE-CLOSURE-1, Task CLOSE-1: Implement readiness, loose-thread, and topic-status selectors (@data-engineer)
   - Files: src/domain/readiness.ts, tests/domain/readiness.test.ts
+- [x] Phase CASE-CLOSURE-2, Task CLOSE-2: Build the closure panel, close, closed-with-threads, and reopen (@ui-engineer)
+  - Files: src/features/closure/ClosurePanel.tsx, src/features/closure/useCaseLifecycle.ts, src/domain/caseLifecycle.ts, src/data/caseRepository.ts, src/features/case/CaseBoardPage.tsx, src/features/shelf/CaseCard.tsx, tests/features/closure/ClosurePanel.test.tsx, tests/domain/caseLifecycle.test.ts, e2e/closure.spec.ts, src/domain/model.ts, src/features/case/CaseBoardPage.css, src/features/shelf/shelf.css, tests/domain/model.test.ts, tests/domain/validation.test.ts, tests/shelf/CaseFormDialog.test.tsx, src/features/closure/closure.css
 - [x] Phase RECALL-MODE-1, Task RECALL-1: Implement scratch connections and recall comparison (@board-engineer)
   - Files: src/features/recall/recallStore.ts, src/features/recall/compareConnections.ts, tests/recall/compareConnections.test.ts, tests/recall/recallStore.test.ts
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
@@ -135,6 +137,7 @@
 - Task LINK-5: Component tests run in jsdom; the e2e journey provides the real-browser viewport and IndexedDB evidence.
 - Task CLOSE-1: No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.
 - Task CLOSE-1: Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note.
+- Task CLOSE-2: Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair.
 - Task RECALL-1: Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.
 - Task RECALL-1: No browser journey applies to this unit-only task.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.

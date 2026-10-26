@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 
 import Button from '../../components/Button';
+import { deriveCaseLifecycle, looseThreadLabel } from '../../domain/caseLifecycle';
 import type { CaseSummary } from '../../domain/model';
 
 import './shelf.css';
@@ -48,6 +49,20 @@ function formatUpdatedAt(value: string): string {
 export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup }: CaseCardProps) {
   const titleId = `case-title-${summary.id}`;
   const linkId = `case-open-${summary.id}`;
+  const lifecycle = deriveCaseLifecycle(summary.closedAt, {
+    ready: summary.readiness === 'ready',
+    looseThreadCount: summary.looseThreadCount,
+  });
+  const openLoose = !lifecycle.closed && lifecycle.looseThreadCount > 0;
+  const badgeLabel =
+    lifecycle.badgeLabel ?? (openLoose ? looseThreadLabel(lifecycle.looseThreadCount) : null);
+  const badgeState = lifecycle.closed
+    ? lifecycle.ready
+      ? 'closed'
+      : 'closed-loose'
+    : openLoose
+      ? 'loose'
+      : null;
 
   return (
     <article
@@ -68,9 +83,9 @@ export default function CaseCard({ summary, selected, onEdit, onDelete, onBackup
           </Link>
         </h3>
 
-        {summary.closedAt !== null ? (
-          <span className="case-card__badge" data-state="closed">
-            Closed
+        {badgeLabel !== null && badgeState !== null ? (
+          <span className="case-card__badge" data-state={badgeState}>
+            {badgeLabel}
           </span>
         ) : null}
       </div>

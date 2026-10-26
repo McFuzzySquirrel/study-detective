@@ -123,6 +123,8 @@ describe('boundary validation wrappers', () => {
         updatedAt: UPDATED_AT,
         cardCount: 2,
         connectionCount: 1,
+        readiness: 'loose',
+        looseThreadCount: 1,
       }).connectionCount,
     ).toBe(1);
   });
@@ -167,6 +169,8 @@ describe('boundary validation wrappers', () => {
         updatedAt: UPDATED_AT,
         cardCount: -1,
         connectionCount: 0,
+        readiness: 'ready',
+        looseThreadCount: 0,
       }).success,
     ).toBe(false);
     expect(validateCaseRecord({ ...validCase, examDate: '2026-02-30' }).success).toBe(false);

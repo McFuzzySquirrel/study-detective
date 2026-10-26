@@ -54,6 +54,8 @@ const EXISTING_CASE: CaseSummary = {
   isDemo: false,
   cardCount: 4,
   connectionCount: 3,
+  readiness: 'loose',
+  looseThreadCount: 1,
 };
 
 function maxLength(...values: number[]): number {

@@ -48,8 +48,11 @@ import type {
   ConnectionType,
   Viewport,
 } from '../../domain/model';
+import { deriveReadiness } from '../../domain/readiness';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
+import ClosurePanel from '../closure/ClosurePanel';
+import { useCaseLifecycle } from '../closure/useCaseLifecycle';
 import ConnectionDetail from '../connections/ConnectionDetail';
 import ConnectionLegend from '../connections/ConnectionLegend';
 import ConnectionTypeMenu from '../connections/ConnectionTypeMenu';
@@ -250,6 +253,16 @@ export function CaseBoardPage({
     repository: activeRepository,
     caseId,
     enabled: visibleStatus === 'ready',
+  });
+
+  // Readiness is derived once per graph change and shared by the panel and the
+  // close badge. No loose-thread count or solved flag is written anywhere.
+  const readiness = useMemo(() => deriveReadiness(cards, connections), [cards, connections]);
+  const caseLifecycle = useCaseLifecycle({
+    caseRecord,
+    readiness,
+    repository: activeRepository,
+    onCaseChanged: setCaseRecord,
   });
 
   useEffect(() => {
@@ -712,6 +725,17 @@ export function CaseBoardPage({
     [activeStore],
   );
 
+  /** Loose-thread rows can center their card without leaving the board. */
+  const handleShowLooseCard = useCallback(
+    (cardId: string): void => {
+      const card = cards.find((candidate) => candidate.id === cardId);
+      if (card !== undefined) {
+        applySearchSelection(card);
+      }
+    },
+    [applySearchSelection, cards],
+  );
+
   // The card list's search results navigate here with `?card=<id>` so that
   // "Select" means the same thing on both surfaces: center and select the card.
   // The ref makes the jump happen once per case/card pair, not on every
@@ -781,6 +805,13 @@ export function CaseBoardPage({
         tone="error"
         onDismiss={clearConnectionUndoError}
         dismissLabel="Dismiss connection undo error"
+      />
+
+      <Toast
+        message={caseLifecycle.message}
+        tone="success"
+        onDismiss={caseLifecycle.clearMessage}
+        dismissLabel="Dismiss closure message"
       />
 
       <header className="case-board-page__header">
@@ -874,7 +905,10 @@ export function CaseBoardPage({
         </div>
       ) : null}
 
-      <div className="case-board-page__workspace">
+      <div
+        className="case-board-page__workspace"
+        data-has-detail={detailVisible ? 'true' : 'false'}
+      >
         {detailVisible && selectedDetail !== null ? (
           <ConnectionDetail
             connection={selectedDetail.connection}
@@ -962,6 +996,20 @@ export function CaseBoardPage({
             </Suspense>
           ) : null}
         </div>
+
+        {visibleStatus === 'ready' && caseRecord !== null ? (
+          <ClosurePanel
+            caseRecord={caseRecord}
+            readiness={readiness}
+            busy={caseLifecycle.busy}
+            error={caseLifecycle.error}
+            onCloseCase={caseLifecycle.closeCase}
+            onReopenCase={caseLifecycle.reopenCase}
+            cardHref={(cardId) => `/case/${caseId}/card/${cardId}`}
+            onShowCard={handleShowLooseCard}
+            onClearError={caseLifecycle.clearError}
+          />
+        ) : null}
       </div>
 
       <ConnectionTypeMenu

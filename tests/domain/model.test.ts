@@ -78,6 +78,8 @@ const validSummary = {
   isDemo: false,
   cardCount: 4,
   connectionCount: 5,
+  readiness: 'loose',
+  looseThreadCount: 2,
 };
 
 describe('CaseRecord schema', () => {
@@ -479,7 +481,7 @@ describe('AttachmentRecord schema', () => {
 });
 
 describe('CaseSummary schema', () => {
-  it('accepts counts and defaults closedAt and isDemo', () => {
+  it('accepts counts, derived readiness, and defaults closedAt and isDemo', () => {
     const parsed = caseSummarySchema.parse({
       id: CASE_ID,
       title: 'Cell Biology Final',
@@ -487,10 +489,14 @@ describe('CaseSummary schema', () => {
       updatedAt: UPDATED_AT,
       cardCount: 0,
       connectionCount: 0,
+      readiness: 'ready',
+      looseThreadCount: 0,
     });
 
     expect(parsed.cardCount).toBe(0);
     expect(parsed.connectionCount).toBe(0);
+    expect(parsed.readiness).toBe('ready');
+    expect(parsed.looseThreadCount).toBe(0);
     expect(parsed.closedAt).toBeNull();
     expect(parsed.isDemo).toBe(false);
   });
@@ -500,10 +506,31 @@ describe('CaseSummary schema', () => {
     expect(caseSummarySchema.safeParse({ ...validSummary, connectionCount: 1.5 }).success).toBe(
       false,
     );
+    expect(caseSummarySchema.safeParse({ ...validSummary, looseThreadCount: -1 }).success).toBe(
+      false,
+    );
+  });
+
+  it('keeps readiness consistent with the loose-thread count', () => {
+    expect(
+      caseSummarySchema.safeParse({
+        ...validSummary,
+        readiness: 'ready',
+        looseThreadCount: 2,
+      }).success,
+    ).toBe(false);
+    expect(
+      caseSummarySchema.safeParse({
+        ...validSummary,
+        readiness: 'loose',
+        looseThreadCount: 0,
+      }).success,
+    ).toBe(false);
   });
 
   it('rejects unknown fields and malformed metadata', () => {
-    expect(caseSummarySchema.safeParse({ ...validSummary, readiness: 'ready' }).success).toBe(
+    expect(caseSummarySchema.safeParse({ ...validSummary, solved: true }).success).toBe(false);
+    expect(caseSummarySchema.safeParse({ ...validSummary, readiness: 'solved' }).success).toBe(
       false,
     );
     expect(caseSummarySchema.safeParse({ ...validSummary, updatedAt: 'today' }).success).toBe(
@@ -514,7 +541,7 @@ describe('CaseSummary schema', () => {
     );
   });
 
-  it('requires both counts', () => {
+  it('requires both counts and the derived readiness projection', () => {
     const minimalSummary = {
       id: CASE_ID,
       title: 'Cell Biology Final',
@@ -522,9 +549,28 @@ describe('CaseSummary schema', () => {
       updatedAt: UPDATED_AT,
     };
 
-    expect(caseSummarySchema.safeParse({ ...minimalSummary, cardCount: 1 }).success).toBe(false);
-    expect(caseSummarySchema.safeParse({ ...minimalSummary, connectionCount: 1 }).success).toBe(
-      false,
-    );
+    expect(
+      caseSummarySchema.safeParse({
+        ...minimalSummary,
+        connectionCount: 1,
+        readiness: 'loose',
+        looseThreadCount: 1,
+      }).success,
+    ).toBe(false);
+    expect(
+      caseSummarySchema.safeParse({
+        ...minimalSummary,
+        cardCount: 1,
+        readiness: 'ready',
+        looseThreadCount: 0,
+      }).success,
+    ).toBe(false);
+    expect(
+      caseSummarySchema.safeParse({
+        ...minimalSummary,
+        cardCount: 1,
+        connectionCount: 1,
+      }).success,
+    ).toBe(false);
   });
 });

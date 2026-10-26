@@ -21,6 +21,13 @@ export type AttachmentKind = (typeof ATTACHMENT_KINDS)[number];
 export const ATTACHMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
 export type AttachmentMime = (typeof ATTACHMENT_MIME_TYPES)[number];
 
+/**
+ * The shelf-facing readiness projection. It is derived from the graph every
+ * time a summary is read; it is never accepted as authoritative storage.
+ */
+export const CASE_READINESS_STATES = ['ready', 'loose'] as const;
+export type CaseReadinessStatus = (typeof CASE_READINESS_STATES)[number];
+
 export const TITLE_MIN_LENGTH = 1;
 export const TITLE_MAX_LENGTH = 80;
 export const SUBJECT_MAX_LENGTH = 80;
@@ -263,18 +270,32 @@ export const attachmentRecordSchema = z
   })
   .superRefine(addAttachmentSizeIssues);
 
-export const caseSummarySchema = z.strictObject({
-  id: uuidSchema,
-  title: titleSchema,
-  subject: subjectSchema.optional(),
-  examDate: isoDateSchema.optional(),
-  createdAt: isoTimestampSchema,
-  updatedAt: isoTimestampSchema,
-  closedAt: isoTimestampSchema.nullable().default(null),
-  isDemo: z.boolean().default(false),
-  cardCount: z.number().int().nonnegative(),
-  connectionCount: z.number().int().nonnegative(),
-});
+export const caseSummarySchema = z
+  .strictObject({
+    id: uuidSchema,
+    title: titleSchema,
+    subject: subjectSchema.optional(),
+    examDate: isoDateSchema.optional(),
+    createdAt: isoTimestampSchema,
+    updatedAt: isoTimestampSchema,
+    closedAt: isoTimestampSchema.nullable().default(null),
+    isDemo: z.boolean().default(false),
+    cardCount: z.number().int().nonnegative(),
+    connectionCount: z.number().int().nonnegative(),
+    /** Derived from the card graph for the shelf's closure badge. */
+    readiness: z.enum(CASE_READINESS_STATES),
+    looseThreadCount: z.number().int().nonnegative(),
+  })
+  .superRefine((summary, ctx) => {
+    const expected = summary.looseThreadCount === 0 ? 'ready' : 'loose';
+    if (summary.readiness !== expected) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['readiness'],
+        message: `readiness must be "${expected}" for ${summary.looseThreadCount} loose threads`,
+      });
+    }
+  });
 
 export type CaseRecord = z.infer<typeof caseRecordSchema>;
 export type CaseRecordInput = z.input<typeof caseRecordSchema>;

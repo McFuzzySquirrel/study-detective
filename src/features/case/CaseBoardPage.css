@@ -162,16 +162,52 @@
   align-items: start;
 }
 
+.case-board-page__workspace[data-has-detail='false'] {
+  grid-template-areas:
+    'closure'
+    'stage';
+}
+
+.case-board-page__workspace[data-has-detail='true'] {
+  grid-template-areas:
+    'detail'
+    'closure'
+    'stage';
+}
+
 .case-board-page__stage {
   position: relative;
   display: grid;
+  grid-area: stage;
   min-block-size: clamp(24rem, calc(100dvh - 21rem), 52rem);
   min-inline-size: 0;
 }
 
+.case-board-page__workspace .connection-detail {
+  grid-area: detail;
+}
+
+.case-board-page__workspace .closure-panel {
+  grid-area: closure;
+}
+
+/*
+ * Tablet landscape and desktop put closure on the right, where it can be read
+ * beside the board. The phone layout keeps the panel above the stage in a
+ * full-width sheet-like block instead of stealing horizontal space.
+ */
 @media (min-width: 64rem) {
-  .case-board-page__workspace {
-    grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+  .case-board-page__workspace[data-has-detail='false'] {
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
+    grid-template-areas: 'stage closure';
+  }
+
+  .case-board-page__workspace[data-has-detail='true'] {
+    grid-template-columns:
+      minmax(16rem, 20rem)
+      minmax(0, 1fr)
+      minmax(15rem, 18rem);
+    grid-template-areas: 'detail stage closure';
   }
 }
 

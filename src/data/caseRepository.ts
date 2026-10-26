@@ -13,6 +13,8 @@ import type {
   ConnectionRecord,
   Viewport,
 } from '../domain/model';
+import { deriveReadiness } from '../domain/readiness';
+import type { ReadinessCard, ReadinessConnection } from '../domain/readiness';
 import {
   DomainValidationError,
   normalizeTags,
@@ -283,7 +285,66 @@ function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): C
   });
 }
 
-function buildSummary(record: CaseRecord, cardCount: number, connectionCount: number): CaseSummary {
+/**
+ * Project a stored card row for readiness without validating unrelated fields.
+ *
+ * The shelf summary is a read-only badge above each case. A corrupt row in one
+ * case must not stop the whole shelf from rendering, so unusable rows are
+ * skipped here and `deriveReadiness` ignores any dangling endpoints.
+ */
+function toReadinessCards(rows: readonly CardRecord[]): ReadinessCard[] {
+  const cards: ReadinessCard[] = [];
+
+  for (const row of rows) {
+    if (
+      typeof row.id !== 'string' ||
+      typeof row.caseId !== 'string' ||
+      typeof row.title !== 'string' ||
+      (row.type !== 'note' && row.type !== 'source' && row.type !== 'topic')
+    ) {
+      continue;
+    }
+    cards.push({ id: row.id, caseId: row.caseId, type: row.type, title: row.title });
+  }
+
+  return cards;
+}
+
+function toReadinessConnections(rows: readonly ConnectionRecord[]): ReadinessConnection[] {
+  const connections: ReadinessConnection[] = [];
+
+  for (const row of rows) {
+    if (
+      typeof row.fromCardId !== 'string' ||
+      typeof row.toCardId !== 'string' ||
+      (row.type !== 'association' && row.type !== 'provenance')
+    ) {
+      continue;
+    }
+    connections.push({
+      fromCardId: row.fromCardId,
+      toCardId: row.toCardId,
+      type: row.type,
+    });
+  }
+
+  return connections;
+}
+
+/**
+ * Build one shelf summary from the graph rows for that case.
+ *
+ * Readiness is derived once here and exposed as a status plus the loose-thread
+ * count. Neither value is written back to the case row: a later edit changes
+ * the next read, not a stored solved flag.
+ */
+function buildSummary(
+  record: CaseRecord,
+  cards: readonly CardRecord[],
+  connections: readonly ConnectionRecord[],
+): CaseSummary {
+  const readiness = deriveReadiness(toReadinessCards(cards), toReadinessConnections(connections));
+
   return parseCaseSummary({
     id: record.id,
     title: record.title,
@@ -293,17 +354,26 @@ function buildSummary(record: CaseRecord, cardCount: number, connectionCount: nu
     updatedAt: record.updatedAt,
     closedAt: record.closedAt,
     isDemo: record.isDemo,
-    cardCount,
-    connectionCount,
+    cardCount: cards.length,
+    connectionCount: connections.length,
+    readiness: readiness.ready ? 'ready' : 'loose',
+    looseThreadCount: readiness.looseThreadCount,
   });
 }
 
-function countByCase(rows: readonly { readonly caseId: string }[]): Map<string, number> {
-  const counts = new Map<string, number>();
+function groupByCase<T extends { readonly caseId: string }>(rows: readonly T[]): Map<string, T[]> {
+  const grouped = new Map<string, T[]>();
+
   for (const row of rows) {
-    counts.set(row.caseId, (counts.get(row.caseId) ?? 0) + 1);
+    const existing = grouped.get(row.caseId);
+    if (existing === undefined) {
+      grouped.set(row.caseId, [row]);
+    } else {
+      existing.push(row);
+    }
   }
-  return counts;
+
+  return grouped;
 }
 
 /**
@@ -375,11 +445,11 @@ export class CaseRepository implements CaseRepositoryPort {
       return null;
     }
     const record = readStored('case', caseId, () => readCaseRow(row, caseId));
-    const [cardCount, connectionCount] = await Promise.all([
-      this.db.cards.where('caseId').equals(caseId).count(),
-      this.db.connections.where('caseId').equals(caseId).count(),
+    const [cards, connections] = await Promise.all([
+      this.db.cards.where('caseId').equals(caseId).toArray(),
+      this.db.connections.where('caseId').equals(caseId).toArray(),
     ]);
-    return buildSummary(record, cardCount, connectionCount);
+    return buildSummary(record, cards, connections);
   }
 
   async listCaseSummaries(): Promise<CaseSummary[]> {
@@ -388,13 +458,17 @@ export class CaseRepository implements CaseRepositoryPort {
       this.db.cards.toArray(),
       this.db.connections.toArray(),
     ]);
-    const cardCounts = countByCase(cardRows);
-    const connectionCounts = countByCase(connectionRows);
+    const cardsByCase = groupByCase(cardRows);
+    const connectionsByCase = groupByCase(connectionRows);
 
     return caseRows
       .map((row) => readStored('case', row.id, () => readCaseRow(row, row.id)))
       .map((record) =>
-        buildSummary(record, cardCounts.get(record.id) ?? 0, connectionCounts.get(record.id) ?? 0),
+        buildSummary(
+          record,
+          cardsByCase.get(record.id) ?? [],
+          connectionsByCase.get(record.id) ?? [],
+        ),
       )
       .sort(compareCaseSummaries);
   }
@@ -787,11 +861,11 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     if (record === undefined) {
       return null;
     }
-    const cardCount = [...this.cards.values()].filter((card) => card.caseId === caseId).length;
-    const connectionCount = [...this.connections.values()].filter(
+    const cards = [...this.cards.values()].filter((card) => card.caseId === caseId);
+    const connections = [...this.connections.values()].filter(
       (connection) => connection.caseId === caseId,
-    ).length;
-    return buildSummary(record, cardCount, connectionCount);
+    );
+    return buildSummary(record, cards, connections);
   }
 
   async listCaseSummaries(): Promise<CaseSummary[]> {

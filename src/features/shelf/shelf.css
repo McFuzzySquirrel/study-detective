@@ -126,6 +126,7 @@
 
 .case-card__header {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-3);
@@ -183,7 +184,21 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   letter-spacing: var(--letter-spacing-caps);
+  text-align: center;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.case-card__badge[data-state='closed-loose'] {
+  color: var(--color-warning-ink);
+  background-color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.case-card__badge[data-state='loose'] {
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-warning);
 }
 
 .case-card__subject {
