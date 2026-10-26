@@ -16,7 +16,7 @@
  * the board store owns the camera.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { Application } from 'pixi.js';
 
@@ -44,6 +44,13 @@ export interface UsePixiAppResult {
   readonly retry: () => void;
   /** Rebuild the scene and renderer after a lost context. */
   readonly recover: () => void;
+  /** Move one card for the live drag preview; the page owns persistence. */
+  readonly moveCard?: (
+    cardId: string,
+    position: { readonly x: number; readonly y: number },
+  ) => void;
+  /** Apply or remove the lift scale on one card. */
+  readonly setCardLifted?: (cardId: string, lifted: boolean, reducedMotion: boolean) => void;
 }
 
 const EMPTY_SIZE: BoardSize = { width: 1, height: 1 };
@@ -233,10 +240,28 @@ export function usePixiApp({
       canvas.setAttribute('aria-label', canvasLabelRef.current);
       host.replaceChildren(canvas);
 
-      scene = new BoardScene(next, {
-        snapshot: snapshotRef.current,
-        viewport: viewportRef.current,
-      });
+      try {
+        scene = new BoardScene(next, {
+          snapshot: snapshotRef.current,
+          viewport: viewportRef.current,
+        });
+      } catch {
+        setStatus('error');
+        setError(
+          'The board scene could not be drawn. This browser may be missing a theme resource; your cards are safe in the card list.',
+        );
+        try {
+          next.destroy({ removeView: true }, true);
+        } catch {
+          // Best-effort cleanup of a partially initialised renderer.
+        }
+        canvas.remove();
+        canvas = null;
+        app = null;
+        host.replaceChildren();
+        return;
+      }
+
       sceneRef.current = scene;
       scene.setViewport(viewportRef.current, initialSize);
 
@@ -321,6 +346,22 @@ export function usePixiApp({
     setAttempt((current) => current + 1);
   };
 
+  const moveCard = useCallback(
+    (cardId: string, position: { readonly x: number; readonly y: number }): void => {
+      sceneRef.current?.moveCard(cardId, { x: position.x, y: position.y });
+      renderRef.current?.();
+    },
+    [],
+  );
+
+  const setCardLifted = useCallback(
+    (cardId: string, lifted: boolean, reducedMotion: boolean): void => {
+      sceneRef.current?.setCardLifted(cardId, lifted, reducedMotion);
+      renderRef.current?.();
+    },
+    [],
+  );
+
   return {
     status,
     error,
@@ -328,5 +369,7 @@ export function usePixiApp({
     viewportSize,
     retry,
     recover: retry,
+    moveCard,
+    setCardLifted,
   };
 }

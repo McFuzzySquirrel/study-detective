@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: BACKUP-AND-RESTORE-3
 **Status**: In Progress
-**Validation Gaps**: 16 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-25T22:21:14.473Z
+**Validation Gaps**: 18 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T03:45:35.710Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -44,6 +44,8 @@
   - Files: src/board/viewport.ts, src/board/boardStore.ts, tests/board/viewport.test.ts, tests/board/boardStore.test.ts
 - [x] Phase CASE-BOARD-1, Task BOARD-2: Mount the lazy Pixi canvas and case board route (@board-engineer)
   - Files: src/board/BoardCanvas.tsx, src/board/BoardScene.ts, src/board/usePixiApp.ts, src/board/textureCache.ts, src/features/case/CaseBoardPage.tsx, src/features/case/CaseBoardPage.css, src/data/caseRepository.ts, src/app/routes.tsx, tests/board/BoardCanvas.test.tsx, e2e/board.spec.ts, src/board/BoardCanvas.css, src/board/boardInput.ts, tests/board/textureCache.test.ts
+- [x] Phase CASE-BOARD-1, Task BOARD-3: Implement card lift, drag, tap, and position persistence (@board-engineer)
+  - Files: src/board/CardSprite.ts, src/board/CardLayer.ts, src/board/BoardScene.ts, src/board/useCardGestures.ts, tests/board/useCardGestures.test.ts, e2e/board-drag.spec.ts, src/board/BoardCanvas.tsx, src/board/boardInput.ts, src/board/usePixiApp.ts, src/features/case/CaseBoardPage.tsx
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -52,11 +54,9 @@
   - Files: src/features/backup/BackupDialog.tsx, src/features/backup/BackupDialog.css, src/features/backup/useBackupReminder.ts, src/features/shelf/CaseShelf.tsx, src/features/case/CaseBoardPage.tsx, tests/backup/BackupDialog.test.tsx, tests/backup/useBackupReminder.test.tsx, src/features/case/CaseBoardPage.css, src/features/shelf/CaseCard.tsx, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/shelf.css, src/features/backup/backupOperations.ts
 
 ## Current Task
-- [ ] Phase CASE-BOARD-1, Task BOARD-3: Implement card lift, drag, tap, and position persistence (@board-engineer)
-  - Status: In progress
+- None currently running
 
 ## Remaining
-- [ ] Phase CASE-BOARD-1: Phase 1: Canvas and placement
 - [ ] Phase CASE-BOARD-2: Phase 2: Scale and non-spatial path
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-1: Phase 1: Graph rules and rendering
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-2: Phase 2: Drawing and editing
@@ -97,6 +97,8 @@
 - Task BOARD-2: Culling uses the required 200 px viewport margin and the texture cache enforces 200 residents with recovery tests, but the 150-card culling assertion and FPS harness belong to BOARD-4 and QA. Tablet 45 FPS still needs human verification.
 - Task BOARD-2: Playwright covers Chromium desktop, tablet, and phone only; Firefox and WebKit are not exercised here.
 - Task BOARD-2: The context-loss journey tests the explicit Restore action; the automatic browser-restore branch is implemented but not separately exercised.
+- Task BOARD-3: Thumbnail-to-display texture replacement is implemented and exercised with real attachment loading, but no pixel-level browser assertion proves the visual swap.
+- Task BOARD-3: Browser evidence covers Chromium-based projects only.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).

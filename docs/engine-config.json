@@ -1,7 +1,7 @@
 {
   "harness": "opencode",
   "granularity": "",
-  "concurrency": "3",
+  "concurrency": "1",
   "taskTimeoutMs": "2700000",
   "maxRetries": "",
   "viz": false,

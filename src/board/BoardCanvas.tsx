@@ -7,8 +7,8 @@
  * accessible controls; `usePixiApp` owns renderer and texture teardown.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import { Link } from 'react-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 import { useStore } from 'zustand';
 
 import Button from '../components/Button';
@@ -18,6 +18,9 @@ import { attachBoardInput } from './boardInput';
 import { boardStore } from './boardStore';
 import type { BoardStoreApi } from './boardStore';
 import { selectViewport } from './boardStore';
+import { useCardGestures } from './useCardGestures';
+import type { CardDragUpdate } from './useCardGestures';
+import { findCardAtPoint } from './useCardGestures';
 import { usePixiApp } from './usePixiApp';
 import { DEFAULT_BOARD_VIEWPORT } from './viewport';
 import type { BoardPoint } from './viewport';
@@ -26,7 +29,7 @@ import './BoardCanvas.css';
 
 /** Written to both the canvas host and the generated PixiJS canvas. */
 export const BOARD_CANVAS_LABEL =
-  'Case board canvas. Drag the cork to pan. Pinch or scroll to zoom. Use the controls for zoom and reset.';
+  'Case board canvas. Drag the cork to pan. Drag a card to move it. Pinch or scroll to zoom. Use the controls for zoom and reset.';
 
 const ZOOM_STEP = 1.25;
 
@@ -34,6 +37,13 @@ export interface BoardCanvasProps {
   readonly snapshot: BoardSnapshot;
   /** Injected store for component tests and future multi-board screens. */
   readonly store?: BoardStoreApi | undefined;
+  /**
+   * Called once when a drag ends. The page debounces the repository update; the
+   * canvas never writes a position itself.
+   */
+  readonly onCardMoved?: ((cardId: string, position: BoardPoint) => void) | undefined;
+  /** Override the default navigation to card detail, for tests. */
+  readonly onCardTap?: ((cardId: string) => void) | undefined;
 }
 
 function formatViewportValue(value: number): string {
@@ -44,13 +54,63 @@ function formatScale(value: number): string {
   return value.toFixed(4);
 }
 
+function readReducedMotion(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/** Track the OS motion preference so a mid-session change updates the lift. */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(readReducedMotion);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return;
+    }
+
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (): void => {
+      setReduced(query.matches);
+    };
+
+    handleChange();
+    query.addEventListener('change', handleChange);
+    return () => query.removeEventListener('change', handleChange);
+  }, []);
+
+  return reduced;
+}
+
 /** The styled canvas surface, controls, and recoverable renderer states. */
-export function BoardCanvas({ snapshot, store }: BoardCanvasProps) {
+export function BoardCanvas({ snapshot, store, onCardMoved, onCardTap }: BoardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeStore = store ?? boardStore;
   const viewport = useStore(activeStore, selectViewport);
+  const reducedMotion = usePrefersReducedMotion();
+  const navigate = useNavigate();
 
-  const { status, error, contextLost, retry, recover } = usePixiApp({
+  const snapshotRef = useRef(snapshot);
+  const reducedMotionRef = useRef(reducedMotion);
+
+  useEffect(() => {
+    snapshotRef.current = snapshot;
+  }, [snapshot]);
+
+  useEffect(() => {
+    reducedMotionRef.current = reducedMotion;
+  }, [reducedMotion]);
+
+  const {
+    status,
+    error,
+    contextLost,
+    retry,
+    recover,
+    moveCard: moveCardInScene,
+    setCardLifted: setCardLiftedInScene,
+  } = usePixiApp({
     hostRef,
     snapshot,
     viewport,
@@ -68,10 +128,101 @@ export function BoardCanvas({ snapshot, store }: BoardCanvasProps) {
       onZoom: (anchor, factor) => activeStore.getState().zoomAt(anchor, factor),
       onZoomTo: (anchor, scale) => activeStore.getState().zoomTo(anchor, scale),
       getScale: () => activeStore.getState().viewport.scale,
+      // A pointer that lands on a card belongs to the card gesture controller;
+      // the cork only pans when the press starts on empty board.
+      shouldStartPan: (point) =>
+        findCardAtPoint(snapshotRef.current.cards, activeStore.getState().viewport, point) === null,
     });
 
     return () => input.destroy();
   }, [activeStore]);
+
+  const applyGesture = useCallback(
+    (update: CardDragUpdate): void => {
+      activeStore.getState().setGesture({
+        kind: 'drag-card',
+        pointerId: update.pointerId,
+        cardId: update.cardId,
+        grabOffset: { x: update.grabOffset.x, y: update.grabOffset.y },
+        position: { x: update.position.x, y: update.position.y },
+      });
+    },
+    [activeStore],
+  );
+
+  const handleLift = useCallback(
+    (update: CardDragUpdate, reduced: boolean): void => {
+      activeStore.getState().selectCard(update.cardId);
+      applyGesture(update);
+      setCardLiftedInScene?.(update.cardId, true, reduced);
+    },
+    [activeStore, applyGesture, setCardLiftedInScene],
+  );
+
+  const handleDragMove = useCallback(
+    (update: CardDragUpdate): void => {
+      applyGesture(update);
+      moveCardInScene?.(update.cardId, update.position);
+    },
+    [applyGesture, moveCardInScene],
+  );
+
+  const handleDrop = useCallback(
+    (update: CardDragUpdate): void => {
+      moveCardInScene?.(update.cardId, update.position);
+      setCardLiftedInScene?.(update.cardId, false, reducedMotionRef.current);
+      activeStore.getState().resetGesture();
+      onCardMoved?.(update.cardId, { x: update.position.x, y: update.position.y });
+    },
+    [activeStore, moveCardInScene, onCardMoved, setCardLiftedInScene],
+  );
+
+  const handleDragCancel = useCallback(
+    (update: CardDragUpdate): void => {
+      moveCardInScene?.(update.cardId, update.position);
+      setCardLiftedInScene?.(update.cardId, false, reducedMotionRef.current);
+      activeStore.getState().resetGesture();
+    },
+    [activeStore, moveCardInScene, setCardLiftedInScene],
+  );
+
+  const handleTap = useCallback(
+    (cardId: string): void => {
+      setCardLiftedInScene?.(cardId, false, reducedMotionRef.current);
+      activeStore.getState().selectCard(cardId);
+      activeStore.getState().resetGesture();
+
+      if (onCardTap !== undefined) {
+        onCardTap(cardId);
+        return;
+      }
+
+      navigate(`/case/${snapshot.caseId}/card/${cardId}`);
+    },
+    [activeStore, navigate, onCardTap, setCardLiftedInScene, snapshot.caseId],
+  );
+
+  useCardGestures(hostRef, {
+    getCardAt: (point) => {
+      const card = findCardAtPoint(
+        snapshotRef.current.cards,
+        activeStore.getState().viewport,
+        point,
+      );
+      return card?.id ?? null;
+    },
+    getCardPosition: (cardId) =>
+      snapshotRef.current.cards.find((card) => card.id === cardId)?.position ?? null,
+    getViewport: () => activeStore.getState().viewport,
+    isReducedMotion: () => reducedMotionRef.current,
+    onPress: (cardId) => activeStore.getState().selectCard(cardId),
+    onLift: handleLift,
+    onDragMove: handleDragMove,
+    onDrop: handleDrop,
+    onDragCancel: handleDragCancel,
+    onTap: handleTap,
+    onPanBy: (delta) => activeStore.getState().panBy(delta),
+  });
 
   const canvasCenter = useCallback((): BoardPoint => {
     const host = hostRef.current;
@@ -101,6 +252,13 @@ export function BoardCanvas({ snapshot, store }: BoardCanvasProps) {
   const sceneStatus = contextLost ? 'context-lost' : status;
   const casePath = `/case/${snapshot.caseId}`;
   const zoomPercent = `${Math.round(viewport.scale * 100)}%`;
+  const cardPositions = JSON.stringify(
+    snapshot.cards.map((card) => ({
+      id: card.id,
+      x: card.position.x,
+      y: card.position.y,
+    })),
+  );
 
   return (
     <section
@@ -111,6 +269,7 @@ export function BoardCanvas({ snapshot, store }: BoardCanvasProps) {
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}
       data-board-card-count={snapshot.cards.length}
+      data-board-card-positions={cardPositions}
       data-board-scene-status={sceneStatus}
       data-board-context-lost={contextLost ? 'true' : 'false'}
       aria-busy={status === 'initializing'}

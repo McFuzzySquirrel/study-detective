@@ -22,7 +22,7 @@ import { useStore } from 'zustand';
 import { boardStore } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
 import { selectViewport, selectViewportDirty } from '../../board/boardStore';
-import type { BoardSnapshot } from '../../board/BoardScene';
+import type { BoardCardImage, BoardSnapshot } from '../../board/BoardScene';
 import Button from '../../components/Button';
 import Toast from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
@@ -40,6 +40,11 @@ const BoardCanvas = lazy(() =>
 
 /** The contract's debounce for a camera write. */
 export const VIEWPORT_SAVE_DEBOUNCE_MS = 500;
+
+/** The contract's debounce for a completed card drag. */
+export const CARD_POSITION_SAVE_DEBOUNCE_MS = 300;
+
+const EMPTY_CARD_IMAGES: Record<string, BoardCardImage> = Object.freeze({});
 
 export type CaseBoardRepositoryLoader = () => Promise<CaseRepositoryPort>;
 
@@ -70,13 +75,18 @@ function loadDefaultRepository(): Promise<CaseRepositoryPort> {
   return defaultRepositoryPromise;
 }
 
-function cardSnapshot(card: CardRecord): BoardSnapshot['cards'][number] {
-  return {
+function cardSnapshot(
+  card: CardRecord,
+  image: BoardCardImage | undefined,
+): BoardSnapshot['cards'][number] {
+  const snapshot = {
     id: card.id,
     title: card.title,
     type: card.type,
     position: { x: card.position.x, y: card.position.y },
   };
+
+  return image === undefined ? snapshot : { ...snapshot, image };
 }
 
 function cardCountLabel(count: number): string {
@@ -96,8 +106,15 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
   const [activeRepository, setActiveRepository] = useState<CaseRepositoryPort | null>(null);
   const [caseRecord, setCaseRecord] = useState<CaseRecord | null>(null);
   const [cards, setCards] = useState<CardRecord[]>([]);
+  const [cardImageState, setCardImageState] = useState<{
+    readonly key: string;
+    readonly images: Record<string, BoardCardImage>;
+  }>({ key: '', images: {} });
   const [backupOpen, setBackupOpen] = useState(false);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
+  const cardSaveTimersRef = useRef(new Map<string, number>());
+  const cardSaveGenerationsRef = useRef(new Map<string, number>());
+  const cardSaveChainRef = useRef<Promise<void>>(Promise.resolve());
 
   const viewport = useStore(activeStore, selectViewport);
   const viewportDirty = useStore(activeStore, selectViewportDirty);
@@ -183,6 +200,123 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     [activeStore],
   );
 
+  // Clear pending card-position timers on route/case change so a late write
+  // cannot land in a different case. Generation tokens make an already-started
+  // save a no-op after the reset.
+  useEffect(
+    () => () => {
+      for (const timer of cardSaveTimersRef.current.values()) {
+        window.clearTimeout(timer);
+      }
+      cardSaveTimersRef.current.clear();
+      cardSaveGenerationsRef.current.clear();
+    },
+    [caseId],
+  );
+
+  // The image set only changes when the card IDs or the case database changes,
+  // not on every completed drag. Object URLs are owned here and revoked on
+  // route change, case switch, or unmount.
+  const cardIdsKey = useMemo(() => cards.map((card) => card.id).join('|'), [cards]);
+  const cardImages = cardImageState.key === cardIdsKey ? cardImageState.images : EMPTY_CARD_IMAGES;
+
+  useEffect(() => {
+    if (visibleStatus !== 'ready' || activeRepository === null || cardIdsKey.length === 0) {
+      return;
+    }
+
+    const ids = cardIdsKey.split('|');
+    const repository = activeRepository;
+    const urls: string[] = [];
+    let cancelled = false;
+
+    const createUrl = (blob: Blob): string | null => {
+      if (typeof URL.createObjectURL !== 'function') {
+        return null;
+      }
+      try {
+        const url = URL.createObjectURL(blob);
+        urls.push(url);
+        return url;
+      } catch {
+        return null;
+      }
+    };
+
+    const load = async (): Promise<void> => {
+      const entries = await Promise.all(
+        ids.map(async (id): Promise<[string, BoardCardImage] | null> => {
+          try {
+            const attachments = await repository.listAttachments(id);
+            const displayAttachment =
+              attachments.find((attachment) => attachment.kind === 'display') ??
+              attachments.find((attachment) => attachment.kind === 'original') ??
+              null;
+            const thumbnailAttachment =
+              attachments.find((attachment) => attachment.kind === 'thumbnail') ??
+              displayAttachment;
+
+            const thumbnailUrl =
+              thumbnailAttachment !== null ? createUrl(thumbnailAttachment.blob) : null;
+            const displayUrl =
+              displayAttachment === null
+                ? null
+                : displayAttachment === thumbnailAttachment
+                  ? thumbnailUrl
+                  : createUrl(displayAttachment.blob);
+
+            if (thumbnailUrl === null && displayUrl === null) {
+              return null;
+            }
+
+            const image: {
+              thumbnailUrl?: string;
+              displayUrl?: string;
+              width?: number;
+              height?: number;
+            } = {};
+
+            if (thumbnailUrl !== null) {
+              image.thumbnailUrl = thumbnailUrl;
+            }
+            if (displayUrl !== null) {
+              image.displayUrl = displayUrl;
+            }
+            if (displayAttachment !== null) {
+              image.width = displayAttachment.width;
+              image.height = displayAttachment.height;
+            }
+
+            return [id, image];
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      if (cancelled) {
+        for (const url of urls) {
+          URL.revokeObjectURL(url);
+        }
+        return;
+      }
+
+      setCardImageState({
+        key: cardIdsKey,
+        images: Object.fromEntries(entries.filter((entry) => entry !== null)),
+      });
+    };
+
+    void load();
+
+    return () => {
+      cancelled = true;
+      for (const url of urls) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [activeRepository, cardIdsKey, visibleStatus]);
+
   // Debounced camera persistence. The exact viewport handed to the repository
   // is also handed to markViewportPersisted, so a movement during the async
   // save leaves the camera dirty for the next write.
@@ -227,13 +361,63 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     };
   }, [activeRepository, activeStore, caseId, viewport, viewportDirty, visibleStatus]);
 
+  const handleCardMoved = useCallback(
+    (cardId: string, position: { readonly x: number; readonly y: number }): void => {
+      const next = {
+        x: Number.isFinite(position.x) ? Math.max(0, position.x) : 0,
+        y: Number.isFinite(position.y) ? Math.max(0, position.y) : 0,
+      };
+
+      // The scene has already drawn this position; mirror it in page state so a
+      // later snapshot re-render (or route return) uses the final value.
+      setCards((current) =>
+        current.map((card) => (card.id === cardId ? { ...card, position: next } : card)),
+      );
+
+      if (activeRepository === null) {
+        return;
+      }
+
+      const generation = (cardSaveGenerationsRef.current.get(cardId) ?? 0) + 1;
+      cardSaveGenerationsRef.current.set(cardId, generation);
+
+      const existing = cardSaveTimersRef.current.get(cardId);
+      if (existing !== undefined) {
+        window.clearTimeout(existing);
+      }
+
+      const timer = window.setTimeout(() => {
+        cardSaveTimersRef.current.delete(cardId);
+
+        cardSaveChainRef.current = cardSaveChainRef.current.then(async () => {
+          // A newer drag superseded this one while the timer was pending.
+          if (cardSaveGenerationsRef.current.get(cardId) !== generation) {
+            return;
+          }
+
+          try {
+            await activeRepository.updateCard(cardId, { position: next });
+            setSaveError(null);
+          } catch {
+            setSaveError(
+              'The card position could not be saved. Your card is still on the board; drag it again to retry.',
+            );
+          }
+        });
+      }, CARD_POSITION_SAVE_DEBOUNCE_MS);
+
+      cardSaveTimersRef.current.set(cardId, timer);
+    },
+    [activeRepository],
+  );
+
   const snapshot = useMemo<BoardSnapshot>(
     () => ({
       caseId,
       caseTitle: caseRecord?.title ?? '',
-      cards: cards.map(cardSnapshot),
+      cards: cards.map((card) => cardSnapshot(card, cardImages[card.id])),
     }),
-    [cards, caseId, caseRecord],
+    [cardImages, cards, caseId, caseRecord],
   );
 
   const retryLoad = (): void => {
@@ -267,7 +451,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </h2>
           <p className="case-board-page__summary">
             {visibleStatus === 'ready'
-              ? `${cardCountLabel(cards.length)} pinned to the cork. Drag the background to pan; pinch or scroll to zoom.`
+              ? `${cardCountLabel(cards.length)} pinned to the cork. Drag a card to move it, drag the background to pan, and pinch or scroll to zoom.`
               : visibleStatus === 'loading'
                 ? 'Loading this case from local storage.'
                 : 'This case is not available in local storage.'}
@@ -373,7 +557,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
               </p>
             }
           >
-            <BoardCanvas snapshot={snapshot} store={activeStore} />
+            <BoardCanvas snapshot={snapshot} store={activeStore} onCardMoved={handleCardMoved} />
           </Suspense>
         ) : null}
       </div>

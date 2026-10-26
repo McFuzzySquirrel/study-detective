@@ -36,6 +36,12 @@ export interface BoardInputCallbacks {
   readonly onZoomTo: (anchor: BoardPoint, scale: number) => void;
   /** The camera's current scale, read when a pinch starts. */
   readonly getScale: () => number;
+  /**
+   * Whether a pointer-down on this host may start a cork pan. A pointer that
+   * begins on a card returns false so the card gesture owns it; two-pointer
+   * pinch still works because it is tracked separately.
+   */
+  readonly shouldStartPan?: (point: BoardPoint, pointerType: string) => boolean;
 }
 
 export interface BoardInputHandle {
@@ -124,6 +130,16 @@ export function attachBoardInput(
     }
 
     if (pointers.size === 1) {
+      if (
+        callbacks.shouldStartPan !== undefined &&
+        !callbacks.shouldStartPan(point, event.pointerType)
+      ) {
+        panPointerId = null;
+        lastPanPoint = null;
+        pinch = null;
+        return;
+      }
+
       panPointerId = event.pointerId;
       lastPanPoint = point;
       pinch = null;
