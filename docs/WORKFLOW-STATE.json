@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T07:47:17.929Z",
+  "lastUpdatedAt": "2026-10-26T16:33:22.724Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "OPTIONAL-OCR-3",
+  "currentPhase": "CONNECTIONS-AND-PROVENANCE-3",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -914,10 +914,15 @@
     },
     "LINK-HR-1": {
       "taskId": "LINK-HR-1",
-      "status": "pending",
-      "attempt": 0,
-      "outputFiles": [],
-      "errorMessage": "Human review required for 'LINK-HR-1'. Record operator evidence with workflow-engine approve-task, then resume. --yes does not approve human work."
+      "status": "complete",
+      "attempt": 1,
+      "outputFiles": [
+        "docs/reviews/board-feel.json"
+      ],
+      "startedAt": "2026-10-26T16:33:22.718Z",
+      "completedAt": "2026-10-26T16:33:22.718Z",
+      "agentOutput": "Human review approved with evidence.",
+      "artifactId": "work-link-hr-1-001"
     },
     "CLOSE-1": {
       "taskId": "CLOSE-1",

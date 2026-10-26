@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: OPTIONAL-OCR-3
+**Phase**: CONNECTIONS-AND-PROVENANCE-3
 **Status**: In Progress
 **Validation Gaps**: 38 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T07:47:17.933Z
+**Last Updated**: 2026-10-26T16:33:22.730Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -60,6 +60,8 @@
   - Files: src/features/connections/ConnectionDetail.tsx, src/features/connections/ConnectionLegend.tsx, src/features/connections/useUndoDeleteConnection.ts, src/features/case/CaseBoardPage.tsx, tests/connections/ConnectionDetail.test.tsx, tests/connections/ConnectionLegend.test.tsx, src/features/case/CaseBoardPage.css, src/features/connections/connections.css
 - [x] Phase CONNECTIONS-AND-PROVENANCE-3, Task LINK-5: Build the keyboard connection target picker (@ui-engineer)
   - Files: src/features/connections/ConnectionPicker.tsx, src/features/cards/CardDetailPage.tsx, src/features/case/CardListPanel.tsx, tests/connections/ConnectionPicker.test.tsx, e2e/keyboard-links.spec.ts, src/features/case/CardListPage.tsx, src/features/connections/connections.css
+- [x] Phase CONNECTIONS-AND-PROVENANCE-3, Task LINK-HR-1: Review board, pin, and string feel on tablet and desktop
+  - Files: docs/reviews/board-feel.json
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
@@ -85,7 +87,6 @@
 - None currently running
 
 ## Remaining
-- [ ] Phase CONNECTIONS-AND-PROVENANCE-3: Phase 3: Keyboard path and feel review
 - [ ] Phase CASE-CLOSURE-1: Phase 1: Derived rules
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic

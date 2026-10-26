@@ -1,0 +1,13 @@
+{
+  "taskId": "LINK-HR-1",
+  "taskDigest": "9083b9acaff6721ea5053956062c93f24bef98693ed657e593a4ce8c438dbd4a",
+  "reviewer": "Doug",
+  "reviewedAt": "2026-10-26T16:33:20.031Z",
+  "decision": "approved",
+  "evidence": [
+    {
+      "path": "docs/reviews/LINK-HR-1-console-review.md",
+      "sha256": "0f27f374befc9a5c8e46da99281f08ec364ecd2e126048c955d46502133598c1"
+    }
+  ]
+}
