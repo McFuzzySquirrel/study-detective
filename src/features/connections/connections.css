@@ -1,0 +1,135 @@
+/*
+ * Board-adjacent connection type menu.
+ *
+ * A short, non-modal popover after a thread drop. The swatches show the two
+ * string meanings with a shape difference as well as color, and the disabled
+ * provenance option keeps a 44 px row so it is still easy to read.
+ */
+
+.connection-type-menu {
+  position: fixed;
+  z-index: 20;
+  display: grid;
+  gap: var(--space-3);
+  inline-size: min(300px, calc(100vw - 1rem));
+  max-block-size: calc(100dvh - 1rem);
+  overflow-y: auto;
+  padding: var(--space-4);
+  border: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-raised);
+  box-shadow: var(--shadow-raised, 0 12px 32px rgb(0 0 0 / 22%));
+  color: var(--color-ink);
+}
+
+.connection-type-menu__header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.connection-type-menu__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.connection-type-menu__intro,
+.connection-type-menu__reason {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.connection-type-menu__options {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.connection-type-menu__option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-block-size: var(--target-min);
+}
+
+.connection-type-menu__radio {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin: 0.7rem 0 0;
+  accent-color: var(--color-accent);
+  flex: none;
+}
+
+.connection-type-menu__radio:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.connection-type-menu__label {
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2);
+  inline-size: 100%;
+  min-block-size: var(--target-min);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.connection-type-menu__radio:disabled + .connection-type-menu__label {
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+.connection-type-menu__radio:checked + .connection-type-menu__label {
+  border-color: var(--color-border-strong);
+  background-color: var(--color-surface-sunken);
+}
+
+.connection-type-menu__label strong {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.connection-type-menu__hint {
+  display: block;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+}
+
+.connection-type-menu__swatch {
+  position: relative;
+  block-size: 0;
+  border-block-start: 3px solid var(--color-string-association);
+  border-radius: 999px;
+}
+
+.connection-type-menu__swatch[data-type='provenance'] {
+  border-block-start: 2px dashed var(--color-string-provenance);
+}
+
+.connection-type-menu__reason[data-eligible='false'] {
+  padding-inline-start: var(--space-2);
+  border-inline-start: var(--border-width-strong) solid var(--color-warning);
+}
+
+.connection-type-menu__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connection-type-menu {
+    transition: none;
+  }
+}

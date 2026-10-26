@@ -11,12 +11,14 @@
  * - A screen-space tiled cork surface, whose offset follows the camera.
  * - A screen-space `StringLayer` below the cards, so thread ends tuck under
  *   card art. It redraws on a card move or a camera change.
+ * - A screen-space temporary thread layer for an in-flight anchor drag.
  * - A world container whose transform is the camera.
- * - A `CardLayer` holding one card sprite per snapshot card.
+ * - A `CardLayer` holding one card sprite per snapshot card, including the one
+ *   visible thread anchor.
  *
- * The background, strings, world, and card layer are created once and updated
- * on snapshot or viewport changes. Connection creation and labels are later
- * phases.
+ * The background, strings, thread draft, world, and card layer are created once
+ * and updated on snapshot or viewport changes. The scene never writes a
+ * connection; it emits the drop through the canvas/page boundary.
  */
 
 import { Container, Texture, TilingSprite } from 'pixi.js';
@@ -29,7 +31,8 @@ import type { BoardCardSnapshot, BoardPalette } from './CardSprite';
 import { readBoardPalette } from './CardSprite';
 import { readStringPalette, StringLayer } from './StringLayer';
 import type { BoardStringConnection } from './StringLayer';
-import { normalizeViewport, type BoardSize } from './viewport';
+import { ThreadAnchorLayer, threadAnchorScreenPoint } from './ThreadAnchor';
+import { normalizeViewport, type BoardPoint, type BoardSize } from './viewport';
 
 export { BOARD_CARD_WIDTH, BOARD_CARD_HEIGHT, BOARD_CULL_MARGIN } from './CardLayer';
 export type { BoardCardImage } from './CardLayer';
@@ -122,11 +125,14 @@ export class BoardScene {
   private readonly stage: Container;
   private readonly background: TilingSprite;
   private readonly stringLayer: StringLayer;
+  private readonly threadLayer: ThreadAnchorLayer;
   private readonly world: Container;
   private readonly cardLayer: CardLayer;
 
   private viewport: Viewport;
   private size: BoardSize;
+  private anchorCardId: string | null = null;
+  private connectSourceId: string | null = null;
   private destroyed = false;
 
   constructor(app: Application, options: BoardSceneOptions) {
@@ -144,16 +150,20 @@ export class BoardScene {
 
     this.world = new Container();
     this.world.label = 'board-world';
-    this.world.eventMode = 'none';
+    // Passive so the card layer's thread anchor can be hit-tested by Pixi.
+    this.world.eventMode = 'passive';
 
+    const stringPalette = readStringPalette();
     this.stringLayer = new StringLayer({
-      palette: readStringPalette(),
+      palette: stringPalette,
       reducedMotion: options.reducedMotion ?? false,
     });
+    this.threadLayer = new ThreadAnchorLayer(stringPalette.association);
     this.cardLayer = new CardLayer({ palette: boardPalette() });
 
     this.world.addChild(this.cardLayer.root);
-    this.stage.addChild(this.background, this.stringLayer.root, this.world);
+    // The temporary thread sits below the cards, like the permanent strings.
+    this.stage.addChild(this.background, this.stringLayer.root, this.threadLayer.root, this.world);
 
     this.setSnapshot(options.snapshot);
   }
@@ -167,6 +177,7 @@ export class BoardScene {
     this.cardLayer.setCards(snapshot.cards);
     this.stringLayer.setCards(snapshot.cards);
     this.stringLayer.setConnections(snapshot.connections ?? []);
+    this.cardLayer.setAnchorCard(this.anchorCardId);
     this.cardLayer.setViewport(this.viewport, this.size);
     this.stringLayer.setViewport(this.viewport, this.size);
   }
@@ -211,6 +222,56 @@ export class BoardScene {
     this.cardLayer.setSelected(cardId);
   }
 
+  /** Move the single visible thread anchor to the selected/hovered card. */
+  setAnchorCard(cardId: string | null): void {
+    this.anchorCardId = cardId;
+    this.cardLayer.setAnchorCard(cardId);
+  }
+
+  /**
+   * Start the temporary thread at the source card's edge anchor. `screenPoint`
+   * is host-local screen space, matching the pointer events.
+   */
+  beginThread(cardId: string, screenPoint: BoardPoint): void {
+    if (this.destroyed) {
+      return;
+    }
+
+    const card = this.cardLayer.getCard(cardId);
+    if (card === null) {
+      return;
+    }
+
+    this.connectSourceId = cardId;
+    this.threadLayer.begin(
+      threadAnchorScreenPoint(card.position, this.viewport),
+      this.viewport.scale,
+    );
+    this.threadLayer.update(screenPoint);
+  }
+
+  /**
+   * Follow the pointer and highlight only a *different* card. Self-drops are
+   * rejected by the page, but they should never look like a valid target.
+   */
+  updateThread(screenPoint: BoardPoint, targetCardId: string | null): void {
+    if (this.destroyed || this.connectSourceId === null) {
+      return;
+    }
+
+    this.threadLayer.update(screenPoint);
+    const target =
+      targetCardId !== null && targetCardId !== this.connectSourceId ? targetCardId : null;
+    this.cardLayer.setConnectTarget(target);
+  }
+
+  /** Cancel or complete the temporary thread and clear target highlighting. */
+  endThread(): void {
+    this.connectSourceId = null;
+    this.threadLayer.end();
+    this.cardLayer.setConnectTarget(null);
+  }
+
   /** Record a mid-session motion preference for the static string layer. */
   setReducedMotion(reducedMotion: boolean): void {
     this.stringLayer.setReducedMotion(reducedMotion);
@@ -238,6 +299,7 @@ export class BoardScene {
     this.background.texture.source.update();
     this.cardLayer.rebuildAfterContextLoss();
     this.stringLayer.rebuildAfterContextLoss();
+    this.threadLayer.rebuildAfterContextLoss();
     this.setViewport(this.viewport, this.size);
   }
 
@@ -247,10 +309,18 @@ export class BoardScene {
       return;
     }
     this.destroyed = true;
+    this.anchorCardId = null;
+    this.connectSourceId = null;
 
-    this.stage.removeChild(this.world, this.background, this.stringLayer.root);
+    this.stage.removeChild(
+      this.world,
+      this.background,
+      this.stringLayer.root,
+      this.threadLayer.root,
+    );
     this.cardLayer.destroy();
     this.stringLayer.destroy();
+    this.threadLayer.destroy();
     this.world.destroy({ children: true, context: true, style: true });
     this.background.destroy({ texture: true, textureSource: true });
   }

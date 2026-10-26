@@ -34,10 +34,15 @@ import Button from '../../components/Button';
 import Toast from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
+import { ConnectionRepository } from '../../data/connectionRepository';
+import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import type { CardRecord, CaseRecord, ConnectionRecord, Viewport } from '../../domain/model';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
+import ConnectionTypeMenu from '../connections/ConnectionTypeMenu';
+import type { ConnectionDropInput } from '../connections/useCreateConnection';
+import { useCreateConnection } from '../connections/useCreateConnection';
 import SearchPanel from '../search/SearchPanel';
 
 import ScaleWarning from './ScaleWarning';
@@ -57,12 +62,17 @@ export const CARD_POSITION_SAVE_DEBOUNCE_MS = 300;
 const EMPTY_CARD_IMAGES: Record<string, BoardCardImage> = Object.freeze({});
 
 export type CaseBoardRepositoryLoader = () => Promise<CaseRepositoryPort>;
+export type CaseBoardConnectionRepositoryLoader = () => Promise<ConnectionRepositoryPort>;
 
 export interface CaseBoardPageProps {
   /** Injected repository for route composition and component tests. */
   readonly repository?: CaseRepositoryPort | undefined;
   /** Injected opener used by the route table and failure-state tests. */
   readonly loadRepository?: CaseBoardRepositoryLoader | undefined;
+  /** Injected connection write boundary for tests and composition. */
+  readonly connectionRepository?: ConnectionRepositoryPort | undefined;
+  /** Lazy connection opener for tests and composition; resolved on first draw. */
+  readonly loadConnectionRepository?: CaseBoardConnectionRepositoryLoader | undefined;
   /** Injected board store for tests and future multi-board screens. */
   readonly store?: BoardStoreApi | undefined;
 }
@@ -70,6 +80,7 @@ export interface CaseBoardPageProps {
 type LoadStatus = 'loading' | 'ready' | 'missing' | 'error';
 
 let defaultRepositoryPromise: Promise<CaseRepositoryPort> | null = null;
+let defaultConnectionRepositoryPromise: Promise<ConnectionRepositoryPort> | null = null;
 
 /** Open the one production database handle, forgetting a failed open so Retry works. */
 function loadDefaultRepository(): Promise<CaseRepositoryPort> {
@@ -83,6 +94,24 @@ function loadDefaultRepository(): Promise<CaseRepositoryPort> {
   }
 
   return defaultRepositoryPromise;
+}
+
+/**
+ * Open the connection repository only when a student draws the first thread.
+ * The page still never opens Dexie itself; this is the same shared opener the
+ * case repository uses, wrapped by the data layer.
+ */
+function loadDefaultConnectionRepository(): Promise<ConnectionRepositoryPort> {
+  if (defaultConnectionRepositoryPromise === null) {
+    defaultConnectionRepositoryPromise = openNotesDetectiveDatabase()
+      .then((database) => new ConnectionRepository(database))
+      .catch((error: unknown) => {
+        defaultConnectionRepositoryPromise = null;
+        throw error;
+      });
+  }
+
+  return defaultConnectionRepositoryPromise;
 }
 
 function cardSnapshot(
@@ -148,7 +177,13 @@ function readStageSize(element: HTMLElement | null): BoardSize {
 }
 
 /** The routed case-board screen: repository load, canvas mount, viewport save. */
-export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPageProps) {
+export function CaseBoardPage({
+  repository,
+  loadRepository,
+  connectionRepository,
+  loadConnectionRepository,
+  store,
+}: CaseBoardPageProps) {
   const { caseId: caseIdParam } = useParams();
   const caseId = caseIdParam ?? '';
   const [searchParams] = useSearchParams();
@@ -185,6 +220,13 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     }
     return (loadRepository ?? loadDefaultRepository)();
   }, [repository, loadRepository]);
+
+  const resolveConnectionRepository = useCallback<CaseBoardConnectionRepositoryLoader>(() => {
+    if (connectionRepository !== undefined) {
+      return Promise.resolve(connectionRepository);
+    }
+    return (loadConnectionRepository ?? loadDefaultConnectionRepository)();
+  }, [connectionRepository, loadConnectionRepository]);
 
   const invalidAddress = caseId.length === 0;
   const visibleStatus: LoadStatus = invalidAddress ? 'missing' : status;
@@ -476,6 +518,52 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     [activeRepository],
   );
 
+  const handleConnectionCreated = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => {
+      const without = current.filter((candidate) => candidate.id !== connection.id);
+      return [...without, connection];
+    });
+  }, []);
+
+  const handleConnectionChanged = useCallback((connection: ConnectionRecord): void => {
+    setConnections((current) => {
+      const exists = current.some((candidate) => candidate.id === connection.id);
+      if (!exists) {
+        return [...current, connection];
+      }
+      return current.map((candidate) => (candidate.id === connection.id ? connection : candidate));
+    });
+  }, []);
+
+  const connection = useCreateConnection({
+    caseId,
+    cards,
+    connections,
+    ...(connectionRepository !== undefined ? { repository: connectionRepository } : {}),
+    loadRepository: resolveConnectionRepository,
+    store: activeStore,
+    onConnectionCreated: handleConnectionCreated,
+    onConnectionChanged: handleConnectionChanged,
+  });
+
+  const { requestConnection } = connection;
+
+  const handleConnectionDrop = useCallback(
+    (drop: {
+      readonly fromCardId: string;
+      readonly toCardId: string | null;
+      readonly point: { readonly clientX: number; readonly clientY: number };
+    }): void => {
+      const input: ConnectionDropInput = {
+        fromCardId: drop.fromCardId,
+        toCardId: drop.toCardId,
+        point: { x: drop.point.clientX, y: drop.point.clientY },
+      };
+      void requestConnection(input);
+    },
+    [requestConnection],
+  );
+
   const snapshot = useMemo<BoardSnapshot>(
     () => ({
       caseId,
@@ -551,6 +639,13 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
         tone="error"
         onDismiss={() => setSaveError(null)}
         dismissLabel="Dismiss board save error"
+      />
+
+      <Toast
+        message={connection.feedback?.message ?? null}
+        tone={connection.feedback?.tone ?? 'info'}
+        onDismiss={connection.clearFeedback}
+        dismissLabel="Dismiss connection message"
       />
 
       <header className="case-board-page__header">
@@ -699,11 +794,25 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
               snapshot={snapshot}
               store={activeStore}
               onCardMoved={handleCardMoved}
+              onConnectionDrop={handleConnectionDrop}
               cardLimitReached={capacityBlocked}
             />
           </Suspense>
         ) : null}
       </div>
+
+      <ConnectionTypeMenu
+        open={connection.menu !== null}
+        type={connection.menu?.type ?? 'association'}
+        provenanceEligible={connection.menu?.provenanceEligible ?? false}
+        provenanceReason={connection.menu?.provenanceReason ?? ''}
+        point={connection.menu?.point ?? null}
+        busy={connection.busy}
+        onSelect={(type) => {
+          void connection.selectConnectionType(type);
+        }}
+        onDismiss={connection.dismissMenu}
+      />
 
       {backupOpen && caseRecord !== null && activeRepository !== null ? (
         <BackupDialog

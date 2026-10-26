@@ -116,6 +116,7 @@ export interface BoardState {
   /** True once the student moves the camera away from `storedViewport`. */
   readonly viewportDirty: boolean;
   readonly selectedCardId: string | null;
+  readonly selectedConnectionId: string | null;
   readonly hoveredCardId: string | null;
   readonly mode: BoardMode;
   readonly gesture: BoardGesture;
@@ -152,6 +153,8 @@ export interface BoardActions {
    */
   markViewportPersisted(saved?: Viewport): void;
   selectCard(cardId: string | null): void;
+  /** Select an existing string, used when a duplicate drop selects its row. */
+  selectConnection(connectionId: string | null): void;
   setHoveredCard(cardId: string | null): void;
   setMode(mode: BoardMode): void;
   setGesture(gesture: BoardGesture): void;
@@ -262,6 +265,10 @@ export function createBoardStore(
       set({ selectedCardId: cardId });
     },
 
+    selectConnection(connectionId) {
+      set({ selectedConnectionId: connectionId });
+    },
+
     setHoveredCard(cardId) {
       set({ hoveredCardId: cardId });
     },
@@ -295,6 +302,7 @@ export function createInitialBoardState(
     pendingViewport: null,
     viewportDirty: false,
     selectedCardId: null,
+    selectedConnectionId: null,
     hoveredCardId: null,
     mode: 'browse',
     gesture: IDLE_GESTURE,
@@ -317,6 +325,8 @@ export const selectPendingViewport = (state: BoardState): Viewport | null => sta
 export const selectViewportDirty = (state: BoardState): boolean => state.viewportDirty;
 export const selectScale = (state: BoardState): number => state.viewport.scale;
 export const selectSelectedCardId = (state: BoardState): string | null => state.selectedCardId;
+export const selectSelectedConnectionId = (state: BoardState): string | null =>
+  state.selectedConnectionId;
 export const selectHoveredCardId = (state: BoardState): string | null => state.hoveredCardId;
 export const selectMode = (state: BoardState): BoardMode => state.mode;
 export const selectGesture = (state: BoardState): BoardGesture => state.gesture;

@@ -86,9 +86,31 @@ export interface CardDragUpdate {
   readonly position: CardPosition;
 }
 
+export interface ConnectStart {
+  readonly fromCardId: string;
+  readonly pointerId: number;
+  readonly point: BoardPoint;
+}
+
+export interface ConnectMove {
+  readonly fromCardId: string;
+  readonly pointerId: number;
+  readonly point: BoardPoint;
+  /** The topmost card under the pointer, or null on the cork. */
+  readonly targetCardId: string | null;
+}
+
+export type ConnectEnd = ConnectMove;
+
 export interface CardGestureCallbacks {
   /** Resolve a screen point to a card ID, or null on the cork. */
   getCardAt(point: BoardPoint): string | null;
+  /**
+   * Resolve a screen point to the visible thread anchor's card. The board shows
+   * one anchor for the selected or hovered card, so this returns that card only
+   * when the pointer is inside its 44 px target.
+   */
+  getThreadAnchorAt?(point: BoardPoint): string | null;
   /** The card's current world position. */
   getCardPosition(cardId: string): BoardPoint | null;
   /** The live camera, used to convert screen movement into world movement. */
@@ -111,9 +133,22 @@ export interface CardGestureCallbacks {
   onPressCancel?(cardId: string): void;
   /** Pan by a screen-space delta once a cancelled press hands off. */
   onPanBy?(delta: BoardPoint): void;
+  /** A connection drag started on the visible thread anchor. */
+  onConnectStart?(start: ConnectStart): void;
+  /** The temporary thread followed the pointer. */
+  onConnectMove?(move: ConnectMove): void;
+  /** The pointer released; `targetCardId` may be the source or null. */
+  onConnectEnd?(end: ConnectEnd): void;
+  /** The connection drag was cancelled without a drop. */
+  onConnectCancel?(pointerId: number): void;
   /** Injectable timer hooks for deterministic tests. */
   schedule?(callback: () => void, delayMs: number): ReturnType<typeof setTimeout>;
   cancelSchedule?(handle: ReturnType<typeof setTimeout>): void;
+}
+
+interface ConnectState {
+  readonly pointerId: number;
+  readonly fromCardId: string;
 }
 
 interface PressState {
@@ -145,13 +180,14 @@ function clonePosition(position: BoardPoint): CardPosition {
  */
 export class CardGestureController {
   private state: PressState | null = null;
+  private connect: ConnectState | null = null;
   private panPoint: BoardPoint | null = null;
   private destroyed = false;
 
   constructor(private readonly options: CardGestureCallbacks) {}
 
   get isActive(): boolean {
-    return this.state !== null;
+    return this.state !== null || this.connect !== null;
   }
 
   pointerDown(
@@ -166,10 +202,27 @@ export class CardGestureController {
       return;
     }
 
-    // A second finger belongs to a pinch. Cancel the card press rather than
-    // dragging a card while the camera zooms.
-    if (this.state !== null) {
+    // A second finger belongs to a pinch. Cancel both a card press and an
+    // in-flight connection rather than dragging while the camera zooms.
+    if (this.state !== null || this.connect !== null) {
       this.cancel();
+      return;
+    }
+
+    // The thread anchor wins over the card body. It is a deliberate handle and
+    // starts immediately for mouse, pen, and touch alike; the 500 ms long press
+    // belongs to lifting a whole card, not to pulling a thread.
+    const anchorCardId = this.options.getThreadAnchorAt?.(point) ?? null;
+    if (anchorCardId !== null) {
+      this.connect = {
+        pointerId: info.pointerId,
+        fromCardId: anchorCardId,
+      };
+      this.options.onConnectStart?.({
+        fromCardId: anchorCardId,
+        pointerId: info.pointerId,
+        point: { x: point.x, y: point.y },
+      });
       return;
     }
 
@@ -220,8 +273,27 @@ export class CardGestureController {
   }
 
   pointerMove(point: BoardPoint, pointerId: number): void {
+    const connect = this.connect;
+    if (this.destroyed) {
+      return;
+    }
+
+    if (connect !== null) {
+      if (connect.pointerId !== pointerId) {
+        return;
+      }
+
+      this.options.onConnectMove?.({
+        fromCardId: connect.fromCardId,
+        pointerId,
+        point: { x: point.x, y: point.y },
+        targetCardId: this.options.getCardAt(point),
+      });
+      return;
+    }
+
     const state = this.state;
-    if (this.destroyed || state === null || state.pointerId !== pointerId) {
+    if (state === null || state.pointerId !== pointerId) {
       return;
     }
 
@@ -257,8 +329,28 @@ export class CardGestureController {
   }
 
   pointerUp(point: BoardPoint, pointerId: number): void {
+    const connect = this.connect;
+    if (this.destroyed) {
+      return;
+    }
+
+    if (connect !== null) {
+      if (connect.pointerId !== pointerId) {
+        return;
+      }
+
+      this.connect = null;
+      this.options.onConnectEnd?.({
+        fromCardId: connect.fromCardId,
+        pointerId,
+        point: { x: point.x, y: point.y },
+        targetCardId: this.options.getCardAt(point),
+      });
+      return;
+    }
+
     const state = this.state;
-    if (this.destroyed || state === null || state.pointerId !== pointerId) {
+    if (state === null || state.pointerId !== pointerId) {
       return;
     }
 
@@ -306,8 +398,22 @@ export class CardGestureController {
   }
 
   pointerCancel(pointerId: number): void {
+    const connect = this.connect;
+    if (this.destroyed) {
+      return;
+    }
+
+    if (connect !== null) {
+      if (connect.pointerId !== pointerId) {
+        return;
+      }
+      this.connect = null;
+      this.options.onConnectCancel?.(pointerId);
+      return;
+    }
+
     const state = this.state;
-    if (this.destroyed || state === null || state.pointerId !== pointerId) {
+    if (state === null || state.pointerId !== pointerId) {
       return;
     }
 
@@ -333,6 +439,7 @@ export class CardGestureController {
       this.clearTimer(this.state);
       this.state = null;
     }
+    this.connect = null;
     this.panPoint = null;
   }
 
@@ -399,6 +506,12 @@ export class CardGestureController {
   }
 
   private cancel(): void {
+    if (this.connect !== null) {
+      const pointerId = this.connect.pointerId;
+      this.connect = null;
+      this.options.onConnectCancel?.(pointerId);
+    }
+
     if (this.state === null) {
       return;
     }
@@ -460,6 +573,12 @@ export function useCardGestures(
 
     const controller = new CardGestureController({
       getCardAt: (point) => optionsRef.current.getCardAt(point),
+      ...(optionsRef.current.getThreadAnchorAt !== undefined
+        ? {
+            getThreadAnchorAt: (point: BoardPoint) =>
+              optionsRef.current.getThreadAnchorAt?.(point) ?? null,
+          }
+        : {}),
       getCardPosition: (cardId) => optionsRef.current.getCardPosition(cardId),
       getViewport: () => optionsRef.current.getViewport(),
       isReducedMotion: () => optionsRef.current.isReducedMotion(),
@@ -493,6 +612,26 @@ export function useCardGestures(
         : {}),
       ...(optionsRef.current.onPanBy !== undefined
         ? { onPanBy: (delta: BoardPoint) => optionsRef.current.onPanBy?.(delta) }
+        : {}),
+      ...(optionsRef.current.onConnectStart !== undefined
+        ? {
+            onConnectStart: (start: ConnectStart) => optionsRef.current.onConnectStart?.(start),
+          }
+        : {}),
+      ...(optionsRef.current.onConnectMove !== undefined
+        ? {
+            onConnectMove: (move: ConnectMove) => optionsRef.current.onConnectMove?.(move),
+          }
+        : {}),
+      ...(optionsRef.current.onConnectEnd !== undefined
+        ? {
+            onConnectEnd: (end: ConnectEnd) => optionsRef.current.onConnectEnd?.(end),
+          }
+        : {}),
+      ...(optionsRef.current.onConnectCancel !== undefined
+        ? {
+            onConnectCancel: (pointerId: number) => optionsRef.current.onConnectCancel?.(pointerId),
+          }
         : {}),
     });
 

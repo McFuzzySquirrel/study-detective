@@ -17,25 +17,39 @@ import type { BoardSnapshot } from './BoardScene';
 import { attachBoardInput } from './boardInput';
 import { boardStore } from './boardStore';
 import type { BoardStoreApi } from './boardStore';
-import { selectViewport } from './boardStore';
+import {
+  selectHoveredCardId,
+  selectSelectedCardId,
+  selectSelectedConnectionId,
+  selectViewport,
+} from './boardStore';
 import { SPLIT_CASE_MESSAGE } from './boardCapacity';
 import FitToViewButton from './FitToViewButton';
 import Minimap from './Minimap';
+import { findThreadAnchorAtPoint, threadAnchorScreenPoint } from './ThreadAnchor';
 import { useCulling } from './useCulling';
 import { useCardGestures } from './useCardGestures';
-import type { CardDragUpdate } from './useCardGestures';
+import type { CardDragUpdate, ConnectEnd, ConnectMove, ConnectStart } from './useCardGestures';
 import { findCardAtPoint } from './useCardGestures';
 import { usePixiApp } from './usePixiApp';
-import { DEFAULT_BOARD_VIEWPORT } from './viewport';
+import { DEFAULT_BOARD_VIEWPORT, screenToWorld } from './viewport';
 import type { BoardPoint } from './viewport';
 
 import './BoardCanvas.css';
 
 /** Written to both the canvas host and the generated PixiJS canvas. */
 export const BOARD_CANVAS_LABEL =
-  'Case board canvas. Drag the cork to pan. Drag a card to move it. Pinch or scroll to zoom. Use the controls for zoom and reset.';
+  'Case board canvas. Drag the cork to pan. Drag a card to move it. Select a card and drag its thread anchor to another card to connect them. Pinch or scroll to zoom. Use the controls for zoom and reset.';
 
 const ZOOM_STEP = 1.25;
+
+/** A completed thread drop emitted to the page that owns the repository. */
+export interface BoardConnectionDrop {
+  readonly fromCardId: string;
+  readonly toCardId: string | null;
+  /** Client coordinates for the small type menu. */
+  readonly point: { readonly clientX: number; readonly clientY: number };
+}
 
 export interface BoardCanvasProps {
   readonly snapshot: BoardSnapshot;
@@ -48,6 +62,12 @@ export interface BoardCanvasProps {
   readonly onCardMoved?: ((cardId: string, position: BoardPoint) => void) | undefined;
   /** Override the default navigation to card detail, for tests. */
   readonly onCardTap?: ((cardId: string) => void) | undefined;
+  /**
+   * A thread was dropped on a card or on the cork. The page performs the
+   * repository write, duplicate handling, and type menu; the canvas never
+   * imports a connection form or opens storage.
+   */
+  readonly onConnectionDrop?: ((drop: BoardConnectionDrop) => void) | undefined;
   /**
    * The shared 200-card guard already reports the case is full. The canvas
    * hides its Add evidence link rather than sending the student to a blocked
@@ -99,20 +119,44 @@ export function BoardCanvas({
   store,
   onCardMoved,
   onCardTap,
+  onConnectionDrop,
   cardLimitReached = false,
 }: BoardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const activeStore = store ?? boardStore;
   const viewport = useStore(activeStore, selectViewport);
+  const selectedCardId = useStore(activeStore, selectSelectedCardId);
+  const hoveredCardId = useStore(activeStore, selectHoveredCardId);
+  const selectedConnectionId = useStore(activeStore, selectSelectedConnectionId);
   const reducedMotion = usePrefersReducedMotion();
   const navigate = useNavigate();
 
   const snapshotRef = useRef(snapshot);
+  const viewportRef = useRef(viewport);
+  const anchorCardIdRef = useRef<string | null>(null);
+  const onConnectionDropRef = useRef(onConnectionDrop);
   const reducedMotionRef = useRef(reducedMotion);
+
+  const anchorCardId = selectedCardId ?? hoveredCardId;
+  const anchorCard =
+    anchorCardId === null ? undefined : snapshot.cards.find((card) => card.id === anchorCardId);
+  const anchorPoint = anchorCard ? threadAnchorScreenPoint(anchorCard.position, viewport) : null;
 
   useEffect(() => {
     snapshotRef.current = snapshot;
   }, [snapshot]);
+
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+
+  useEffect(() => {
+    anchorCardIdRef.current = anchorCardId;
+  }, [anchorCardId]);
+
+  useEffect(() => {
+    onConnectionDropRef.current = onConnectionDrop;
+  }, [onConnectionDrop]);
 
   useEffect(() => {
     reducedMotionRef.current = reducedMotion;
@@ -127,6 +171,10 @@ export function BoardCanvas({
     recover,
     moveCard: moveCardInScene,
     setCardLifted: setCardLiftedInScene,
+    setAnchorCard: setAnchorCardInScene,
+    beginThread: beginThreadInScene,
+    updateThread: updateThreadInScene,
+    endThread: endThreadInScene,
   } = usePixiApp({
     hostRef,
     snapshot,
@@ -134,6 +182,19 @@ export function BoardCanvas({
     canvasLabel: BOARD_CANVAS_LABEL,
     reducedMotion,
   });
+
+  useEffect(() => {
+    setAnchorCardInScene?.(anchorCardId);
+  }, [anchorCardId, setAnchorCardInScene]);
+
+  const getThreadAnchorAt = useCallback((point: BoardPoint): string | null => {
+    return findThreadAnchorAtPoint(
+      snapshotRef.current.cards,
+      viewportRef.current,
+      anchorCardIdRef.current,
+      point,
+    );
+  }, []);
 
   const cardPositionList = useMemo(
     () => snapshot.cards.map((card) => ({ x: card.position.x, y: card.position.y })),
@@ -152,14 +213,64 @@ export function BoardCanvas({
       onZoom: (anchor, factor) => activeStore.getState().zoomAt(anchor, factor),
       onZoomTo: (anchor, scale) => activeStore.getState().zoomTo(anchor, scale),
       getScale: () => activeStore.getState().viewport.scale,
-      // A pointer that lands on a card belongs to the card gesture controller;
-      // the cork only pans when the press starts on empty board.
+      // A pointer that lands on a card or its thread anchor belongs to the card
+      // gesture controller; the cork only pans on empty board.
       shouldStartPan: (point) =>
-        findCardAtPoint(snapshotRef.current.cards, activeStore.getState().viewport, point) === null,
+        findCardAtPoint(snapshotRef.current.cards, activeStore.getState().viewport, point) ===
+          null && getThreadAnchorAt(point) === null,
     });
 
     return () => input.destroy();
-  }, [activeStore]);
+  }, [activeStore, getThreadAnchorAt]);
+
+  // Mouse hover reveals the thread anchor without a click. Touch users get the
+  // same affordance after a long-press release selects the card. The anchor's
+  // own hit target keeps the hover alive while the pointer moves onto it.
+  useEffect(() => {
+    const host = hostRef.current;
+    if (host === null) {
+      return;
+    }
+
+    const handlePointerMove = (event: PointerEvent): void => {
+      if (event.buttons !== 0) {
+        return;
+      }
+
+      const rect = host.getBoundingClientRect();
+      const point = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      const card = findCardAtPoint(snapshotRef.current.cards, viewportRef.current, point);
+
+      if (card !== null) {
+        if (activeStore.getState().hoveredCardId !== card.id) {
+          activeStore.getState().setHoveredCard(card.id);
+        }
+        return;
+      }
+
+      if (getThreadAnchorAt(point) !== null) {
+        return;
+      }
+
+      if (activeStore.getState().hoveredCardId !== null) {
+        activeStore.getState().setHoveredCard(null);
+      }
+    };
+
+    const handlePointerLeave = (): void => {
+      if (activeStore.getState().hoveredCardId !== null) {
+        activeStore.getState().setHoveredCard(null);
+      }
+    };
+
+    host.addEventListener('pointermove', handlePointerMove);
+    host.addEventListener('pointerleave', handlePointerLeave);
+
+    return () => {
+      host.removeEventListener('pointermove', handlePointerMove);
+      host.removeEventListener('pointerleave', handlePointerLeave);
+    };
+  }, [activeStore, getThreadAnchorAt]);
 
   const applyGesture = useCallback(
     (update: CardDragUpdate): void => {
@@ -226,6 +337,62 @@ export function BoardCanvas({
     [activeStore, navigate, onCardTap, setCardLiftedInScene, snapshot.caseId],
   );
 
+  const handleConnectStart = useCallback(
+    (start: ConnectStart): void => {
+      activeStore.getState().selectCard(start.fromCardId);
+      if (activeStore.getState().hoveredCardId !== start.fromCardId) {
+        activeStore.getState().setHoveredCard(start.fromCardId);
+      }
+      activeStore.getState().setGesture({
+        kind: 'connect',
+        pointerId: start.pointerId,
+        fromCardId: start.fromCardId,
+        current: screenToWorld(start.point, activeStore.getState().viewport),
+      });
+      beginThreadInScene?.(start.fromCardId, start.point);
+    },
+    [activeStore, beginThreadInScene],
+  );
+
+  const handleConnectMove = useCallback(
+    (move: ConnectMove): void => {
+      activeStore.getState().setGesture({
+        kind: 'connect',
+        pointerId: move.pointerId,
+        fromCardId: move.fromCardId,
+        current: screenToWorld(move.point, activeStore.getState().viewport),
+      });
+      updateThreadInScene?.(move.point, move.targetCardId);
+    },
+    [activeStore, updateThreadInScene],
+  );
+
+  const handleConnectEnd = useCallback(
+    (end: ConnectEnd): void => {
+      endThreadInScene?.();
+      activeStore.getState().resetGesture();
+
+      const rect = hostRef.current?.getBoundingClientRect();
+      const left = rect?.left ?? 0;
+      const top = rect?.top ?? 0;
+
+      onConnectionDropRef.current?.({
+        fromCardId: end.fromCardId,
+        toCardId: end.targetCardId,
+        point: {
+          clientX: left + end.point.x,
+          clientY: top + end.point.y,
+        },
+      });
+    },
+    [activeStore, endThreadInScene],
+  );
+
+  const handleConnectCancel = useCallback((): void => {
+    endThreadInScene?.();
+    activeStore.getState().resetGesture();
+  }, [activeStore, endThreadInScene]);
+
   useCardGestures(hostRef, {
     getCardAt: (point) => {
       const card = findCardAtPoint(
@@ -235,6 +402,7 @@ export function BoardCanvas({
       );
       return card?.id ?? null;
     },
+    getThreadAnchorAt,
     getCardPosition: (cardId) =>
       snapshotRef.current.cards.find((card) => card.id === cardId)?.position ?? null,
     getViewport: () => activeStore.getState().viewport,
@@ -246,6 +414,10 @@ export function BoardCanvas({
     onDragCancel: handleDragCancel,
     onTap: handleTap,
     onPanBy: (delta) => activeStore.getState().panBy(delta),
+    onConnectStart: handleConnectStart,
+    onConnectMove: handleConnectMove,
+    onConnectEnd: handleConnectEnd,
+    onConnectCancel: handleConnectCancel,
   });
 
   const canvasCenter = useCallback((): BoardPoint => {
@@ -283,6 +455,18 @@ export function BoardCanvas({
       y: card.position.y,
     })),
   );
+  const connections = snapshot.connections ?? [];
+  const associationCount = connections.filter(
+    (connection) => connection.type === 'association',
+  ).length;
+  const provenanceCount = connections.length - associationCount;
+  const anchorPointAttribute =
+    anchorPoint === null
+      ? ''
+      : JSON.stringify({
+          x: Math.round(anchorPoint.x * 100) / 100,
+          y: Math.round(anchorPoint.y * 100) / 100,
+        });
 
   return (
     <section
@@ -293,9 +477,14 @@ export function BoardCanvas({
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}
       data-board-card-count={snapshot.cards.length}
-      data-board-connection-count={snapshot.connections?.length ?? 0}
+      data-board-connection-count={connections.length}
+      data-board-association-count={associationCount}
+      data-board-provenance-count={provenanceCount}
       data-board-visible-card-count={visibleCards.length}
       data-board-card-positions={cardPositions}
+      data-board-anchor-card-id={anchorCardId ?? ''}
+      data-board-anchor-point={anchorPointAttribute}
+      data-board-selected-connection={selectedConnectionId ?? ''}
       data-board-scene-status={sceneStatus}
       data-board-context-lost={contextLost ? 'true' : 'false'}
       aria-busy={status === 'initializing'}

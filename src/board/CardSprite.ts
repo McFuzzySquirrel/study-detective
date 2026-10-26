@@ -21,6 +21,7 @@ import { Color, Container, Graphics, Sprite, Text, Texture } from 'pixi.js';
 import type { CardPosition, CardType } from '../domain/model';
 
 import type { BoardCardImage } from './CardLayer';
+import { ThreadAnchor } from './ThreadAnchor';
 import { BOARD_CARD_HEIGHT, BOARD_CARD_WIDTH } from './viewport';
 import { liftScaleFor } from './useCardGestures';
 
@@ -46,6 +47,7 @@ export interface BoardPalette {
   readonly pinDome: number;
   readonly surfaceSunken: number;
   readonly selection: number;
+  readonly stringAssociation: number;
   readonly headingFont: string;
   readonly bodyFont: string;
 }
@@ -78,6 +80,7 @@ export function readBoardPalette(): BoardPalette {
     pinDome: pixiColor('--color-pin-dome'),
     surfaceSunken: pixiColor('--color-surface-sunken'),
     selection: pixiColor('--color-focus-ring'),
+    stringAssociation: pixiColor('--color-string-association'),
     headingFont: cssToken('--font-family-heading'),
     bodyFont: cssToken('--font-family-body'),
   };
@@ -103,12 +106,14 @@ export class CardSprite {
   private readonly shadow: Graphics;
   private readonly paper: Graphics;
   private readonly selectionOutline: Graphics;
+  private readonly connectOutline: Graphics;
   private readonly photoFrame: Graphics;
   private readonly photoMask: Graphics;
   private readonly photo: Sprite;
   private readonly title: Text;
   private readonly typeLabel: Text;
   private readonly pin: Container;
+  private readonly threadAnchor: ThreadAnchor;
 
   private cardId: string;
   private titleValue: string;
@@ -131,7 +136,10 @@ export class CardSprite {
 
     this.root = new Container();
     this.root.label = `board-card-${card.id}`;
-    this.root.eventMode = 'none';
+    // Passive so the thread anchor child can be a Pixi hit target while the
+    // card body itself stays non-interactive; board gestures are routed by the
+    // DOM host so touch long-press and pan share one state machine.
+    this.root.eventMode = 'passive';
     // Cards are hidden until the first viewport cull marks them visible. This
     // prevents a large case from requesting every image on mount.
     this.root.visible = false;
@@ -154,6 +162,11 @@ export class CardSprite {
       .roundRect(-2, -2, BOARD_CARD_WIDTH + 4, BOARD_CARD_HEIGHT + 4, 12)
       .stroke({ color: palette.selection, width: 2, alpha: 0.9 });
     this.selectionOutline.visible = false;
+
+    this.connectOutline = new Graphics()
+      .roundRect(-4, -4, BOARD_CARD_WIDTH + 8, BOARD_CARD_HEIGHT + 8, 14)
+      .stroke({ color: palette.stringAssociation, width: 3, alpha: 0.95 });
+    this.connectOutline.visible = false;
 
     this.photoFrame = new Graphics()
       .roundRect(PHOTO.x, PHOTO.y, PHOTO.width, PHOTO.height, 4)
@@ -212,9 +225,15 @@ export class CardSprite {
     this.typeLabel.label = 'board-card-type';
     this.typeLabel.position.set(CARD_INSET, BOARD_CARD_HEIGHT - 30);
 
+    this.threadAnchor = new ThreadAnchor({
+      color: palette.stringAssociation,
+      paper: palette.paper,
+    });
+
     this.root.addChild(
       this.shadow,
       this.paper,
+      this.connectOutline,
       this.selectionOutline,
       this.photoFrame,
       this.photo,
@@ -222,6 +241,7 @@ export class CardSprite {
       this.pin,
       this.title,
       this.typeLabel,
+      this.threadAnchor.root,
     );
   }
 
@@ -273,6 +293,26 @@ export class CardSprite {
 
   setSelected(selected: boolean): void {
     this.selectionOutline.visible = selected;
+  }
+
+  /**
+   * Show the thread anchor for the selected or hovered card. The anchor is a
+   * Pixi interaction target mounted at the card's right edge; the DOM board
+   * host owns the drag routing.
+   */
+  setAnchorVisible(visible: boolean): void {
+    if (this.destroyed) {
+      return;
+    }
+    this.threadAnchor.setVisible(visible);
+  }
+
+  /** Show a distinct valid target while a temporary thread is being pulled. */
+  setConnectTarget(highlighted: boolean): void {
+    if (this.destroyed) {
+      return;
+    }
+    this.connectOutline.visible = highlighted;
   }
 
   /**

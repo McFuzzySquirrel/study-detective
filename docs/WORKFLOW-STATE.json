@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T05:56:54.127Z",
+  "lastUpdatedAt": "2026-10-26T06:26:07.887Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "SEARCH-TAGS-AND-FILTERS-2",
+  "currentPhase": "SEARCH-TAGS-AND-FILTERS-3",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -804,10 +804,44 @@
     },
     "LINK-3": {
       "taskId": "LINK-3",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "board-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/board/ThreadAnchor.ts",
+        "src/board/CardSprite.ts",
+        "src/features/connections/ConnectionTypeMenu.tsx",
+        "src/features/connections/useCreateConnection.ts",
+        "tests/connections/useCreateConnection.test.tsx",
+        "e2e/connections.spec.ts",
+        "src/board/BoardCanvas.tsx",
+        "src/board/BoardScene.ts",
+        "src/board/CardLayer.ts",
+        "src/board/boardStore.ts",
+        "src/board/useCardGestures.ts",
+        "src/board/usePixiApp.ts",
+        "src/features/case/CaseBoardPage.tsx",
+        "src/features/connections/connections.css"
+      ],
+      "startedAt": "2026-10-26T05:56:54.211Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/LINK-3.2026-10-26T06-26-07-875Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T06:26:07.881Z",
+      "agentOutput": "I'll start by reading the execution file and relevant documentation.\nNow I have a clear picture. Let me implement the thread anchor geometry/layer first.\n## LINK-3 result\n\nImplemented thread-anchor creation, the temporary drag thread and target highlight, duplicate/self/empty feedback, and the Association/Provenance type menu. Creation and retyping go through `ConnectionRepository`; selection goes through the board store. No storage access was added to `src/board`.\n\n### Files created\n- `src/board/ThreadAnchor.ts`\n- `src/features/connections/ConnectionTypeMenu.tsx`\n- `src/features/connections/useCreateConnection.ts`\n- `src/features/connections/connections.css`\n- `tests/connections/useCreateConnection.test.tsx`\n- `e2e/connections.spec.ts`\n\n### Files changed\n- `src/board/CardSprite.ts`\n- `src/board/CardLayer.ts`\n- `src/board/BoardScene.ts`\n- `src/board/BoardCanvas.tsx`\n- `src/board/usePixiApp.ts`\n- `src/board/useCardGestures.ts`\n- `src/board/boardStore.ts`\n- `src/features/case/CaseBoardPage.tsx`\n\n`src/app/routes.tsx`, schemas, repositories, and CI were not changed. `docs/artifacts/` and the execution file were not modified.\n\n### Behavior exercised\n- `ThreadAnchor` is a Pixi interaction target mounted through `CardSprite` at the card’s right edge, shown for the selected/hovered card. The DOM hit test uses a constant 22 px screen radius (44 px target), including when zoomed out.\n- Hover or touch selection reveals the anchor. Dragging from it draws the screen-space red draft thread (12 px sag scaled by zoom at 100%, capped at 25% of pull distance), highlights a distinct target card with a red outline, and emits a drop intent.\n- Dropping on a card creates exactly one association (repository default), selects it, and opens the type menu. Provenance is disabled for ineligible pairs and the reason is visible plus `role=\"status\"`/`aria-describedby` announced. Provenance retype updates the same row; dismissal keeps association.\n- Self, empty-cork, and duplicate drops create nothing. Duplicates select the existing connection and show the duplicate toast. A repository-race duplicate also teaches the page the existing row and selects it.\n- The menu is clamped to the viewport and scrolls within `100dvh`.\n- The Playwright journey covers mouse drawing of two strings, retyping one to provenance, reload persistence, duplicate selection, self/empty feedback, and a separate tablet touch-selection + touch-anchor journey.\n\n### Measured results\n- `npm test -- tests/connections/useCreateConnection.test.tsx`: **12 passed**.\n- `npm run test:e2e -- e2e/connections.spec.ts`: **3 passed, 3 skipped**. Main journey passed on desktop and tablet-landscape; touch-anchor journey passed on tablet-landscape. Phone and the desktop touch variant are explicitly skipped.\n- Full suite: **738 passed / 54 files**.\n- `npm run typecheck`, `npm run lint`, and Prettier checks pass.\n- Final build: initial `index-*.js` **267,494 bytes / 84,165 gzip**; `BoardCanvas-*.js` **346,957 bytes / 101,075 gzip**. No `pixi` string in the initial `index-*.js`; Pixi shared chunks (`Geometry`, `RenderTargetSystem`, `getTexelRangeRects`) and `BoardCanvas` are separate.\n- No FPS measurement; the 45 FPS tablet target remains for the human board-feel review. The new thread draft only redraws during an active drag; no ticker was enabled.\n\n### Plain snapshot and intent contract\n- `BoardSnapshot { caseId, caseTitle, cards, connections? }` remains unchanged.\n- `BoardStringConnection { id, fromCardId, toCardId, type }` remains unchanged.\n- New canvas intent: `onConnectionDrop({ fromCardId, toCardId: string | null, point: { clientX, clientY } })`.\n- New board store slice: `selectedConnectionId`, `selectConnection(id)`, `selectSelectedConnectionId`.\n- New `usePixiApp` controls: `setAnchorCard`, `beginThread`, `updateThread`, `endThread`.\n- New `CardSprite` methods: `setAnchorVisible`, `setConnectTarget`; `CardLayer` adds `setAnchorCard`, `setConnectTarget`, `getCard`.\n- New `CaseBoardPage` props: `connectionRepository`, `loadConnectionRepository`.\n- `useCreateConnection` owns validation, `ConnectionRepository.create/retype` calls, duplicate selection, menu state, and feedback; it never imports PixiJS or opens Dexie.\n\n### Shared-file handoff\n- `src/features/case/CaseBoardPage.tsx` now mounts `ConnectionTypeMenu`, the connection feedback `Toast`, and passes `onConnectionDrop` to `BoardCanvas`. **LINK-4/LINK-5 must preserve** `useCreateConnection`, `handleConnectionCreated`, the upserting `handleConnectionChanged`, `handleConnectionDrop`, and the connection repository loader when adding detail/legend or the keyboard picker.\n- `src/board/boardStore.ts` gained `selectedConnectionId`; LINK-4 should use `selectConnection` for its detail panel and preserve the existing viewport/gesture slices.\n- `src/app/routes.tsx` is untouched; the default connection repository opens lazily only on the first draw, so no route injection is required.\n\n### Validation limitations / pre-existing observations\n- Tablet 45 FPS at 150 cards and string feel still require human verification (`LINK-HR-1`).\n- `e2e/board-drag.spec.ts` mouse tests and `e2e/board.spec.ts` have pre-existing failures at HEAD `8d22ac6` (SEARCH-2 pushed the board stage below the viewport; board.spec also has wheel-precision and duplicate-link locator issues). I verified the same board-drag mouse failure in a clean worktree at HEAD, and a scrolled debug run confirmed mouse tap/drag still works. These are unrelated to LINK-3.\n- jsdom still emits the non-failing `HTMLCanvasElement.getContext` warning when Pixi is imported.\n\n```forge-result\n{\"summary\":\"Implemented LINK-3 thread-anchor creation with temporary drag thread, target highlighting, duplicate/self/empty feedback, the Association/Provenance type menu, repository-backed create/retype, board-store selection, 12 component tests, and desktop/tablet Playwright journeys including reload persistence and touch-anchor drawing. Required unit, e2e, typecheck, lint, full-suite, and build checks pass.\",\"unresolved\":[],\"decisions\":[\"Pointer routing stays on the DOM host; ThreadAnchor is a Pixi target with a 44 px screen-space DOM hit radius, so mouse and touch share one gesture state machine.\",\"Creation always writes association first and the menu retypes the same connection row, so exactly one row exists per unordered pair.\",\"The menu applies a type change optimistically, reverts on failure, and never reopens after dismissal during an in-flight retype.\",\"Duplicate repository results teach the page the existing row through the upserting onConnectionChanged callback to survive stale snapshots or another tab.\"],\"interfaces\":[\"BoardCanvas onConnectionDrop: { fromCardId, toCardId: string | null, point: { clientX, clientY } }\",\"BoardStore selectedConnectionId/selectConnection/selectSelectedConnectionId\",\"usePixiApp setAnchorCard, beginThread, updateThread, endThread\",\"CardSprite setAnchorVisible/setConnectTarget; CardLayer setAnchorCard/setConnectTarget/getCard\",\"ThreadAnchor exports threadAnchorScreenPoint, isPointOnThreadAnchor, findThreadAnchorAtPoint, computeDraftThreadGeometry, ThreadAnchor, ThreadAnchorLayer\",\"ConnectionTypeMenu props type, provenanceEligible, provenanceReason, point, busy, onSelect, onDismiss\",\"CaseBoardPage connectionRepository/loadConnectionRepository\"],\"tests\":[\"npm test -- tests/connections/useCreateConnection.test.tsx: 12 passed\",\"npm run test:e2e -- e2e/connections.spec.ts: 3 passed, 3 skipped (desktop + tablet main journey, tablet touch journey)\",\"npm test: 738 passed across 54 files\",\"npm run typecheck: pass\",\"npm run lint: pass\",\"npm run build (via e2e): pass; separate BoardCanvas/Pixi chunks, no pixi in initial shell\"],\"warnings\":[\"Tablet 45 FPS at 150 cards remains unmeasured and needs human verification at LINK-HR-1.\",\"Pre-existing HEAD e2e failures in board-drag.spec.ts and board.spec.ts were confirmed unrelated to LINK-3 in a clean HEAD worktree.\"],\"validationLimitations\":[\"Phone projects skip the pointer thread journeys; the canvas remains pointer-only and the accessible non-spatial path is LINK-5.\",\"Pixel-level string color/pixel verification is covered by LINK-2 geometry tests and browser behavior, not a pixel assertion in this LINK-3 journey.\"]}\n```\n",
+      "validationLimitations": [
+        "Phone projects skip the pointer thread journeys; the canvas remains pointer-only and the accessible non-spatial path is LINK-5.",
+        "Pixel-level string color/pixel verification is covered by LINK-2 geometry tests and browser behavior, not a pixel assertion in this LINK-3 journey."
+      ],
+      "artifactId": "work-link-3-001",
+      "inputArtifactIds": [
+        "work-link-2-001",
+        "work-link-1-001"
+      ]
     },
     "LINK-4": {
       "taskId": "LINK-4",

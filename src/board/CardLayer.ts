@@ -86,13 +86,17 @@ export class CardLayer {
 
   private viewport: Viewport = { x: 0, y: 0, scale: 1 };
   private size: BoardSize = { width: 1, height: 1 };
+  private anchorCardId: string | null = null;
+  private connectTargetId: string | null = null;
   private destroyed = false;
 
   constructor(options: CardLayerOptions) {
     this.palette = options.palette;
     this.root = new Container();
     this.root.label = 'board-card-layer';
-    this.root.eventMode = 'none';
+    // Passive lets the thread anchor be a Pixi hit target without making the
+    // card paper itself interactive.
+    this.root.eventMode = 'passive';
     this.root.sortableChildren = true;
   }
 
@@ -127,6 +131,7 @@ export class CardLayer {
       }
     }
 
+    this.applyInteractionState();
     this.applyCulling();
   }
 
@@ -171,6 +176,23 @@ export class CardLayer {
     }
   }
 
+  /** Show the single thread anchor that belongs to the selected/hovered card. */
+  setAnchorCard(cardId: string | null): void {
+    this.anchorCardId = cardId;
+    this.applyInteractionState();
+  }
+
+  /** Highlight a valid drop target for the temporary thread, if any. */
+  setConnectTarget(cardId: string | null): void {
+    this.connectTargetId = cardId;
+    this.applyInteractionState();
+  }
+
+  /** The live card record, including any in-flight drag preview position. */
+  getCard(cardId: string): BoardCardSnapshot | null {
+    return this.cards.get(cardId) ?? null;
+  }
+
   /** Resolve a screen point to a card, respecting the current camera. */
   hitTest(point: BoardPoint): BoardCardSnapshot | null {
     return hitTestCard([...this.cards.values()], this.viewport, point);
@@ -192,6 +214,8 @@ export class CardLayer {
       clearTimeout(timer);
     }
     this.offscreenTimers.clear();
+    this.anchorCardId = null;
+    this.connectTargetId = null;
 
     for (const sprite of this.sprites.values()) {
       sprite.destroy();
@@ -200,6 +224,13 @@ export class CardLayer {
     this.cards.clear();
     this.root.removeChildren();
     this.root.destroy({ context: true, style: true });
+  }
+
+  private applyInteractionState(): void {
+    for (const [id, sprite] of this.sprites) {
+      sprite.setAnchorVisible(id === this.anchorCardId);
+      sprite.setConnectTarget(id === this.connectTargetId);
+    }
   }
 
   private applyCulling(): void {

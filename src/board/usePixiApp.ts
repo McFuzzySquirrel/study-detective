@@ -53,6 +53,20 @@ export interface UsePixiAppResult {
   ) => void;
   /** Apply or remove the lift scale on one card. */
   readonly setCardLifted?: (cardId: string, lifted: boolean, reducedMotion: boolean) => void;
+  /** Move the single visible thread anchor to the selected/hovered card. */
+  readonly setAnchorCard?: (cardId: string | null) => void;
+  /** Start a temporary thread at one card's edge anchor. */
+  readonly beginThread?: (
+    cardId: string,
+    point: { readonly x: number; readonly y: number },
+  ) => void;
+  /** Follow the pointer and highlight a valid target card. */
+  readonly updateThread?: (
+    point: { readonly x: number; readonly y: number },
+    targetCardId: string | null,
+  ) => void;
+  /** End the temporary thread and clear target highlighting. */
+  readonly endThread?: () => void;
 }
 
 const EMPTY_SIZE: BoardSize = { width: 1, height: 1 };
@@ -375,6 +389,32 @@ export function usePixiApp({
     [],
   );
 
+  const setAnchorCard = useCallback((cardId: string | null): void => {
+    sceneRef.current?.setAnchorCard(cardId);
+    renderRef.current?.();
+  }, []);
+
+  const beginThread = useCallback(
+    (cardId: string, point: { readonly x: number; readonly y: number }): void => {
+      sceneRef.current?.beginThread(cardId, { x: point.x, y: point.y });
+      renderRef.current?.();
+    },
+    [],
+  );
+
+  const updateThread = useCallback(
+    (point: { readonly x: number; readonly y: number }, targetCardId: string | null): void => {
+      sceneRef.current?.updateThread({ x: point.x, y: point.y }, targetCardId);
+      renderRef.current?.();
+    },
+    [],
+  );
+
+  const endThread = useCallback((): void => {
+    sceneRef.current?.endThread();
+    renderRef.current?.();
+  }, []);
+
   return {
     status,
     error,
@@ -384,5 +424,9 @@ export function usePixiApp({
     recover: retry,
     moveCard,
     setCardLifted,
+    setAnchorCard,
+    beginThread,
+    updateThread,
+    endThread,
   };
 }
