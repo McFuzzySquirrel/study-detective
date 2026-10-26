@@ -21,7 +21,11 @@ import { useStore } from 'zustand';
 
 import { boardStore } from '../../board/boardStore';
 import type { BoardStoreApi } from '../../board/boardStore';
-import { selectViewport, selectViewportDirty } from '../../board/boardStore';
+import {
+  selectSelectedConnectionId,
+  selectViewport,
+  selectViewportDirty,
+} from '../../board/boardStore';
 import { canAddCard } from '../../board/boardCapacity';
 import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
 import {
@@ -37,12 +41,21 @@ import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { ConnectionRepository } from '../../data/connectionRepository';
 import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
-import type { CardRecord, CaseRecord, ConnectionRecord, Viewport } from '../../domain/model';
+import type {
+  CardRecord,
+  CaseRecord,
+  ConnectionRecord,
+  ConnectionType,
+  Viewport,
+} from '../../domain/model';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
+import ConnectionDetail from '../connections/ConnectionDetail';
+import ConnectionLegend from '../connections/ConnectionLegend';
 import ConnectionTypeMenu from '../connections/ConnectionTypeMenu';
 import type { ConnectionDropInput } from '../connections/useCreateConnection';
 import { useCreateConnection } from '../connections/useCreateConnection';
+import { useUndoDeleteConnection } from '../connections/useUndoDeleteConnection';
 import SearchPanel from '../search/SearchPanel';
 
 import ScaleWarning from './ScaleWarning';
@@ -203,6 +216,7 @@ export function CaseBoardPage({
     readonly images: Record<string, BoardCardImage>;
   }>({ key: '', images: {} });
   const [backupOpen, setBackupOpen] = useState(false);
+  const [restoredConnectionFocusToken, setRestoredConnectionFocusToken] = useState(0);
   const saveChainRef = useRef<Promise<void>>(Promise.resolve());
   const cardSaveTimersRef = useRef(new Map<string, number>());
   const cardSaveGenerationsRef = useRef(new Map<string, number>());
@@ -210,9 +224,11 @@ export function CaseBoardPage({
   const boardHeadingRef = useRef<HTMLHeadingElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const focusHandledRef = useRef<string | null>(null);
+  const restoredFocusHandledRef = useRef(0);
 
   const viewport = useStore(activeStore, selectViewport);
   const viewportDirty = useStore(activeStore, selectViewportDirty);
+  const selectedConnectionId = useStore(activeStore, selectSelectedConnectionId);
 
   const resolveRepository = useCallback<CaseBoardRepositoryLoader>(() => {
     if (repository !== undefined) {
@@ -548,6 +564,27 @@ export function CaseBoardPage({
 
   const { requestConnection } = connection;
 
+  const {
+    message: connectionUndoMessage,
+    error: connectionUndoError,
+    deleteWithUndo: deleteConnectionWithUndo,
+    undo: undoConnectionDelete,
+    dismiss: dismissConnectionUndo,
+    clearError: clearConnectionUndoError,
+  } = useUndoDeleteConnection({
+    loadRepository: resolveConnectionRepository,
+    onDeleted: (deleted) => {
+      setConnections((current) => current.filter((candidate) => candidate.id !== deleted.id));
+      if (activeStore.getState().selectedConnectionId === deleted.id) {
+        activeStore.getState().selectConnection(null);
+      }
+    },
+    onRestored: (restored) => {
+      handleConnectionChanged(restored);
+      activeStore.getState().selectConnection(restored.id);
+    },
+  });
+
   const handleConnectionDrop = useCallback(
     (drop: {
       readonly fromCardId: string;
@@ -564,6 +601,60 @@ export function CaseBoardPage({
     [requestConnection],
   );
 
+  const handleConnectionRetype = useCallback(
+    async (target: ConnectionRecord, type: ConnectionType): Promise<void> => {
+      const repository = await resolveConnectionRepository();
+      // Retype updates the existing row; the connection ID and pair key are
+      // preserved so the rendered string is the same one, not a replacement.
+      const updated = await repository.retype(target.id, type);
+      handleConnectionChanged(updated);
+    },
+    [handleConnectionChanged, resolveConnectionRepository],
+  );
+
+  const handleConnectionDelete = useCallback(
+    async (target: ConnectionRecord, fromTitle: string, toTitle: string): Promise<void> => {
+      const removed = await deleteConnectionWithUndo({
+        connection: target,
+        fromTitle,
+        toTitle,
+      });
+
+      if (!removed) {
+        // The row was already gone when the delete reached storage. Drop the
+        // stale snapshot without offering an undo that could resurrect it.
+        setConnections((current) => current.filter((candidate) => candidate.id !== target.id));
+        if (activeStore.getState().selectedConnectionId === target.id) {
+          activeStore.getState().selectConnection(null);
+        }
+      }
+    },
+    [activeStore, deleteConnectionWithUndo],
+  );
+
+  const handleUndoConnectionDelete = useCallback(async (): Promise<void> => {
+    const restored = await undoConnectionDelete();
+    if (restored) {
+      // The Undo action disappears with the toast. Move focus to the restored
+      // inspector after the state commit so focus never falls back to <body>.
+      setRestoredConnectionFocusToken((token) => token + 1);
+    }
+  }, [undoConnectionDelete]);
+
+  useEffect(() => {
+    if (restoredConnectionFocusToken === 0) {
+      return;
+    }
+
+    if (restoredFocusHandledRef.current === restoredConnectionFocusToken) {
+      return;
+    }
+    restoredFocusHandledRef.current = restoredConnectionFocusToken;
+
+    const detailHeading = document.getElementById('connection-detail-title');
+    (detailHeading ?? boardHeadingRef.current)?.focus();
+  }, [connections, restoredConnectionFocusToken]);
+
   const snapshot = useMemo<BoardSnapshot>(
     () => ({
       caseId,
@@ -573,6 +664,32 @@ export function CaseBoardPage({
     }),
     [cardImages, cards, caseId, caseRecord, connections],
   );
+
+  const selectedConnection =
+    selectedConnectionId === null
+      ? null
+      : (connections.find((candidate) => candidate.id === selectedConnectionId) ?? null);
+  const selectedFromCard =
+    selectedConnection === null
+      ? null
+      : (cards.find((candidate) => candidate.id === selectedConnection.fromCardId) ?? null);
+  const selectedToCard =
+    selectedConnection === null
+      ? null
+      : (cards.find((candidate) => candidate.id === selectedConnection.toCardId) ?? null);
+  const selectedDetail =
+    selectedConnection !== null && selectedFromCard !== null && selectedToCard !== null
+      ? { connection: selectedConnection, fromCard: selectedFromCard, toCard: selectedToCard }
+      : null;
+  // The short type menu follows a fresh pointer drop. The inspector takes over
+  // once that menu is dismissed, so the two surfaces never compete for the same
+  // newly created string.
+  const menuCompetesWithDetail =
+    connection.menu !== null &&
+    selectedDetail !== null &&
+    connection.menu.connectionId === selectedDetail.connection.id;
+  const detailVisible =
+    visibleStatus === 'ready' && selectedDetail !== null && !menuCompetesWithDetail;
 
   /**
    * Search selection is a read-only navigation: it changes only the live
@@ -646,6 +763,24 @@ export function CaseBoardPage({
         tone={connection.feedback?.tone ?? 'info'}
         onDismiss={connection.clearFeedback}
         dismissLabel="Dismiss connection message"
+      />
+
+      <Toast
+        message={connectionUndoMessage}
+        tone="info"
+        actionLabel="Undo"
+        onAction={() => {
+          void handleUndoConnectionDelete();
+        }}
+        onDismiss={dismissConnectionUndo}
+        dismissLabel="Dismiss connection undo"
+      />
+
+      <Toast
+        message={connectionUndoError}
+        tone="error"
+        onDismiss={clearConnectionUndoError}
+        dismissLabel="Dismiss connection undo error"
       />
 
       <header className="case-board-page__header">
@@ -733,72 +868,100 @@ export function CaseBoardPage({
         </aside>
       ) : null}
 
-      <div className="case-board-page__stage" ref={stageRef}>
-        {visibleStatus === 'loading' ? (
-          <p className="case-board-page__status" role="status">
-            Opening the case…
-          </p>
-        ) : null}
+      {visibleStatus === 'ready' ? (
+        <div className="case-board-page__board-controls" role="group" aria-label="Board controls">
+          <ConnectionLegend />
+        </div>
+      ) : null}
 
-        {visibleStatus === 'error' ? (
-          <section
-            className="case-board-page__error"
-            role="alert"
-            aria-labelledby="board-load-error"
-          >
-            <h3 id="board-load-error">Case could not open</h3>
-            <p>{loadError}</p>
-            <div className="case-board-page__error-actions">
-              <Button variant="primary" onClick={retryLoad}>
-                Retry
-              </Button>
-              <Link className="case-board-page__text-link" to="/">
-                Back to case shelf
-              </Link>
-            </div>
-          </section>
-        ) : null}
-
-        {visibleStatus === 'missing' ? (
-          <section
-            className="case-board-page__error"
-            role="alert"
-            aria-labelledby="board-missing-title"
-          >
-            <h3 id="board-missing-title">Case not found</h3>
-            <p>
-              This case is no longer in local storage. It may have been deleted, or the address may
-              be incomplete.
-            </p>
-            <div className="case-board-page__error-actions">
-              <Link className="case-board-page__text-link" to="/">
-                Back to case shelf
-              </Link>
-            </div>
-          </section>
-        ) : null}
-
-        {visibleStatus === 'ready' && caseRecord !== null && cards.length === 0 ? (
-          <EmptyBoard caseId={caseId} />
-        ) : null}
-
-        {visibleStatus === 'ready' && caseRecord !== null && cards.length > 0 ? (
-          <Suspense
-            fallback={
-              <p className="case-board-page__status" role="status">
-                Preparing the board canvas…
-              </p>
+      <div className="case-board-page__workspace">
+        {detailVisible && selectedDetail !== null ? (
+          <ConnectionDetail
+            connection={selectedDetail.connection}
+            fromCard={selectedDetail.fromCard}
+            toCard={selectedDetail.toCard}
+            onRetype={(type) => handleConnectionRetype(selectedDetail.connection, type)}
+            onDelete={() =>
+              handleConnectionDelete(
+                selectedDetail.connection,
+                selectedDetail.fromCard.title,
+                selectedDetail.toCard.title,
+              )
             }
-          >
-            <BoardCanvas
-              snapshot={snapshot}
-              store={activeStore}
-              onCardMoved={handleCardMoved}
-              onConnectionDrop={handleConnectionDrop}
-              cardLimitReached={capacityBlocked}
-            />
-          </Suspense>
+            onClose={() => {
+              activeStore.getState().selectConnection(null);
+              boardHeadingRef.current?.focus();
+            }}
+          />
         ) : null}
+
+        <div className="case-board-page__stage" ref={stageRef}>
+          {visibleStatus === 'loading' ? (
+            <p className="case-board-page__status" role="status">
+              Opening the case…
+            </p>
+          ) : null}
+
+          {visibleStatus === 'error' ? (
+            <section
+              className="case-board-page__error"
+              role="alert"
+              aria-labelledby="board-load-error"
+            >
+              <h3 id="board-load-error">Case could not open</h3>
+              <p>{loadError}</p>
+              <div className="case-board-page__error-actions">
+                <Button variant="primary" onClick={retryLoad}>
+                  Retry
+                </Button>
+                <Link className="case-board-page__text-link" to="/">
+                  Back to case shelf
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {visibleStatus === 'missing' ? (
+            <section
+              className="case-board-page__error"
+              role="alert"
+              aria-labelledby="board-missing-title"
+            >
+              <h3 id="board-missing-title">Case not found</h3>
+              <p>
+                This case is no longer in local storage. It may have been deleted, or the address
+                may be incomplete.
+              </p>
+              <div className="case-board-page__error-actions">
+                <Link className="case-board-page__text-link" to="/">
+                  Back to case shelf
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          {visibleStatus === 'ready' && caseRecord !== null && cards.length === 0 ? (
+            <EmptyBoard caseId={caseId} />
+          ) : null}
+
+          {visibleStatus === 'ready' && caseRecord !== null && cards.length > 0 ? (
+            <Suspense
+              fallback={
+                <p className="case-board-page__status" role="status">
+                  Preparing the board canvas…
+                </p>
+              }
+            >
+              <BoardCanvas
+                snapshot={snapshot}
+                store={activeStore}
+                onCardMoved={handleCardMoved}
+                onConnectionDrop={handleConnectionDrop}
+                cardLimitReached={capacityBlocked}
+              />
+            </Suspense>
+          ) : null}
+        </div>
       </div>
 
       <ConnectionTypeMenu

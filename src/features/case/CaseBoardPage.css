@@ -140,11 +140,39 @@
   gap: var(--space-2);
 }
 
+.case-board-page__board-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+/*
+ * The selected-thread inspector and the canvas share one workspace. On phone
+ * and portrait tablet widths they stack with the inspector first, so a
+ * selection is visible without scrolling past the board. From tablet
+ * landscape (64 rem) the inspector becomes a compact side column.
+ */
+.case-board-page__workspace {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  align-items: start;
+}
+
 .case-board-page__stage {
   position: relative;
   display: grid;
   min-block-size: clamp(24rem, calc(100dvh - 21rem), 52rem);
   min-inline-size: 0;
+}
+
+@media (min-width: 64rem) {
+  .case-board-page__workspace {
+    grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+  }
 }
 
 .case-board-page__status {
