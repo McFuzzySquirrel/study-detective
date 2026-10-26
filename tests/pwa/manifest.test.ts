@@ -141,8 +141,8 @@ describe('PWA registration wiring', () => {
   });
 
   it('mounts the update prompt from the app root', () => {
-    const appSource = readSource('src/App.tsx');
-    expect(appSource).toContain("import UpdatePrompt from './app/UpdatePrompt'");
+    const appSource = readSource('src/app/App.tsx');
+    expect(appSource).toContain("import UpdatePrompt from './UpdatePrompt'");
     expect(appSource).toContain('<UpdatePrompt />');
   });
 });

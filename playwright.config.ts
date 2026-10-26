@@ -51,5 +51,26 @@ export default defineConfig({
         viewport: { width: 390, height: 844 },
       },
     },
+    // A11Y-FR-08 / VIS-CON-06 smoke path only. Firefox and WebKit are current
+    // desktop targets, but running the full pointer, axe, and performance
+    // matrices on three engines would multiply CI time without adding
+    // evidence. Their projects are intentionally limited to the documented
+    // shelf/demo/board/search/settings smoke.
+    {
+      name: 'firefox',
+      testMatch: /compat\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: 'webkit',
+      testMatch: /compat\.spec\.ts$/,
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
 });

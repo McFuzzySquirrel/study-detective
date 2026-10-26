@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2
 **Status**: In Progress
-**Validation Gaps**: 64 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T20:23:04.022Z
+**Validation Gaps**: 66 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T20:48:40.608Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -110,12 +110,13 @@
   - Files: tests/a11y/axeConfig.ts, e2e/a11y.spec.ts, e2e/search.spec.ts, src/features/search/SearchPanel.tsx, tests/search/SearchPanel.test.tsx
 - [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-5: Measure board performance and enforce the initial JavaScript budget (@qa-engineer)
   - Files: e2e/helpers/seedLargeCase.ts, e2e/performance.spec.ts, scripts/perf-budget.mjs, tests/a11y/perfBudget.test.ts, docs/quality/performance-budget.md, vite.config.ts, playwright.config.ts
+- [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-6: Add browser capability notice and cross-browser smoke paths (@qa-engineer)
+  - Files: src/app/BrowserNotice.tsx, src/app/App.tsx, playwright.config.ts, e2e/compat.spec.ts, tests/app/BrowserNotice.test.tsx, README.md, src/App.tsx, src/app/AppShell.css, src/main.tsx, tests/pwa/manifest.test.ts, src/app/browserSupport.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2: Phase 2: Automated audits
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-1: Phase 1: CI and deployment
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-2: Phase 2: Offline release verification
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-3: Phase 3: Documentation and human gate
@@ -188,6 +189,8 @@
 - Task A11Y-4: No performance checks were added, per task exclusion.
 - Task A11Y-5: Headless Chromium software WebGL is not the target tablet; the 45 FPS result cannot be inferred from the 30 FPS floor.
 - Task A11Y-5: The local preview server does not represent a 20 Mbps network profile, so cold load is documented but deferred to field measurement.
+- Task A11Y-6: Screen-reader announcement and visual notice treatment remain human review items.
+- Task A11Y-6: Tablet FPS and final field acceptance remain human gates.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

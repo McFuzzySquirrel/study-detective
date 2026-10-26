@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import App from './App';
+import App from './app/App';
 import { ensureMotionPreference } from './app/motionPreference';
 import { registerPwa } from './pwa';
 import './styles/base.css';
