@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T21:55:32.906Z",
+  "lastUpdatedAt": "2026-10-26T21:56:35.757Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -2067,9 +2067,15 @@
     },
     "REL-HR-1": {
       "taskId": "REL-HR-1",
-      "status": "pending",
-      "attempt": 0,
-      "outputFiles": []
+      "status": "complete",
+      "attempt": 1,
+      "outputFiles": [
+        "docs/reviews/final-acceptance.json"
+      ],
+      "startedAt": "2026-10-26T21:56:35.751Z",
+      "completedAt": "2026-10-26T21:56:35.751Z",
+      "agentOutput": "Human review approved with evidence.",
+      "artifactId": "work-rel-hr-1-001"
     }
   },
   "blockers": [],
