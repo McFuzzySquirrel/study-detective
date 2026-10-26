@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RELEASE-AND-FIELD-REVIEW-2
+**Phase**: RELEASE-AND-FIELD-REVIEW-3
 **Status**: In Progress
-**Validation Gaps**: 76 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T21:34:53.960Z
+**Validation Gaps**: 78 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T21:55:32.911Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -118,6 +118,8 @@
   - Files: .github/workflows/deploy-pages.yml, vite.config.ts, scripts/check-pages-build.mjs, docs/DEPLOYMENT.md, tests/release/pagesConfig.test.ts
 - [x] Phase RELEASE-AND-FIELD-REVIEW-2, Task REL-3: Verify installable offline PWA, same-origin requests, and precache budget (@qa-engineer)
   - Files: e2e/pwa.spec.ts, scripts/check-bundle-budget.mjs, tests/release/bundleBudget.test.ts
+- [x] Phase RELEASE-AND-FIELD-REVIEW-3, Task REL-4: Write release documentation and support matrix (@release-engineer)
+  - Files: README.md, docs/RELEASE.md, scripts/check-release-docs.mjs, tests/release/releaseDocs.test.ts
 
 ## Current Task
 - None currently running
@@ -205,6 +207,8 @@
 - Task REL-3: The deployed GitHub Pages URL was not visited; REL-3 uses the production preview and the deployed field journey remains REL-HR-1.
 - Task REL-3: Firefox and WebKit PWA paths are outside this spec; A11Y-6 owns the compat smoke path.
 - Task REL-3: Offline OCR proves cached delivery and response bytes, not a completed recognition run.
+- Task REL-4: No real tablet, phone, iOS Safari, or production GitHub Pages network-panel review was performed.
+- Task REL-4: Firefox and WebKit coverage remains the existing compatibility smoke path; full journeys are Chromium-only in automation.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
