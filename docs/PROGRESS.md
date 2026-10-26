@@ -4,7 +4,7 @@
 **Phase**: SEARCH-TAGS-AND-FILTERS-3
 **Status**: In Progress
 **Validation Gaps**: 31 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T06:26:07.890Z
+**Last Updated**: 2026-10-26T06:34:29.187Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -60,6 +60,8 @@
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
   - Files: src/features/search/searchCards.ts, src/features/search/SearchPanel.tsx, src/features/search/SearchPanel.css, src/features/case/CaseBoardPage.tsx, src/features/case/CardListPanel.tsx, tests/search/searchCards.test.ts, tests/search/SearchPanel.test.tsx, src/features/case/CardListPanel.css, src/features/case/CaseBoardPage.css
+- [x] Phase SEARCH-TAGS-AND-FILTERS-3, Task SEARCH-3: Verify keyboard and phone search journeys (@qa-engineer)
+  - Files: e2e/search.spec.ts
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -79,7 +81,6 @@
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
-- [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
 - [ ] Phase OPTIONAL-OCR-2: Phase 2: OCR experience
 - [ ] Phase OPTIONAL-OCR-3: Phase 3: Search and backup integration
