@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RELEASE-AND-FIELD-REVIEW-1
 **Status**: In Progress
-**Validation Gaps**: 69 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T21:06:21.989Z
+**Validation Gaps**: 72 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T21:19:52.875Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -114,12 +114,13 @@
   - Files: src/app/BrowserNotice.tsx, src/app/App.tsx, playwright.config.ts, e2e/compat.spec.ts, tests/app/BrowserNotice.test.tsx, README.md, src/App.tsx, src/app/AppShell.css, src/main.tsx, tests/pwa/manifest.test.ts, src/app/browserSupport.ts
 - [x] Phase RELEASE-AND-FIELD-REVIEW-1, Task REL-1: Create the CI quality gate with coverage thresholds (@release-engineer)
   - Files: .github/workflows/ci.yml, package.json, vitest.config.ts, scripts/validate-workflows.mjs, tests/release/ciConfig.test.ts, package-lock.json, vitest.coverage.ts
+- [x] Phase RELEASE-AND-FIELD-REVIEW-1, Task REL-2: Deploy to GitHub Pages with a verified base path and local preview (@release-engineer)
+  - Files: .github/workflows/deploy-pages.yml, vite.config.ts, scripts/check-pages-build.mjs, docs/DEPLOYMENT.md, tests/release/pagesConfig.test.ts
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase RELEASE-AND-FIELD-REVIEW-1: Phase 1: CI and deployment
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-2: Phase 2: Offline release verification
 - [ ] Phase RELEASE-AND-FIELD-REVIEW-3: Phase 3: Documentation and human gate
 
@@ -196,6 +197,9 @@
 - Task REL-1: The full 92-test Playwright suite was not run locally; only discovery, desktop smoke, and Firefox/WebKit compat were executed.
 - Task REL-1: No deployment or base-path build was performed because REL-1 explicitly excludes deployment.
 - Task REL-1: Automated checks cannot replace the separate REL-HR-1 human journey gate.
+- Task REL-2: The deployed URL, install prompt, and offline behavior were not observed on real hardware; those remain human acceptance evidence.
+- Task REL-2: The runtime network-panel audit was not run; only static index/manifest origin scanning and the Pages build check were performed.
+- Task REL-2: No tablet, phone, or desktop field journey was performed, and docs/reviews/final-acceptance.json was not created.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

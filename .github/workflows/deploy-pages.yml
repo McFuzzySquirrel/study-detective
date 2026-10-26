@@ -1,0 +1,70 @@
+name: Deploy to GitHub Pages
+
+# Deployment is main-only. Pull requests run the CI workflow and never reach
+# this file: GitHub Pages serves static files, and a preview deployment would
+# need a second Pages site that this project does not use.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. A newer main commit may queue behind an in-flight
+# deploy, but it must not cancel one halfway through publishing the artifact.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Pages artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The project-site URL is https://GITHUB-OWNER.github.io/REPOSITORY/, so
+      # the base path is the repository name. For this repository that resolves
+      # to /notes-detective/. Vite bakes the value into every emitted asset URL.
+      - name: Build with the repository base path
+        run: npm run build
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Verify the Pages build
+        run: node scripts/check-pages-build.mjs
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
