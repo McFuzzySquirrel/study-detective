@@ -1,7 +1,7 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T16:37:33.382Z",
+  "lastUpdatedAt": "2026-10-26T16:45:09.059Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
@@ -970,10 +970,43 @@
     },
     "RECALL-1": {
       "taskId": "RECALL-1",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "board-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 2,
+      "outputFiles": [
+        "src/features/recall/recallStore.ts",
+        "src/features/recall/compareConnections.ts",
+        "tests/recall/compareConnections.test.ts",
+        "tests/recall/recallStore.test.ts"
+      ],
+      "startedAt": "2026-10-26T16:43:20.093Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "failed",
+          "reason": "forge-result.unresolved must be a string array; use [] when no blocking requirements remain.",
+          "resultPath": "docs/artifacts/RECALL-1.2026-10-26T16-43-15-081Z.attempt-1.result.json"
+        },
+        {
+          "attempt": 2,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/RECALL-1.2026-10-26T16-45-09-044Z.attempt-2.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T16:45:09.053Z",
+      "agentOutput": "I'll start by reading the execution file and the referenced documentation.\nThe implementation from the prior attempt is present and complete. I'll re-run the full required checks, plus the whole suite, to confirm the preserved work.\n## Result Report\n\n**Task:** RECALL-1 — Implement scratch connections and recall comparison  \n**Owner:** board-engineer  \n**Attempt:** 2 (preserved the attempt-1 implementation, re-ran all required checks)\n\n### Files created\n\n- `src/features/recall/recallStore.ts`\n- `src/features/recall/compareConnections.ts`\n- `tests/recall/compareConnections.test.ts`\n- `tests/recall/recallStore.test.ts`\n\nNo shared files were modified. `CaseBoardPage.tsx`, `routes.tsx`, storage/repository modules, and bundle-boundary files are untouched.\n\n### Behavior and acceptance exercised\n\n- **Scratch store:** vanilla Zustand in-memory store with `addScratchConnection`, `removeScratchConnection`, `removeScratchConnectionForPair`, `clearScratch`, and `resetOnExit`; isolated factory plus app singleton; selectors return existing references/primitives.\n- **Canonical pairs:** endpoints sorted and identified by the domain `buildPairKey`; duplicate draws in either orientation return the existing row without adding a second string.\n- **Comparison:** reversed scratch pairs count as remembered; exact, duplicate, missed, extra, and type-mismatch cases covered; a wrong-type pair is remembered and separately listed in `typeMismatch` with `expectedType`/`actualType`; every group is sorted by canonical pair key with no duplicate entries.\n- **No scoring:** result object has exactly `remembered`, `missed`, `extra`, and `typeMismatch`; tests reject score, percentage, grade, streak, and rank wording.\n- **Clear/reset:** both return the store to an empty scratch state and remain usable afterward.\n- **Write guard:** spies cover `IDBFactory.open`, `IDBDatabase.transaction`, IDB object-store read/write methods, `Storage` mutations, and every `ConnectionRepository` / `InMemoryConnectionRepository` method across enter, draw, check, remove, reset, and exit. A positive control confirms the storage spy observes a real localStorage write.\n- **Module boundary:** source-level test proves no Dexie, data/repository, React, React Router, PixiJS, direct IndexedDB/localStorage/sessionStorage, or persist middleware imports; the store imports only `zustand/vanilla` plus domain pair helpers.\n\n### Validation results\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts` | **33 tests passed (2 files)** |\n| `npm run typecheck` | **Passed, zero errors** |\n| `npm test` (full suite, confirmation) | **871 tests passed (66 files)** |\n| `npx eslint src/features/recall tests/recall` | **Passed** |\n| `npx prettier --check src/features/recall tests/recall` | **Passed** |\n\n### Downstream contract\n\n- **RECALL-2:** bind `selectScratchConnections`, `addScratchConnection`, removal actions, and `selectScratchCount`; call `resetOnExit()` on recall unmount/route change. Scratch drawing/rendering and reduced-motion string appearance remain RECALL-2 scope.\n- **RECALL-3:** pass truth `ConnectionRecord[]` and scratch `ScratchConnection[]` directly to `compareConnections`, then resolve card titles from IDs.\n- **Snapshot consumed:** none — the store and comparison consume only plain connection-like objects and never receive or call a repository.\n\n### Limitations\n\n- RECALL-1 is unit-only by design; no browser gesture or visual evidence applies.\n- Write-spy evidence proves these modules perform no repository/IndexedDB write, not that future UI wiring cannot add one.\n\n```forge-result\n{\"summary\":\"Implemented and verified the in-memory recall scratch store and pure undirected pair comparison with remembered, missed, extra, and type-mismatch groups, stable canonical ordering, no score, and storage write-spy tests; required tests and typecheck pass.\",\"unresolved\":[],\"decisions\":[\"Scratch IDs are canonical domain pair keys; duplicate draws return the existing row without a second string.\",\"A wrong-type pair is remembered and separately type-mismatched, never missed; an exact-type scratch row suppresses the mismatch.\",\"Duplicate input rows collapse deterministically with association preferred as the representative type.\",\"The store uses vanilla Zustand with no persistence middleware or storage dependency.\"],\"interfaces\":[\"createRecallStore(), recallStore, selectScratchConnections, selectScratchCount, selectHasScratch, selectScratchConnection\",\"addScratchConnection(input), removeScratchConnection(id), removeScratchConnectionForPair(from,to), clearScratch(), resetOnExit()\",\"compareConnections(truth, scratch): {remembered, missed, extra, typeMismatch}\",\"canonicalizeConnection(connection), canonicalizeConnections(connections)\"],\"tests\":[\"npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts: 33 passed\",\"npm run typecheck: passed\",\"npm test: 871 passed\",\"eslint and prettier on src/features/recall and tests/recall: passed\"],\"warnings\":[\"RECALL-2 must call resetOnExit on unmount and route change to complete the non-persistent lifecycle.\",\"Reduced-motion scratch string rendering is RECALL-2 scope; no animation exists in these logic modules.\"],\"validationLimitations\":[\"Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.\",\"No browser journey applies to this unit-only task.\"]}\n```\n",
+      "validationLimitations": [
+        "Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.",
+        "No browser journey applies to this unit-only task."
+      ],
+      "artifactId": "work-recall-1-001",
+      "inputArtifactIds": [
+        "work-link-1-001",
+        "work-board-4-001",
+        "work-board-5-001",
+        "work-link-5-001",
+        "work-link-hr-1-001"
+      ]
     },
     "RECALL-2": {
       "taskId": "RECALL-2",

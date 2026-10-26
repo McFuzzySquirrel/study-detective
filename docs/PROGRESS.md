@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RECALL-MODE-1
 **Status**: In Progress
-**Validation Gaps**: 40 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T16:37:33.386Z
+**Validation Gaps**: 42 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T16:45:09.064Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -64,6 +64,8 @@
   - Files: docs/reviews/board-feel.json
 - [x] Phase CASE-CLOSURE-1, Task CLOSE-1: Implement readiness, loose-thread, and topic-status selectors (@data-engineer)
   - Files: src/domain/readiness.ts, tests/domain/readiness.test.ts
+- [x] Phase RECALL-MODE-1, Task RECALL-1: Implement scratch connections and recall comparison (@board-engineer)
+  - Files: src/features/recall/recallStore.ts, src/features/recall/compareConnections.ts, tests/recall/compareConnections.test.ts, tests/recall/recallStore.test.ts
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
@@ -90,7 +92,6 @@
 
 ## Remaining
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
-- [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-1: Phase 1: Demo content and seeding
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
@@ -134,6 +135,8 @@
 - Task LINK-5: Component tests run in jsdom; the e2e journey provides the real-browser viewport and IndexedDB evidence.
 - Task CLOSE-1: No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.
 - Task CLOSE-1: Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note.
+- Task RECALL-1: Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.
+- Task RECALL-1: No browser journey applies to this unit-only task.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
 - Task SEARCH-2: Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
