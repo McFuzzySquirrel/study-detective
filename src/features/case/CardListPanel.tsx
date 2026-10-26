@@ -1,9 +1,10 @@
-import { useId } from 'react';
-import { Link } from 'react-router';
+import { useCallback, useId, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 
 import Button from '../../components/Button';
 import type { CardRecord, CardType, ConnectionRecord } from '../../domain/model';
 import { CARD_TYPES } from '../../domain/model';
+import SearchPanel from '../search/SearchPanel';
 
 import './CardListPanel.css';
 
@@ -45,6 +46,13 @@ export interface CardListPanelProps {
   readonly connections?: readonly ConnectionRecord[];
   readonly onEdit: (card: CardRecord) => void;
   readonly onDelete: (card: CardRecord) => void;
+  /**
+   * Optional override for choosing a search result. The default navigates to
+   * the board with the card focused and centered.
+   */
+  readonly onSearchSelect?: ((card: CardRecord) => void) | undefined;
+  /** Optional detail path builder for search results. */
+  readonly searchDetailHref?: ((card: CardRecord) => string) | undefined;
 }
 
 interface CardListGroupProps {
@@ -154,26 +162,60 @@ export default function CardListPanel({
   connections = [],
   onEdit,
   onDelete,
+  onSearchSelect,
+  searchDetailHref,
 }: CardListPanelProps) {
+  const navigate = useNavigate();
+  const [searchActive, setSearchActive] = useState(false);
+
+  const handleSearchSelect = useCallback(
+    (card: CardRecord): void => {
+      if (onSearchSelect !== undefined) {
+        onSearchSelect(card);
+        return;
+      }
+
+      // "Select" has the same meaning as on the board: open the board with the
+      // card focused and centered. "Open detail" remains the secondary action.
+      void navigate(`/case/${card.caseId}?card=${encodeURIComponent(card.id)}`);
+    },
+    [navigate, onSearchSelect],
+  );
+
   return (
     <div className="card-list">
-      {CARD_TYPES.map((type) => {
-        const group = cards.filter((card) => card.type === type);
-        if (group.length === 0) {
-          return null;
-        }
+      <SearchPanel
+        cards={cards}
+        onSelectCard={handleSearchSelect}
+        {...(searchDetailHref !== undefined ? { detailHref: searchDetailHref } : {})}
+        onActiveChange={setSearchActive}
+        className="card-list__search"
+      />
 
-        return (
-          <CardListGroup
-            key={type}
-            type={type}
-            cards={group}
-            connections={connections}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        );
-      })}
+      {searchActive ? (
+        <p className="card-list__search-note">
+          The grouped list is hidden while results are shown. Clear all in the search panel to
+          return to every card.
+        </p>
+      ) : (
+        CARD_TYPES.map((type) => {
+          const group = cards.filter((card) => card.type === type);
+          if (group.length === 0) {
+            return null;
+          }
+
+          return (
+            <CardListGroup
+              key={type}
+              type={type}
+              cards={group}
+              connections={connections}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          );
+        })
+      )}
     </div>
   );
 }

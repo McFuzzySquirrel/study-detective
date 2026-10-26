@@ -47,6 +47,15 @@
   line-height: var(--line-height-heading);
 }
 
+.case-board-page__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-board-page__search {
+  min-inline-size: 0;
+}
+
 .case-board-page__summary {
   max-inline-size: var(--measure-body);
   margin: 0;

@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: SEARCH-TAGS-AND-FILTERS-2
 **Status**: In Progress
-**Validation Gaps**: 28 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T05:43:12.422Z
+**Validation Gaps**: 29 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T05:56:54.131Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -56,6 +56,8 @@
   - Files: src/board/stringGeometry.ts, src/board/StringLayer.ts, src/board/BoardScene.ts, tests/board/stringGeometry.test.ts, tests/board/stringGeometry.performance.test.ts, src/board/BoardCanvas.tsx, src/board/usePixiApp.ts, src/features/case/CaseBoardPage.tsx, tests/board/BoardCanvas.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
+- [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
+  - Files: src/features/search/searchCards.ts, src/features/search/SearchPanel.tsx, src/features/search/SearchPanel.css, src/features/case/CaseBoardPage.tsx, src/features/case/CardListPanel.tsx, tests/search/searchCards.test.ts, tests/search/SearchPanel.test.tsx, src/features/case/CardListPanel.css, src/features/case/CaseBoardPage.css
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -75,7 +77,6 @@
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
-- [ ] Phase SEARCH-TAGS-AND-FILTERS-2: Phase 2: Search and filters
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
 - [ ] Phase OPTIONAL-OCR-2: Phase 2: OCR experience
@@ -116,6 +117,7 @@
 - Task LINK-2: No permanent BoardScene unit test; scene integration was verified by the temporary real-browser pixel journey and the committed board-drag Playwright journey.
 - Task LINK-2: Human board-feel review of string sag still needs a real tablet/desktop pass.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
+- Task SEARCH-2: Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).

@@ -16,7 +16,7 @@
  */
 
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { useStore } from 'zustand';
 
 import { boardStore } from '../../board/boardStore';
@@ -24,14 +24,21 @@ import type { BoardStoreApi } from '../../board/boardStore';
 import { selectViewport, selectViewportDirty } from '../../board/boardStore';
 import { canAddCard } from '../../board/boardCapacity';
 import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
+import {
+  BOARD_CARD_HEIGHT,
+  BOARD_CARD_WIDTH,
+  normalizeViewport,
+  type BoardSize,
+} from '../../board/viewport';
 import Button from '../../components/Button';
 import Toast from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
-import type { CardRecord, CaseRecord, ConnectionRecord } from '../../domain/model';
+import type { CardRecord, CaseRecord, ConnectionRecord, Viewport } from '../../domain/model';
 import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
+import SearchPanel from '../search/SearchPanel';
 
 import ScaleWarning from './ScaleWarning';
 import EmptyBoard from './EmptyBoard';
@@ -105,10 +112,47 @@ function cardCountLabel(count: number): string {
   return `${count} ${count === 1 ? 'card' : 'cards'}`;
 }
 
+/**
+ * The camera that puts a card's centre at the centre of the board stage. The
+ * scale is kept because search selection is a navigation jump, not a zoom.
+ * A zero-sized stage (tests, or before the canvas settles) falls back to the
+ * window size so the result is still deterministic.
+ */
+function centeredViewportOnCard(
+  position: { readonly x: number; readonly y: number },
+  viewportSize: BoardSize,
+  scale: number,
+): Viewport {
+  const width =
+    Number.isFinite(viewportSize.width) && viewportSize.width > 0 ? viewportSize.width : 1;
+  const height =
+    Number.isFinite(viewportSize.height) && viewportSize.height > 0 ? viewportSize.height : 1;
+  const normalized = normalizeViewport({ x: 0, y: 0, scale });
+
+  return normalizeViewport({
+    x: position.x + BOARD_CARD_WIDTH / 2 - width / (2 * normalized.scale),
+    y: position.y + BOARD_CARD_HEIGHT / 2 - height / (2 * normalized.scale),
+    scale: normalized.scale,
+  });
+}
+
+function readStageSize(element: HTMLElement | null): BoardSize {
+  const rect = element?.getBoundingClientRect();
+  const width = rect !== undefined && rect.width > 0 ? rect.width : window.innerWidth;
+  const height = rect !== undefined && rect.height > 0 ? rect.height : window.innerHeight;
+
+  return {
+    width: Number.isFinite(width) && width > 0 ? width : 1024,
+    height: Number.isFinite(height) && height > 0 ? height : 768,
+  };
+}
+
 /** The routed case-board screen: repository load, canvas mount, viewport save. */
 export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPageProps) {
   const { caseId: caseIdParam } = useParams();
   const caseId = caseIdParam ?? '';
+  const [searchParams] = useSearchParams();
+  const focusCardId = searchParams.get('card');
   const activeStore = store ?? boardStore;
 
   const [status, setStatus] = useState<LoadStatus>('loading');
@@ -128,6 +172,9 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
   const cardSaveTimersRef = useRef(new Map<string, number>());
   const cardSaveGenerationsRef = useRef(new Map<string, number>());
   const cardSaveChainRef = useRef<Promise<void>>(Promise.resolve());
+  const boardHeadingRef = useRef<HTMLHeadingElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const focusHandledRef = useRef<string | null>(null);
 
   const viewport = useStore(activeStore, selectViewport);
   const viewportDirty = useStore(activeStore, selectViewportDirty);
@@ -439,6 +486,50 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
     [cardImages, cards, caseId, caseRecord, connections],
   );
 
+  /**
+   * Search selection is a read-only navigation: it changes only the live
+   * camera (a temporary viewport, like fit-to-view) and the selected card.
+   * It never updates a card, a position, a connection, or case metadata.
+   */
+  const applySearchSelection = useCallback(
+    (card: CardRecord): void => {
+      const current = activeStore.getState().viewport;
+      const next = centeredViewportOnCard(
+        card.position,
+        readStageSize(stageRef.current),
+        current.scale,
+      );
+
+      activeStore.getState().applyTemporaryViewport(next);
+      activeStore.getState().selectCard(card.id);
+      boardHeadingRef.current?.focus();
+    },
+    [activeStore],
+  );
+
+  // The card list's search results navigate here with `?card=<id>` so that
+  // "Select" means the same thing on both surfaces: center and select the card.
+  // The ref makes the jump happen once per case/card pair, not on every
+  // subsequent cards refresh (for example after a drag save).
+  useEffect(() => {
+    if (visibleStatus !== 'ready' || focusCardId === null) {
+      return;
+    }
+
+    const focusKey = `${caseId}:${focusCardId}`;
+    if (focusHandledRef.current === focusKey) {
+      return;
+    }
+
+    const card = cards.find((candidate) => candidate.id === focusCardId);
+    if (card === undefined) {
+      return;
+    }
+
+    focusHandledRef.current = focusKey;
+    applySearchSelection(card);
+  }, [applySearchSelection, cards, caseId, focusCardId, visibleStatus]);
+
   const capacityBlocked = visibleStatus === 'ready' && !canAddCard(cards.length);
 
   const retryLoad = (): void => {
@@ -467,7 +558,12 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           <p className="case-board-page__eyebrow">
             {caseRecord !== null ? caseRecord.title : 'Case file'}
           </p>
-          <h2 id="case-board-page-title" className="case-board-page__title">
+          <h2
+            id="case-board-page-title"
+            ref={boardHeadingRef}
+            className="case-board-page__title"
+            tabIndex={-1}
+          >
             Case board
           </h2>
           <p className="case-board-page__summary">
@@ -502,6 +598,14 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
 
       <ScaleWarning cardCount={visibleStatus === 'ready' ? cards.length : 0} />
 
+      {visibleStatus === 'ready' && cards.length > 0 ? (
+        <SearchPanel
+          className="case-board-page__search"
+          cards={cards}
+          onSelectCard={applySearchSelection}
+        />
+      ) : null}
+
       {visibleStatus === 'ready' && reminder.visible ? (
         <aside className="backup-reminder" aria-labelledby="backup-reminder-title">
           <p className="visually-hidden" role="status">
@@ -534,7 +638,7 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
         </aside>
       ) : null}
 
-      <div className="case-board-page__stage">
+      <div className="case-board-page__stage" ref={stageRef}>
         {visibleStatus === 'loading' ? (
           <p className="case-board-page__status" role="status">
             Opening the case…
