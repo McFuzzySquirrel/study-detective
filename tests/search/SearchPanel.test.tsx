@@ -115,14 +115,18 @@ describe('SearchPanel query debounce', () => {
       vi.advanceTimersByTime(149);
     });
     expect(
-      screen.queryByRole('button', { name: 'Select Membrane transport from search results' }),
+      screen.queryByRole('button', {
+        name: 'Study note: Membrane transport. Select Membrane transport from search results.',
+      }),
     ).not.toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(1);
     });
     expect(
-      screen.getByRole('button', { name: 'Select Membrane transport from search results' }),
+      screen.getByRole('button', {
+        name: 'Study note: Membrane transport. Select Membrane transport from search results.',
+      }),
     ).toBeInTheDocument();
   });
 
@@ -159,10 +163,12 @@ describe('SearchPanel filters and clear all', () => {
     await user.click(screen.getByRole('button', { name: 'Topics' }));
 
     expect(
-      screen.getByRole('button', { name: 'Select Osmosis from search results' }),
+      screen.getByRole('button', { name: 'Topic: Osmosis. Select Osmosis from search results.' }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'Select Membrane transport from search results' }),
+      screen.queryByRole('button', {
+        name: 'Study note: Membrane transport. Select Membrane transport from search results.',
+      }),
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Water balance' }));
@@ -181,9 +187,13 @@ describe('SearchPanel filters and clear all', () => {
     );
     const names = results.map((button) => button.getAttribute('aria-label'));
 
-    expect(names).toContain('Select Membrane transport from search results');
-    expect(names).toContain('Select Osmosis from search results');
-    expect(names).toContain('Select Lecture slide 12 from search results');
+    expect(names).toContain(
+      'Study note: Membrane transport. Select Membrane transport from search results.',
+    );
+    expect(names).toContain('Topic: Osmosis. Select Osmosis from search results.');
+    expect(names).toContain(
+      'Source: Lecture slide 12. Select Lecture slide 12 from search results.',
+    );
   });
 
   it('shows active filter chips and clears query, type, and tags in one action', async () => {
@@ -301,7 +311,7 @@ describe('SearchPanel announcements and results', () => {
     await waitFor(() => {
       expect(
         screen.getByRole('button', {
-          name: 'Select <script>alert("membrane")</script> transport from search results',
+          name: 'Study note: <script>alert("membrane")</script> transport. Select <script>alert("membrane")</script> transport from search results.',
         }),
       ).toBeInTheDocument();
     });
@@ -309,7 +319,7 @@ describe('SearchPanel announcements and results', () => {
     expect(document.querySelector('script')).toBeNull();
 
     const resultButton = screen.getByRole('button', {
-      name: 'Select <script>alert("membrane")</script> transport from search results',
+      name: 'Study note: <script>alert("membrane")</script> transport. Select <script>alert("membrane")</script> transport from search results.',
     });
     const contextId = resultButton.getAttribute('aria-describedby');
     expect(contextId).not.toBeNull();
@@ -388,7 +398,7 @@ describe('SearchPanel wiring', () => {
     await user.type(input, 'sodium');
 
     const result = await screen.findByRole('button', {
-      name: 'Select Membrane transport from search results',
+      name: 'Study note: Membrane transport. Select Membrane transport from search results.',
     });
     await user.click(result);
 
@@ -461,7 +471,9 @@ describe('SearchPanel wiring', () => {
     ).toBeInTheDocument();
 
     await user.click(
-      await screen.findByRole('button', { name: 'Select Osmosis from search results' }),
+      await screen.findByRole('button', {
+        name: 'Topic: Osmosis. Select Osmosis from search results.',
+      }),
     );
 
     expect(

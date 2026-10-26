@@ -95,6 +95,17 @@ function summaryText(active: boolean, results: readonly CardSearchResult[], tota
   return `${countLabel(results.length)} ${results.length === 1 ? 'matches' : 'match'} your search.`;
 }
 
+/**
+ * Accessible name for a result button. WCAG 2.5.3 requires the accessible name
+ * to contain the visible label, and axe-core compares the visible text as a
+ * contiguous token sequence. The visible type label therefore repeats directly
+ * before the title, while the `Select <title> from search results` action phrase
+ * stays intact for existing journeys and speech-input users.
+ */
+function resultAccessibleName(card: CardRecord): string {
+  return `${cardTypeLabel(card.type)}: ${card.title}. Select ${card.title} from search results.`;
+}
+
 function resultContext(result: CardSearchResult, type: SearchTypeFilter): string {
   const parts: string[] = [];
 
@@ -453,14 +464,14 @@ export default function SearchPanel({
                     }}
                     type="button"
                     className="search-panel__result-select"
-                    aria-label={`Select ${result.card.title} from search results`}
+                    aria-label={resultAccessibleName(result.card)}
                     aria-describedby={contextId}
                     onClick={() => chooseResult(result.card)}
                     onKeyDown={(event) => handleResultKeyDown(event, index)}
                   >
                     <span className="search-panel__result-type">
                       {cardTypeLabel(result.card.type)}
-                    </span>
+                    </span>{' '}
                     <span className="search-panel__result-title">{result.card.title}</span>
                   </button>
 

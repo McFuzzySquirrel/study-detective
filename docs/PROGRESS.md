@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1
+**Phase**: RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2
 **Status**: In Progress
-**Validation Gaps**: 59 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T19:34:11.944Z
+**Validation Gaps**: 62 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T19:55:03.854Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -106,6 +106,8 @@
   - Files: src/app/KeyboardShortcuts.tsx, src/app/focus.ts, src/app/AppShell.tsx, src/features/case/CardListPanel.tsx, src/features/connections/ConnectionPicker.tsx, src/features/recall/RecallToolbar.tsx, src/features/search/SearchPanel.tsx, src/features/settings/SettingsPage.tsx, tests/a11y/keyboard.test.tsx, e2e/keyboard-journey.spec.ts, src/board/BoardCanvas.tsx, src/components/components.css, src/features/cards/CardDetailPage.tsx, src/features/case/CaseBoardPage.tsx, src/components/ShortcutList.tsx, src/components/shortcuts.ts
 - [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1, Task A11Y-3: Enforce contrast, target sizes, and reduced-motion behavior (@ui-engineer)
   - Files: src/styles/tokens.css, src/styles/base.css, src/features/settings/SettingsPage.tsx, tests/a11y/contrast.test.ts, tests/a11y/targets.test.ts, tests/a11y/reducedMotion.test.tsx, src/app/AppShell.tsx, src/board/BoardCanvas.tsx, src/features/backup/BackupDialog.css, src/features/case/CaseBoardPage.tsx, src/features/case/TopicStatusBadge.tsx, src/features/connections/connections.css, src/features/ocr/OcrPanel.css, src/main.tsx, tests/ocr/OcrPanel.test.tsx, src/app/motionPreference.ts, src/features/settings/settings.css
+- [x] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2, Task A11Y-4: Add axe scans for every primary screen (@qa-engineer)
+  - Files: tests/a11y/axeConfig.ts, e2e/a11y.spec.ts, e2e/search.spec.ts, src/features/search/SearchPanel.tsx, tests/search/SearchPanel.test.tsx
 
 ## Current Task
 - None currently running
@@ -179,6 +181,9 @@
 - Task A11Y-2: Headless Chromium cannot validate safe-area or visual focus-ring appearance; those remain human visual review items.
 - Task A11Y-3: No real-browser geometry measurement of 44 px targets or focus-ring rendering was run; evidence is CSS-contract plus jsdom fixtures, with actual geometry owned by the responsive and axe Playwright gates.
 - Task A11Y-3: The board camera auto-pan is already an instant jump in v1, so reduced motion removes the category rather than shortening an existing tween.
+- Task A11Y-4: Automated axe scans do not replace the human keyboard and screen-reader spot check.
+- Task A11Y-4: Canvas spatial screen-reader parity and visual focus-ring/target appearance remain human review items.
+- Task A11Y-4: No performance checks were added, per task exclusion.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

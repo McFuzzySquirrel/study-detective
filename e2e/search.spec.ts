@@ -421,7 +421,7 @@ test('opens, queries, filters, clears, and selects a search result with the keyb
   const filtersButton = page.getByRole('button', { name: 'Filters' });
   const clearAllButton = page.getByRole('button', { name: 'Clear all' });
   const resultButtons = page.getByRole('button', {
-    name: /^Select .+ from search results$/,
+    name: /Select .+ from search results/,
   });
   const summary = page.locator('.search-panel__summary');
 
@@ -439,13 +439,13 @@ test('opens, queries, filters, clears, and selects a search result with the keyb
   await expect(resultButtons).toHaveCount(3);
   await expect(summary).toContainText('3 cards match your search');
   await expect(resultButtons.nth(0)).toHaveAccessibleName(
-    `Select ${NOTE_TITLE} from search results`,
+    `Study note: ${NOTE_TITLE}. Select ${NOTE_TITLE} from search results.`,
   );
   await expect(resultButtons.nth(1)).toHaveAccessibleName(
-    `Select ${SOURCE_TITLE} from search results`,
+    `Source: ${SOURCE_TITLE}. Select ${SOURCE_TITLE} from search results.`,
   );
   await expect(resultButtons.nth(2)).toHaveAccessibleName(
-    `Select ${TOPIC_TITLE} from search results`,
+    `Topic: ${TOPIC_TITLE}. Select ${TOPIC_TITLE} from search results.`,
   );
 
   const noteResult = page.locator('.search-panel__result-item').filter({
@@ -471,7 +471,7 @@ test('opens, queries, filters, clears, and selects a search result with the keyb
   await expect(notesChip).toHaveAttribute('aria-pressed', 'true');
   await expect(resultButtons).toHaveCount(1);
   await expect(resultButtons.nth(0)).toHaveAccessibleName(
-    `Select ${NOTE_TITLE} from search results`,
+    `Study note: ${NOTE_TITLE}. Select ${NOTE_TITLE} from search results.`,
   );
   await expect(summary).toContainText('1 card matches your search');
 

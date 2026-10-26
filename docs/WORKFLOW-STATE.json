@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T19:34:11.940Z",
+  "lastUpdatedAt": "2026-10-26T19:55:03.849Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1",
+  "currentPhase": "RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -1818,10 +1818,37 @@
     },
     "A11Y-4": {
       "taskId": "A11Y-4",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "qa-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "tests/a11y/axeConfig.ts",
+        "e2e/a11y.spec.ts",
+        "e2e/search.spec.ts",
+        "src/features/search/SearchPanel.tsx",
+        "tests/search/SearchPanel.test.tsx"
+      ],
+      "startedAt": "2026-10-26T19:34:12.022Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/A11Y-4.2026-10-26T19-55-03-834Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T19:55:03.842Z",
+      "agentOutput": "I'll start by reading the execution file for A11Y-4.\nNow I'll create the shared axe configuration.\nI found two test-selector issues and one timing issue (axe sampled a dialog mid fade-in). Let me fix the harness to scan stable animation states.\nThe overlay and phone-sheet journeys now pass. One genuine WCAG 2.5.3 defect blocks the search scan, in product code owned by `ui-engineer`. I'll report it with reproduction and have the owner fix it, then re-verify independently.\n## A11Y-4 Verification Report\n\n### Command and result\n\n| Command | Result |\n|---|---|\n| `npm run test:e2e -- e2e/a11y.spec.ts` | **PASS, exit 0** — build succeeded; **5 passed, 4 skipped** in Chromium (skips are project scoping only: the six-screen/overlay matrix runs in `desktop` + `tablet-landscape`; the sheet journey runs in `desktop` with an explicit 390×844 viewport) |\n| `npm test` | **PASS** — 84 files, 1117 tests |\n| `npm run typecheck` | **PASS**, zero errors |\n| `npm run lint` | **PASS**, zero errors (3 pre-existing `react-refresh` warnings in `RecallSummary.tsx`) |\n| `npx prettier --check` on touched test files | **PASS** |\n\n### Behaviors exercised and criteria proved\n\n- **A11Y-FR-05 six screens:** shelf, board, card detail, recall, search, settings reached at **1440×900** and **1280×800**; each route’s landmark is asserted before scanning, and the scanned-screen list is compared to the shared config, so a missing screen fails the spec.\n- **Open overlays:** 12 dialogs/hints/popovers per project — create case, backup export, backup import, demo delete, board hint, shortcut help, board backup, card title, card tags, card delete, connection picker, replay hint.\n- **Sheets:** 4 phone sheets at **390×844** — search, case actions, closure, card actions & tags — with their inner controls open.\n- **Real persistence path:** each test starts with a truly empty storage state and lets the **real first-run demo seeder** write **6 cards and 5 strings**; case/card IDs are read back from **real IndexedDB**. No mocked storage, no fixture rows injected.\n- **Fail-on-removal evidence:** the spec caught a real defect (below) and failed; after the fix it passes.\n\n### Measured axe values\n\nJSON-reporter measurement across the final run:\n\n| Project / viewport | Scans | Serious/critical violations | Moderate violations | Incomplete checks |\n|---|---:|---:|---:|---:|\n| desktop 1440×900 | 22 | **0** | 2 (`landmark-unique`) | 33 |\n| tablet-landscape 1280×800 | 18 | **0** | 2 (`landmark-unique`) | 21 |\n| phone 390×844 sheets | 4 | **0** | 0 | 0 |\n| **Total** | **40** | **0** | **4** | **54** |\n\n- The tablet-landscape viewport is above the documented 1200 px desktop boundary, so it correctly renders the desktop layout. Phone sheets are exercised separately at 390×844.\n- **Zero DOM selector exclusions.** Documented deliberate limits are non-DOM only: canvas pixel content (PixiJS raster is outside axe; the canvas host, role/label/description and all controls remain scanned) and browser-native file-picker/download chrome (the app-owned input, labels and progress regions remain scanned).\n- Finite CSS animations are settled before each scan. Axe sampled a dialog mid fade-in on the first run and produced a false contrast failure; waiting for `document.getAnimations()` to finish removed that artefact without weakening the scan.\n\n### Defect found, fixed, re-verified\n\n- **`label-content-name-mismatch` (serious, WCAG 2.5.3)** on `.search-panel__result-select` at `/case/:id/list` with query “Photosynthesis” and the Notes filter: visible text included “Study note” but the accessible name omitted it.\n- Reported to **ui-engineer**, who fixed `src/features/search/SearchPanel.tsx` (accessible name now includes the visible type and title) and updated affected search assertions. QA independently re-ran the required command: **0 blocking violations on the search scan**, and the full unit suite passes.\n\n### Residual risk / human gates\n\n- 4 **moderate** `landmark-unique` findings: the board page region and the canvas region both expose the name “Case board”. Non-blocking for A11Y-FR-05, but a real semantics finding for ui/board ownership.\n- 54 **incomplete** serious checks are axe notes, not violations:\n  - `color-contrast` where axe cannot resolve overlap over the scrim/body gradient. Manually computed resting ratios pass: `#c9b89d` on `#342b23` = **7.14:1**, `#c9b89d` on `#221b16` = **8.76:1**, `#f1e4ca` on `#342b23` = **11.01:1**.\n  - `label-content-name-mismatch` on `×` glyph controls (close/remove buttons) whose visible label is a symbol.\n  - A human screen-reader/keyboard spot check and canvas spatial-parity review remain mandatory; axe is not a substitute.\n- Out of scope but observed: `e2e/search.spec.ts` fails in the **phone** project because it tabs to a searchbox that is now inside the phone sheet. This was reproduced identically with the pre-task HEAD spec, so it predates A11Y-4 and is a follow-up for the search/QA owner.\n\n### Files created or changed\n\n**Created**\n- `tests/a11y/axeConfig.ts` — shared screen/overlay lists, serious/critical threshold, documented exclusions, sanitized result summary and failure formatter.\n- `e2e/a11y.spec.ts` — six-screen desktop/tablet scans, open-dialog/hint scans, phone sheet scans, real demo seed and IndexedDB read.\n\n**Changed for the defect fix (ui-engineer; verified by QA)**\n- `src/features/search/SearchPanel.tsx`\n- `tests/search/SearchPanel.test.tsx`\n- `e2e/search.spec.ts`\n\n`docs/artifacts/` and the execution file were not modified.\n\n```forge-result\n{\"summary\":\"Added the shared axe configuration and A11Y-FR-05 Playwright spec. 40 scans across six screens at desktop and tablet, 12 dialogs/hints per project, and 4 phone sheets found zero serious/critical violations. The one real defect found (search-result Label in Name) was fixed by ui-engineer and independently re-verified. Required e2e command, full unit suite, typecheck, lint, and formatting pass.\",\"unresolved\":[],\"decisions\":[\"Seeded each test from a truly empty storage state through the real first-run demo seeder instead of injecting fixture rows, and read the case/card IDs back from real IndexedDB.\",\"Ran the six-screen and overlay matrices in the desktop and tablet-landscape projects; the phone sheet journey sets 390x844 explicitly. The four test.skip entries are project scoping, not skipped required journeys.\",\"Settled finite CSS animations before scanning so axe measures resting contrast rather than a dialog mid fade-in.\",\"Blocking threshold is serious/critical; moderate findings and incomplete checks are attached as sanitized evidence and reported as residual risk.\",\"No DOM selectors are excluded; only non-DOM limits (canvas pixels and browser-native chrome) are documented, with the canvas semantics and app-owned controls left in scope.\"],\"interfaces\":[\"tests/a11y/axeConfig.ts exports AXE_PRIMARY_SCREENS, AXE_OVERLAY_SURFACES, AXE_BLOCKING_IMPACTS, AXE_EXCLUDED_SELECTORS, AXE_DELIBERATE_EXCLUSIONS, AXE_RUN_OPTIONS, summarizeAxeResults, isBlockingImpact, and formatAxeFailure.\",\"e2e/a11y.spec.ts attaches axe-<surface> evidence JSON and an axe-evidence viewport/surface summary per test.\"],\"tests\":[\"npm run test:e2e -- e2e/a11y.spec.ts: exit 0, 5 passed, 4 project-scoped skips\",\"npm test: 84 files, 1117 tests passed\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0, 0 errors, 3 pre-existing warnings\",\"npx prettier --check tests/a11y/axeConfig.ts e2e/a11y.spec.ts: pass\",\"npx playwright test e2e/search.spec.ts e2e/keyboard-journey.spec.ts: 5 passed; phone search test fails on a pre-existing Tab-to-searchbox assumption confirmed at HEAD\"],\"warnings\":[\"Four moderate landmark-unique findings remain: the board page and canvas region share the name Case board. Not an AA blocker, but a semantics defect for ui/board ownership.\",\"54 serious incomplete axe checks remain (contrast overlap over the scrim/body gradient, and label-in-name on glyph-only close/remove controls). Incomplete is not a violation; manual resting contrast ratios pass (7.14:1, 8.76:1, 11.01:1) and human review is still required.\",\"e2e/search.spec.ts still fails in the phone project because it tabs to a searchbox now mounted inside a sheet; reproduced with the HEAD spec, so it predates this task and needs a separate search/QA follow-up.\",\"The tablet project is 1280x800, above the 1200 px desktop breakpoint; tablet-portrait 768x1024 is covered for overflow by A11Y-1 but is not an axe viewport in this task.\"],\"validationLimitations\":[\"Automated axe scans do not replace the human keyboard and screen-reader spot check.\",\"Canvas spatial screen-reader parity and visual focus-ring/target appearance remain human review items.\",\"No performance checks were added, per task exclusion.\"]}\n```\n",
+      "validationLimitations": [
+        "Automated axe scans do not replace the human keyboard and screen-reader spot check.",
+        "Canvas spatial screen-reader parity and visual focus-ring/target appearance remain human review items.",
+        "No performance checks were added, per task exclusion."
+      ],
+      "artifactId": "work-a11y-4-001",
+      "inputArtifactIds": [
+        "work-a11y-3-001",
+        "work-a11y-1-001",
+        "work-a11y-2-001"
+      ]
     },
     "A11Y-5": {
       "taskId": "A11Y-5",
