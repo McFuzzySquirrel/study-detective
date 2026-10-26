@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: BACKUP-AND-RESTORE-3
 **Status**: In Progress
-**Validation Gaps**: 21 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T04:25:51.979Z
+**Validation Gaps**: 22 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T04:51:03.992Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -54,6 +54,8 @@
   - Files: src/features/backup/importValidation.ts, src/features/backup/importCase.ts, tests/backup/importCase.test.ts
 - [x] Phase BACKUP-AND-RESTORE-3, Task BACKUP-3: Build the backup dialog, progress, and once-per-case reminder (@ui-engineer)
   - Files: src/features/backup/BackupDialog.tsx, src/features/backup/BackupDialog.css, src/features/backup/useBackupReminder.ts, src/features/shelf/CaseShelf.tsx, src/features/case/CaseBoardPage.tsx, tests/backup/BackupDialog.test.tsx, tests/backup/useBackupReminder.test.tsx, src/features/case/CaseBoardPage.css, src/features/shelf/CaseCard.tsx, src/features/shelf/CaseShelfPage.tsx, src/features/shelf/shelf.css, src/features/backup/backupOperations.ts
+- [x] Phase BACKUP-AND-RESTORE-3, Task BACKUP-4: Verify export, delete, copy restore, and replace in a browser (@qa-engineer)
+  - Files: e2e/backup.spec.ts
 
 ## Current Task
 - None currently running
@@ -70,7 +72,6 @@
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-1: Phase 1: Tags
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-2: Phase 2: Search and filters
 - [ ] Phase SEARCH-TAGS-AND-FILTERS-3: Phase 3: Browser verification
-- [ ] Phase BACKUP-AND-RESTORE-3: Phase 3: UI and browser journey
 - [ ] Phase OPTIONAL-OCR-1: Phase 1: Engine and assets
 - [ ] Phase OPTIONAL-OCR-2: Phase 2: OCR experience
 - [ ] Phase OPTIONAL-OCR-3: Phase 3: Search and backup integration
@@ -108,6 +109,7 @@
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).
 - Task BACKUP-3: File System Access and download behaviour is component-tested with injected fakes; real browser picker behaviour is deferred to BACKUP-4.
+- Task BACKUP-4: The literal in-task instruction to import the same first archive in replace mode against the restored case is not achievable without product changes; the replace path is proven with real generated archive bytes from the restored case.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
