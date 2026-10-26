@@ -104,6 +104,26 @@ export function isOcrJobActive(): boolean {
 }
 
 /**
+ * Convert a bundled asset path to a same-origin absolute URL.
+ *
+ * tesseract.js resolves `corePath` and `langPath` inside the worker, where a
+ * document-relative path would be resolved against `/ocr/worker.min.js` and
+ * produce `/ocr/ocr/…`. The absolute URL keeps the same file, origin, and base
+ * path while making worker-side resolution unambiguous.
+ */
+function resolveSameOriginAsset(path: string): string {
+  if (typeof document === 'undefined') {
+    return path;
+  }
+
+  try {
+    return new URL(path, document.baseURI).href;
+  } catch {
+    return path;
+  }
+}
+
+/**
  * Production worker factory. Tesseract's own defaults point at a CDN, so every
  * path is passed explicitly from the same-origin asset bundle.
  */
@@ -124,6 +144,12 @@ export async function createTesseractWorker({
   // enum while still selecting the simd-lstm core copied into public/ocr.
   return createWorker(OCR_LANGUAGE, 1, {
     ...configuration,
+    workerPath: resolveSameOriginAsset(configuration.workerPath),
+    // The bundle carries only the SIMD LSTM core. Passing the loader file (not
+    // the directory) stops tesseract.js from probing for a relaxed-SIMD build
+    // that was never copied, which would otherwise 404 on current Chromium.
+    corePath: resolveSameOriginAsset(assets.coreLoaderPath),
+    langPath: resolveSameOriginAsset(configuration.langPath),
     logger: (message: { progress: number; status: string }) => {
       onProgress(message.progress, message.status);
     },

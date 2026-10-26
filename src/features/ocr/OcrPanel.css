@@ -1,0 +1,237 @@
+/*
+ * OCR panel styles.
+ *
+ * The panel is an ordinary in-flow case-file section, not an overlay: it works
+ * inside the capture form and the card-detail page without trapping focus.
+ * Every colour, target, spacing, and motion value comes from tokens.css.
+ */
+
+.ocr-panel {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-inline-start: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.ocr-panel__header {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.ocr-panel__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  letter-spacing: var(--letter-spacing-heading);
+  line-height: var(--line-height-heading);
+  overflow-wrap: anywhere;
+}
+
+.ocr-panel__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.ocr-panel__intro,
+.ocr-panel__status,
+.ocr-panel__progress-text,
+.ocr-panel__message,
+.ocr-panel__suggestion-text {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.ocr-panel__status {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* The live region stays mounted so later updates are reliably announced. */
+.ocr-panel__live {
+  min-block-size: var(--space-4);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.ocr-panel__progress {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.ocr-panel__progress-meter {
+  inline-size: min(100%, 28rem);
+  block-size: var(--space-3);
+  accent-color: var(--color-accent);
+}
+
+.ocr-panel__message--error {
+  padding: var(--space-3);
+  color: var(--color-danger-text);
+  background-color: var(--color-surface);
+  border-inline-start: var(--border-width-strong) solid var(--color-danger);
+  border-radius: var(--radius-sm);
+}
+
+.ocr-panel__message--info {
+  padding: var(--space-3);
+  color: var(--color-ink);
+  background-color: var(--color-surface);
+  border-inline-start: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.ocr-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.ocr-panel__actions .nd-button {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.ocr-panel__suggestion {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-3);
+  background-color: var(--color-paper);
+  border: var(--border-width) solid var(--color-paper-edge);
+  border-radius: var(--radius-sm);
+}
+
+.ocr-panel__suggestion-title {
+  margin: 0;
+  color: var(--color-paper-heading-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  line-height: var(--line-height-heading);
+  text-transform: uppercase;
+}
+
+.ocr-panel__suggestion-text {
+  color: var(--color-paper-ink);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ocr-panel__result {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.ocr-panel__result-title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  line-height: var(--line-height-heading);
+  text-transform: uppercase;
+}
+
+.ocr-panel__text {
+  inline-size: 100%;
+  min-inline-size: 0;
+  max-block-size: 18rem;
+  padding: var(--space-3);
+  color: var(--color-paper-ink);
+  background-color: var(--color-paper);
+  border: var(--border-width) solid var(--color-paper-edge);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow: auto;
+  overscroll-behavior: contain;
+  resize: vertical;
+}
+
+.ocr-panel__text:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.ocr-panel__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.ocr-panel__meta-item {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  padding: var(--space-2);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.ocr-panel__meta dt {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.ocr-panel__meta dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Small screens                                                              */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 37.5rem) {
+  .ocr-panel {
+    padding: var(--space-3);
+  }
+
+  .ocr-panel__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ocr-panel__actions .nd-button {
+    inline-size: 100%;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Reduced motion                                                             */
+/* ------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .ocr-panel,
+  .ocr-panel *,
+  .ocr-panel *::before,
+  .ocr-panel *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

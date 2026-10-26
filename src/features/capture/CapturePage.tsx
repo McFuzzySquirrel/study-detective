@@ -17,6 +17,7 @@ import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import type { CaseRecord } from '../../domain/model';
+import type { OcrResult } from '../ocr/ocrWorker';
 import {
   importImageCard,
   type CardImportOutcome,
@@ -93,6 +94,7 @@ type PendingCard = {
   readonly crop: CropRect;
   readonly rotation: Rotation;
   readonly position: ImportImageCardInput['position'];
+  readonly ocr?: OcrResult;
 };
 
 type PendingTopic = {
@@ -517,6 +519,14 @@ export function CapturePage({
           crop: draft.crop,
           rotation: draft.rotation,
           retainFullResolution: draft.retainFullResolution,
+          ...(draft.ocr !== undefined
+            ? {
+                ocrText: draft.ocr.text,
+                ocrConfidence: draft.ocr.confidence,
+                ocrEngineVersion: draft.ocr.engineVersion,
+                ocrUpdatedAt: draft.ocr.updatedAt,
+              }
+            : {}),
         },
         {
           repository: target,
@@ -632,6 +642,7 @@ export function CapturePage({
       crop: cropResult.crop,
       rotation: cropResult.rotation,
       position,
+      ...(values.ocr !== undefined ? { ocr: values.ocr } : {}),
     };
 
     setPendingCard(draft);
@@ -843,6 +854,7 @@ export function CapturePage({
             initialType={pendingCard?.type ?? initialImageType}
             initialTitle={pendingCard?.title ?? ''}
             initialTags={pendingCard?.tags ?? []}
+            image={selectedFile}
             onBack={() => setStep('crop')}
             onSubmit={handleNoteSourceSubmit}
           />

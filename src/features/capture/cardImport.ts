@@ -46,6 +46,15 @@ export type ImportImageCardInput = {
   readonly rotation?: Rotation;
   /** Opt in per card to retain the decoded resolution for the original. */
   readonly retainFullResolution?: boolean;
+  /**
+   * OCR metadata from an explicit Read text action on this pending image. It is
+   * written in the same card transaction as the photo; an unsaved OCR preview
+   * simply leaves these fields omitted.
+   */
+  readonly ocrText?: string;
+  readonly ocrConfidence?: number;
+  readonly ocrEngineVersion?: string;
+  readonly ocrUpdatedAt?: string;
 };
 
 export type ImportStage =
@@ -196,6 +205,12 @@ export async function importImageCard(
         rotation: processed.rotation,
         retainFullResolution: processed.retainFullResolution,
         ...(input.tags !== undefined ? { tags: input.tags } : {}),
+        ...(input.ocrText !== undefined ? { ocrText: input.ocrText } : {}),
+        ...(input.ocrConfidence !== undefined ? { ocrConfidence: input.ocrConfidence } : {}),
+        ...(input.ocrEngineVersion !== undefined
+          ? { ocrEngineVersion: input.ocrEngineVersion }
+          : {}),
+        ...(input.ocrUpdatedAt !== undefined ? { ocrUpdatedAt: input.ocrUpdatedAt } : {}),
       },
       [
         toNewAttachment(processed.original),

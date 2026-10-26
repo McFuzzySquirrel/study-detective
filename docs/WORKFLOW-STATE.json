@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T07:10:56.125Z",
+  "lastUpdatedAt": "2026-10-26T07:39:05.138Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "CONNECTIONS-AND-PROVENANCE-3",
+  "currentPhase": "OPTIONAL-OCR-2",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -916,7 +916,8 @@
       "taskId": "LINK-HR-1",
       "status": "pending",
       "attempt": 0,
-      "outputFiles": []
+      "outputFiles": [],
+      "errorMessage": "Human review required for 'LINK-HR-1'. Record operator evidence with workflow-engine approve-task, then resume. --yes does not approve human work."
     },
     "CLOSE-1": {
       "taskId": "CLOSE-1",
@@ -1245,10 +1246,42 @@
     },
     "OCR-2": {
       "taskId": "OCR-2",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "ui-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/features/ocr/OcrPanel.tsx",
+        "src/features/ocr/OcrPanel.css",
+        "src/features/capture/NoteSourceForm.tsx",
+        "src/features/cards/CardDetailPage.tsx",
+        "tests/ocr/OcrPanel.test.tsx",
+        "e2e/ocr.spec.ts",
+        "e2e/fixtures/ocr-note.png",
+        "src/data/caseRepository.ts",
+        "src/features/capture/CapturePage.tsx",
+        "src/features/capture/cardImport.ts",
+        "src/features/ocr/ocrWorker.ts",
+        "src/features/ocr/ocrTitle.ts",
+        "tests/ocr/CardDetailOcr.test.tsx"
+      ],
+      "startedAt": "2026-10-26T07:10:56.211Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/OCR-2.2026-10-26T07-39-05-126Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T07:39:05.133Z",
+      "agentOutput": "## Result report — OCR-2\n\nImplemented the OCR experience end to end: an opt-in `OcrPanel` with every required state, capture and card-detail wiring, explicit title apply/dismiss, persisted OCR metadata, confirmed clearing, and a real-tesseract Playwright journey at desktop, tablet-landscape, and phone viewports.\n\n### Files created\n\n| File | Purpose |\n|---|---|\n| `src/features/ocr/OcrPanel.tsx` | Idle/loading/reading/done/failed/timed-out/cancelled panel, progress, Cancel, Retry, Run again, Clear OCR, suggestion flow |\n| `src/features/ocr/OcrPanel.css` | Token-only panel styles, 44 px actions, focus ring, reduced motion |\n| `src/features/ocr/ocrTitle.ts` | Pure first-meaningful-line title helper |\n| `tests/ocr/OcrPanel.test.tsx` | 15 component tests for activation, statuses, title rules, persistence, failure, timeout, cancellation, clear, keyboard/focus, targets, contrast, untrusted text |\n| `tests/ocr/CardDetailOcr.test.tsx` | Card-detail OCR rendering, confirmed clear persistence, topic exclusion |\n| `e2e/ocr.spec.ts` | Real OCR → Apply → save → search → reload → detail journey at 3 viewports |\n| `e2e/fixtures/ocr-note.png` | Clear 1400×900 printed-text fixture |\n\n### Files changed\n\n| File | Change |\n|---|---|\n| `src/features/capture/NoteSourceForm.tsx` | Added pending image prop, OCR panel, title autofill, OCR result included in submitted values |\n| `src/features/capture/CapturePage.tsx` | Carried `OcrResult` through the pending draft and import call |\n| `src/features/capture/cardImport.ts` | Optional OCR metadata passed into the atomic card creation transaction |\n| `src/features/cards/CardDetailPage.tsx` | OCR panel for photo cards, persist/clear/apply-title handlers, stored OCR rendering |\n| `src/features/ocr/ocrWorker.ts` | Same-origin absolute worker/core/language URLs and explicit SIMD loader selection |\n| `src/data/caseRepository.ts` | Nullable OCR fields in `CardPatch` so Clear OCR removes stored metadata |\n\n### Acceptance criteria\n\n| Criterion | Result | Evidence |\n|---|---|---|\n| OCR runs only after activating Read text | **Pass** | Panel test asserts no worker before activation; E2E asserts `data-ocr-status=\"idle\"` before the click |\n| Empty title filled and announced; non-empty unchanged until Apply | **Pass** | Component tests for autofill + live announcement, suggestion Apply/Dismiss, no automatic overwrite |\n| Text, confidence, engine version, timestamp persist and survive reload | **Pass** | E2E reads IndexedDB, reloads, re-searches OCR text, then opens detail with stored text/confidence/engine/timestamp |\n| Failure and timeout show retry and leave card unchanged; Cancel terminates worker | **Pass** | Component tests assert alerts, Retry, no persistence, unchanged prior result, and worker `terminate()` |\n| Playwright completes real OCR and finds text through search | **Pass** | `2× MITOCHONDRIA` fixture search success on desktop 1440×900, tablet 1280×800, phone 390×844 |\n\n### Validation run\n\n- `npm test -- tests/ocr/OcrPanel.test.tsx` — **15 passed**\n- `npm run test:e2e -- e2e/ocr.spec.ts` — **3 passed** (desktop, tablet-landscape, phone; real tesseract.js, ~6 s each)\n- `npm test` — **796 passed / 61 files**\n- `npm run typecheck` — pass\n- `npm run lint` — pass\n- `npm run format:check` — pass\n- `npm run build` — pass (via `test:e2e`)\n\n### Accessibility evidence\n\n- **Focus:** Clear dialog focuses Cancel, Escape closes and restores the Clear trigger, confirm moves focus to the panel heading. Tab order after the panel heading reaches `Run again` then `Clear OCR`.\n- **Announcements:** One always-mounted polite live region for fill/suggestion/cancel/clear; failed/timed-out states use an alert and Retry.\n- **Targets:** CSS target floor is `var(--target-min)` = 44 px; Playwright bounding boxes ≥44×44 for `Read text`, `Apply`, `Run again`, and `Clear OCR` at all three viewports.\n- **Contrast measured:** ink/sunken 13.50, muted/sunken 8.76, heading/sunken 14.25, paper ink/paper 12.99, paper heading/paper 13.49, danger text/surface 8.72, focus ring/sunken 10.46.\n- **Motion:** `prefers-reduced-motion` disables panel transitions/animations/scroll behavior.\n- **Untrusted text:** OCR text and titles render as text; no `dangerouslySetInnerHTML`; no raw palette values in the panel.\n\n### Shared-file handoff notes\n\n- `CardDetailPage.tsx`: preserve the OCR panel placement after the photo/sidebar layout, topic exclusion, and repository-backed persist/clear/apply behavior.\n- `CapturePage.tsx` / `NoteSourceForm.tsx`: preserve the `image` prop and `PendingCard.ocr` passthrough so capture OCR survives import retry.\n- `cardImport.ts`: optional OCR fields must remain inside the atomic `createCardWithAttachments` call.\n- `caseRepository.ts`: `CardPatch` OCR fields accept `null` to clear; do not revert to undefined-only handling.\n- `ocrWorker.ts`: keep absolute same-origin URL resolution and the explicit `coreLoaderPath`; using the directory again makes Chromium request the unbundled relaxed-SIMD core and fail.\n\n### Known gaps / limitations\n\n- OCR usefulness on handwriting is still a product observation; the automated fixture is clear printed text.\n- This task did not run an axe scan for the OCR panel; QA owns the phase axe matrix.\n- OCR in capture reads the pending source file; crop-derived display images are not re-OCR’d at this step.\n- Visual styling should still be spot-checked at the human style gate; behavior and accessibility checks pass.\n\n```forge-result\n{\"summary\":\"Implemented OCR-2: an accessible opt-in OcrPanel with all statuses, title autofill/apply/dismiss, persisted OCR metadata, confirmed clear, capture and card-detail wiring, 18 focused component/integration tests, and a real-tesseract Playwright journey passing at desktop, tablet, and phone viewports.\",\"unresolved\":[],\"decisions\":[\"Empty titles are filled from the first meaningful OCR line and announced; non-empty titles only change through Apply.\",\"Capture OCR metadata is written in the same atomic card transaction as the photo; card detail writes it through updateCard.\",\"Clear OCR uses nullable CardPatch OCR fields so removal is validated and persisted rather than client-only.\",\"The production worker uses absolute same-origin asset URLs and the explicit SIMD LSTM loader because bundled assets do not include the relaxed-SIMD core.\",\"Clear confirmation restores focus to the OCR panel heading when the Clear trigger unmounts with the result.\"],\"interfaces\":[\"OcrPanel({ image, title, initialResult?, onTitleChange?, onApplyTitle?, onPersist?, onClear?, onResultChange?, ocrOptions?, disabled?, headingLevel?, id? })\",\"NoteSourceForm gained image?: OcrImage | null and NoteSourceValues.ocr?: OcrResult\",\"ImportImageCardInput gained optional ocrText/ocrConfidence/ocrEngineVersion/ocrUpdatedAt\",\"CardPatch OCR fields accept null to clear\"],\"tests\":[\"npm test -- tests/ocr/OcrPanel.test.tsx: 15 passed\",\"npm run test:e2e -- e2e/ocr.spec.ts: 3 passed (desktop 1440x900, tablet-landscape 1280x800, phone 390x844)\",\"npm test: 796 passed across 61 files\",\"npm run typecheck, npm run lint, npm run format:check, npm run build: pass\"],\"warnings\":[\"No axe scan was run for the OCR panel in this task; QA owns the phase axe matrix.\",\"Handwriting OCR quality remains a manual product observation.\"],\"validationLimitations\":[\"Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey.\"]}\n```\n",
+      "validationLimitations": [
+        "Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey."
+      ],
+      "artifactId": "work-ocr-2-001",
+      "inputArtifactIds": [
+        "work-ocr-1-001",
+        "work-search-2-001"
+      ]
     },
     "OCR-3": {
       "taskId": "OCR-3",

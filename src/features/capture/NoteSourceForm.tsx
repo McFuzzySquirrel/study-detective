@@ -12,6 +12,8 @@ import type { FormEvent } from 'react';
 import Button from '../../components/Button';
 import Field from '../../components/Field';
 import { TITLE_MAX_LENGTH } from '../../domain/model';
+import type { OcrImage, OcrResult } from '../ocr/ocrWorker';
+import OcrPanel from '../ocr/OcrPanel';
 import TagInput from '../search/TagInput';
 
 import type { ImageCardType } from './cardImport';
@@ -24,6 +26,8 @@ export type NoteSourceValues = {
   readonly retainFullResolution: boolean;
   /** Omitted when the card has no tags, so existing callers stay unchanged. */
   readonly tags?: readonly string[];
+  /** Optional OCR run against the pending photo; saved with the new card. */
+  readonly ocr?: OcrResult;
 };
 
 export interface NoteSourceFormProps {
@@ -31,6 +35,8 @@ export interface NoteSourceFormProps {
   readonly initialTitle?: string;
   /** Tags restored when the student steps back to this form after a failure. */
   readonly initialTags?: readonly string[];
+  /** The cropped/pending photo; OCR is offered but never started automatically. */
+  readonly image?: OcrImage | null;
   /** Returns to the crop step without creating a card. */
   readonly onBack: () => void;
   readonly onSubmit: (values: NoteSourceValues) => void;
@@ -44,12 +50,14 @@ export default function NoteSourceForm({
   initialType = 'note',
   initialTitle = '',
   initialTags = [],
+  image = null,
   onBack,
   onSubmit,
 }: NoteSourceFormProps) {
   const [type, setType] = useState<ImageCardType>(initialType);
   const [title, setTitle] = useState(initialTitle);
   const [tags, setTags] = useState<readonly string[]>(initialTags);
+  const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
   const [retainFullResolution, setRetainFullResolution] = useState(false);
   const [titleError, setTitleError] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -79,6 +87,7 @@ export default function NoteSourceForm({
       title: trimmed,
       retainFullResolution,
       ...(tags.length > 0 ? { tags } : {}),
+      ...(ocrResult !== null ? { ocr: ocrResult } : {}),
     });
   }
 
@@ -141,6 +150,17 @@ export default function NoteSourceForm({
           onChange={setTags}
           label="Tags"
           hint="Optional. Type a tag and press Enter or comma to add it. Backspace removes the last tag."
+        />
+
+        <OcrPanel
+          image={image}
+          title={title}
+          headingLevel={4}
+          onTitleChange={(nextTitle) => {
+            setTitle(nextTitle);
+            setTitleError(null);
+          }}
+          onResultChange={setOcrResult}
         />
 
         <label className="capture-toggle" htmlFor="capture-keep-full-resolution">

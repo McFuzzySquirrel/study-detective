@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: CONNECTIONS-AND-PROVENANCE-3
+**Phase**: OPTIONAL-OCR-2
 **Status**: In Progress
-**Validation Gaps**: 36 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T07:10:56.128Z
+**Validation Gaps**: 37 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T07:39:05.141Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -76,6 +76,8 @@
   - Files: e2e/backup.spec.ts
 - [x] Phase OPTIONAL-OCR-1, Task OCR-1: Bundle tesseract.js assets and implement the OCR worker lifecycle (@capture-engineer)
   - Files: package.json, scripts/copy-ocr-assets.mjs, scripts/check-ocr-assets.mjs, src/features/ocr/ocrAssets.ts, src/features/ocr/ocrWorker.ts, src/features/ocr/useOcr.ts, src/domain/model.ts, src/data/mappers.ts, vite.config.ts, .gitignore, public/ocr/eng.traineddata.gz, public/ocr/worker.min.js, public/ocr/tesseract-core-simd-lstm.wasm, public/ocr/tesseract-core-simd-lstm.wasm.js, tests/ocr/ocrAssets.test.ts, tests/ocr/useOcr.test.tsx, eslint.config.js
+- [x] Phase OPTIONAL-OCR-2, Task OCR-2: Build the OCR panel and title suggestion flow (@ui-engineer)
+  - Files: src/features/ocr/OcrPanel.tsx, src/features/ocr/OcrPanel.css, src/features/capture/NoteSourceForm.tsx, src/features/cards/CardDetailPage.tsx, tests/ocr/OcrPanel.test.tsx, e2e/ocr.spec.ts, e2e/fixtures/ocr-note.png, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/capture/cardImport.ts, src/features/ocr/ocrWorker.ts, src/features/ocr/ocrTitle.ts, tests/ocr/CardDetailOcr.test.tsx
 
 ## Current Task
 - None currently running
@@ -86,7 +88,6 @@
 - [ ] Phase CASE-CLOSURE-2: Phase 2: Closure UI and lifecycle
 - [ ] Phase RECALL-MODE-1: Phase 1: Non-persistent recall logic
 - [ ] Phase RECALL-MODE-2: Phase 2: Recall experience
-- [ ] Phase OPTIONAL-OCR-2: Phase 2: OCR experience
 - [ ] Phase OPTIONAL-OCR-3: Phase 3: Search and backup integration
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-1: Phase 1: Demo content and seeding
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
@@ -137,6 +138,7 @@
 - Task BACKUP-4: The literal in-task instruction to import the same first archive in replace mode against the restored case is not achievable without product changes; the replace path is proven with real generated archive bytes from the restored case.
 - Task OCR-1: Unit worker tests use injected fake workers; the default tesseract.js integration path is typechecked and bundled as assets but not executed in a browser.
 - Task OCR-1: tesseract.js JS is tree-shaken from this build because no screen imports useOcr yet; assets are emitted and precached.
+- Task OCR-2: Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532

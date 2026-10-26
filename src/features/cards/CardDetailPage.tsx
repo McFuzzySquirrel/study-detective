@@ -35,6 +35,8 @@ import type { CropResult } from '../capture/CropRotateEditor';
 import ConnectionPicker from '../connections/ConnectionPicker';
 import type { ConnectionPickerIntent } from '../connections/ConnectionPicker';
 import { connectionTypeLabel } from '../connections/useUndoDeleteConnection';
+import OcrPanel from '../ocr/OcrPanel';
+import type { OcrResult } from '../ocr/ocrWorker';
 import TagInput from '../search/TagInput';
 import {
   replaceCardPhoto as replaceCardPhotoWithPipeline,
@@ -179,6 +181,24 @@ function attachmentView(
 
 function stageIsCancelable(stage: ReplaceStage | null): boolean {
   return stage !== 'saving' && stage !== 'done';
+}
+
+/**
+ * Read the stored OCR fields as one renderable result. A card written before
+ * OCR existed simply has no fields; a partially written row falls back to
+ * conservative metadata rather than failing the whole detail screen.
+ */
+function storedOcrResult(card: CardRecord): OcrResult | null {
+  if (card.ocrText === undefined || card.ocrText.trim().length === 0) {
+    return null;
+  }
+
+  return {
+    text: card.ocrText,
+    confidence: card.ocrConfidence ?? 0,
+    engineVersion: card.ocrEngineVersion ?? 'Unknown',
+    updatedAt: card.ocrUpdatedAt ?? card.updatedAt,
+  };
 }
 
 interface TitleEditDialogProps {
@@ -852,6 +872,55 @@ export function CardDetailPage({
     setFeedback({ message: 'Card tags updated.', tone: 'success' });
   };
 
+  const handleOcrPersist = async (result: OcrResult): Promise<void> => {
+    const target = activeRepository;
+    const currentCard = card;
+
+    if (target === null || currentCard === null) {
+      throw new Error('The card repository is not open.');
+    }
+
+    const updated = await target.updateCard(currentCard.id, {
+      ocrText: result.text,
+      ocrConfidence: result.confidence,
+      ocrEngineVersion: result.engineVersion,
+      ocrUpdatedAt: result.updatedAt,
+    });
+    setCard(updated);
+    setFeedback({ message: 'OCR text saved with this card.', tone: 'success' });
+  };
+
+  const handleOcrClear = async (): Promise<void> => {
+    const target = activeRepository;
+    const currentCard = card;
+
+    if (target === null || currentCard === null) {
+      throw new Error('The card repository is not open.');
+    }
+
+    const updated = await target.updateCard(currentCard.id, {
+      ocrText: null,
+      ocrConfidence: null,
+      ocrEngineVersion: null,
+      ocrUpdatedAt: null,
+    });
+    setCard(updated);
+    setFeedback({ message: 'OCR text cleared from this card.', tone: 'success' });
+  };
+
+  const handleOcrApplyTitle = async (title: string): Promise<void> => {
+    const target = activeRepository;
+    const currentCard = card;
+
+    if (target === null || currentCard === null) {
+      throw new Error('The card repository is not open.');
+    }
+
+    const updated = await target.updateCard(currentCard.id, { title });
+    setCard(updated);
+    setFeedback({ message: 'Title applied from OCR.', tone: 'success' });
+  };
+
   const handleConnectionCreated = useCallback((connection: ConnectionRecord): void => {
     setConnections((current) => [
       ...current.filter((candidate) => candidate.id !== connection.id),
@@ -1153,6 +1222,19 @@ export function CardDetailPage({
                 </p>
               </div>
             </div>
+          )}
+
+          {card.type === 'topic' ? null : (
+            <OcrPanel
+              image={displayAttachment?.blob ?? originalAttachment?.blob ?? null}
+              title={card.title}
+              initialResult={storedOcrResult(card)}
+              headingLevel={3}
+              disabled={replacing}
+              onPersist={handleOcrPersist}
+              onClear={handleOcrClear}
+              onApplyTitle={handleOcrApplyTitle}
+            />
           )}
 
           {replacing ? (

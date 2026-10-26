@@ -92,10 +92,14 @@ export type CardPatch = {
   readonly crop?: CardCrop;
   readonly rotation?: CardRotation;
   readonly retainFullResolution?: boolean;
-  readonly ocrText?: string;
-  readonly ocrConfidence?: number;
-  readonly ocrEngineVersion?: string;
-  readonly ocrUpdatedAt?: string;
+  /**
+   * `null` clears that OCR field. Clear OCR sends null for all four so the
+   * card returns to the never-read state in one validated write.
+   */
+  readonly ocrText?: string | null;
+  readonly ocrConfidence?: number | null;
+  readonly ocrEngineVersion?: string | null;
+  readonly ocrUpdatedAt?: string | null;
 };
 
 export type CardWithAttachments = {
@@ -238,8 +242,28 @@ function buildCardRecord(input: CardCreateInput, id: string, now: string): CardR
 }
 
 function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): CardRecord {
+  // OCR fields are nullable in a patch so Clear OCR can remove them. The rest
+  // of the card is spread from the validated current row.
+  const {
+    ocrText: currentOcrText,
+    ocrConfidence: currentOcrConfidence,
+    ocrEngineVersion: currentOcrEngineVersion,
+    ocrUpdatedAt: currentOcrUpdatedAt,
+    ...currentWithoutOcr
+  } = current;
+
+  const ocrText = patch.ocrText === undefined ? currentOcrText : (patch.ocrText ?? undefined);
+  const ocrConfidence =
+    patch.ocrConfidence === undefined ? currentOcrConfidence : (patch.ocrConfidence ?? undefined);
+  const ocrEngineVersion =
+    patch.ocrEngineVersion === undefined
+      ? currentOcrEngineVersion
+      : (patch.ocrEngineVersion ?? undefined);
+  const ocrUpdatedAt =
+    patch.ocrUpdatedAt === undefined ? currentOcrUpdatedAt : (patch.ocrUpdatedAt ?? undefined);
+
   return parseCardRecord({
-    ...current,
+    ...currentWithoutOcr,
     ...(patch.title !== undefined ? { title: patch.title } : {}),
     ...(patch.type !== undefined ? { type: patch.type } : {}),
     ...(patch.position !== undefined
@@ -252,10 +276,10 @@ function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): C
       ? { retainFullResolution: patch.retainFullResolution }
       : {}),
     updatedAt: latestTimestamp(nowIso(clock), current.updatedAt),
-    ...(patch.ocrText !== undefined ? { ocrText: patch.ocrText } : {}),
-    ...(patch.ocrConfidence !== undefined ? { ocrConfidence: patch.ocrConfidence } : {}),
-    ...(patch.ocrEngineVersion !== undefined ? { ocrEngineVersion: patch.ocrEngineVersion } : {}),
-    ...(patch.ocrUpdatedAt !== undefined ? { ocrUpdatedAt: patch.ocrUpdatedAt } : {}),
+    ...(ocrText !== undefined ? { ocrText } : {}),
+    ...(ocrConfidence !== undefined ? { ocrConfidence } : {}),
+    ...(ocrEngineVersion !== undefined ? { ocrEngineVersion } : {}),
+    ...(ocrUpdatedAt !== undefined ? { ocrUpdatedAt } : {}),
   });
 }
 
