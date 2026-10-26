@@ -6,6 +6,7 @@ import type { CardDetailRepositoryLoader } from '../features/cards/CardDetailPag
 import type { CardListRepositoryLoader } from '../features/case/CardListPage';
 import type { CaseBoardRepositoryLoader } from '../features/case/CaseBoardPage';
 import type { CaptureRepositoryLoader } from '../features/capture/CapturePage';
+import type { RecallRepositoryLoader } from '../features/recall/RecallPage';
 import type { CaseRepositoryLoader } from '../features/shelf/CaseShelfPage';
 
 import ErrorBoundary from './ErrorBoundary';
@@ -36,7 +37,7 @@ const CardDetailScreen = lazy(() =>
   })),
 );
 const RecallScreen = lazy(() =>
-  import('./placeholders').then((module) => ({ default: module.RecallPlaceholder })),
+  import('../features/recall/RecallPage').then((module) => ({ default: module.RecallPage })),
 );
 const SettingsScreen = lazy(() =>
   import('./placeholders').then((module) => ({ default: module.SettingsPlaceholder })),
@@ -66,6 +67,10 @@ export interface AppRoutesProps {
   readonly cardListRepository?: CaseRepositoryPort | undefined;
   /** Replaces the card-list route's repository opener, including its failure path. */
   readonly loadCardListRepository?: CardListRepositoryLoader | undefined;
+  /** Replaces the recall route's read-only repository in tests and composition. */
+  readonly recallRepository?: CaseRepositoryPort | undefined;
+  /** Replaces the recall route's repository opener, including its failure path. */
+  readonly loadRecallRepository?: RecallRepositoryLoader | undefined;
 }
 
 /**
@@ -84,6 +89,8 @@ export function AppRoutes({
   loadBoardRepository,
   cardListRepository,
   loadCardListRepository,
+  recallRepository,
+  loadRecallRepository,
 }: AppRoutesProps = {}) {
   const location = useLocation();
 
@@ -133,7 +140,15 @@ export function AppRoutes({
               />
             }
           />
-          <Route path="/case/:caseId/recall" element={<RecallScreen />} />
+          <Route
+            path="/case/:caseId/recall"
+            element={
+              <RecallScreen
+                repository={recallRepository ?? boardRepository}
+                loadRepository={loadRecallRepository ?? loadBoardRepository}
+              />
+            }
+          />
           <Route path="/settings" element={<SettingsScreen />} />
           <Route path="*" element={<NotFoundScreen />} />
         </Routes>

@@ -13,7 +13,7 @@ import { useStore } from 'zustand';
 
 import Button from '../components/Button';
 
-import type { BoardSnapshot } from './BoardScene';
+import type { BoardSnapshot, BoardStringConnection } from './BoardScene';
 import { attachBoardInput } from './boardInput';
 import { boardStore } from './boardStore';
 import type { BoardStoreApi } from './boardStore';
@@ -41,7 +41,13 @@ import './BoardCanvas.css';
 export const BOARD_CANVAS_LABEL =
   'Case board canvas. Drag the cork to pan. Drag a card to move it. Select a card and drag its thread anchor to another card to connect them. Pinch or scroll to zoom. Use the controls for zoom and reset.';
 
+/** The recall canvas has no truth strings; its label must not promise them. */
+export const RECALL_CANVAS_LABEL =
+  'Recall board canvas. The case strings are hidden. Card titles, images, and positions are visible. Select a card and drag its red thread anchor to another card to draw a scratch connection. Scratch connections are not saved. Pinch or scroll to zoom. Use the controls for zoom and reset.';
+
 const ZOOM_STEP = 1.25;
+
+export type BoardCanvasMode = 'browse' | 'recall';
 
 /** A completed thread drop emitted to the page that owns the repository. */
 export interface BoardConnectionDrop {
@@ -51,10 +57,28 @@ export interface BoardConnectionDrop {
   readonly point: { readonly clientX: number; readonly clientY: number };
 }
 
+/**
+ * A recall scratch drop. It never carries a type, because drawing a scratch
+ * string is not a repository write and the truth type is compared later.
+ */
+export interface BoardScratchDrop {
+  readonly fromCardId: string;
+  readonly toCardId: string | null;
+}
+
 export interface BoardCanvasProps {
   readonly snapshot: BoardSnapshot;
   /** Injected store for component tests and future multi-board screens. */
   readonly store?: BoardStoreApi | undefined;
+  /**
+   * Recall mode hides every truth string and routes a thread drop to
+   * `onScratchDrop` instead of the repository-owned `onConnectionDrop`.
+   */
+  readonly mode?: BoardCanvasMode | undefined;
+  /** The neutral scratch layer drawn only in recall mode. */
+  readonly scratchConnections?: readonly BoardStringConnection[] | undefined;
+  /** Called after a recall thread drop so the page updates the in-memory store. */
+  readonly onScratchDrop?: ((drop: BoardScratchDrop) => void) | undefined;
   /**
    * Called once when a drag ends. The page debounces the repository update; the
    * canvas never writes a position itself.
@@ -117,6 +141,9 @@ function usePrefersReducedMotion(): boolean {
 export function BoardCanvas({
   snapshot,
   store,
+  mode = 'browse',
+  scratchConnections,
+  onScratchDrop,
   onCardMoved,
   onCardTap,
   onConnectionDrop,
@@ -130,12 +157,29 @@ export function BoardCanvas({
   const selectedConnectionId = useStore(activeStore, selectSelectedConnectionId);
   const reducedMotion = usePrefersReducedMotion();
   const navigate = useNavigate();
+  const recall = mode === 'recall';
 
   const snapshotRef = useRef(snapshot);
   const viewportRef = useRef(viewport);
   const anchorCardIdRef = useRef<string | null>(null);
   const onConnectionDropRef = useRef(onConnectionDrop);
+  const onScratchDropRef = useRef(onScratchDrop);
   const reducedMotionRef = useRef(reducedMotion);
+
+  // Recall never hands the truth graph to the scene, even if the page's plain
+  // snapshot still carries it for the later comparison and check step.
+  const truthConnections = useMemo(
+    () => (recall ? [] : (snapshot.connections ?? [])),
+    [recall, snapshot.connections],
+  );
+  const scratch = useMemo(() => scratchConnections ?? [], [scratchConnections]);
+  const sceneSnapshot = useMemo<BoardSnapshot>(
+    () =>
+      recall
+        ? { ...snapshot, connections: truthConnections, scratchConnections: scratch }
+        : { ...snapshot, connections: truthConnections },
+    [recall, scratch, snapshot, truthConnections],
+  );
 
   const anchorCardId = selectedCardId ?? hoveredCardId;
   const anchorCard =
@@ -159,6 +203,10 @@ export function BoardCanvas({
   }, [onConnectionDrop]);
 
   useEffect(() => {
+    onScratchDropRef.current = onScratchDrop;
+  }, [onScratchDrop]);
+
+  useEffect(() => {
     reducedMotionRef.current = reducedMotion;
   }, [reducedMotion]);
 
@@ -177,9 +225,9 @@ export function BoardCanvas({
     endThread: endThreadInScene,
   } = usePixiApp({
     hostRef,
-    snapshot,
+    snapshot: sceneSnapshot,
     viewport,
-    canvasLabel: BOARD_CANVAS_LABEL,
+    canvasLabel: recall ? RECALL_CANVAS_LABEL : BOARD_CANVAS_LABEL,
     reducedMotion,
   });
 
@@ -327,6 +375,13 @@ export function BoardCanvas({
       activeStore.getState().selectCard(cardId);
       activeStore.getState().resetGesture();
 
+      // Recall is a reconstruction surface, not a route into card detail. A tap
+      // selects the card so its thread anchor is available, and the titles and
+      // images already stay visible on the board.
+      if (recall) {
+        return;
+      }
+
       if (onCardTap !== undefined) {
         onCardTap(cardId);
         return;
@@ -334,7 +389,7 @@ export function BoardCanvas({
 
       navigate(`/case/${snapshot.caseId}/card/${cardId}`);
     },
-    [activeStore, navigate, onCardTap, setCardLiftedInScene, snapshot.caseId],
+    [activeStore, navigate, onCardTap, recall, setCardLiftedInScene, snapshot.caseId],
   );
 
   const handleConnectStart = useCallback(
@@ -372,6 +427,16 @@ export function BoardCanvas({
       endThreadInScene?.();
       activeStore.getState().resetGesture();
 
+      // Recall reuses the thread-anchor gesture, but the drop is an in-memory
+      // scratch intent. It must never reach the repository-owned drop handler.
+      if (recall) {
+        onScratchDropRef.current?.({
+          fromCardId: end.fromCardId,
+          toCardId: end.targetCardId,
+        });
+        return;
+      }
+
       const rect = hostRef.current?.getBoundingClientRect();
       const left = rect?.left ?? 0;
       const top = rect?.top ?? 0;
@@ -385,7 +450,7 @@ export function BoardCanvas({
         },
       });
     },
-    [activeStore, endThreadInScene],
+    [activeStore, endThreadInScene, recall],
   );
 
   const handleConnectCancel = useCallback((): void => {
@@ -455,11 +520,12 @@ export function BoardCanvas({
       y: card.position.y,
     })),
   );
-  const connections = snapshot.connections ?? [];
+  const connections = truthConnections;
   const associationCount = connections.filter(
     (connection) => connection.type === 'association',
   ).length;
   const provenanceCount = connections.length - associationCount;
+  const scratchIds = scratch.map((connection) => connection.id).join('|');
   const anchorPointAttribute =
     anchorPoint === null
       ? ''
@@ -471,8 +537,9 @@ export function BoardCanvas({
   return (
     <section
       className="board-canvas"
-      aria-label="Case board"
+      aria-label={recall ? 'Recall board' : 'Case board'}
       data-testid="board-canvas"
+      data-board-mode={mode}
       data-board-viewport-x={formatViewportValue(viewport.x)}
       data-board-viewport-y={formatViewportValue(viewport.y)}
       data-board-scale={formatScale(viewport.scale)}
@@ -480,6 +547,8 @@ export function BoardCanvas({
       data-board-connection-count={connections.length}
       data-board-association-count={associationCount}
       data-board-provenance-count={provenanceCount}
+      data-board-scratch-count={scratch.length}
+      data-board-scratch-connections={scratchIds}
       data-board-visible-card-count={visibleCards.length}
       data-board-card-positions={cardPositions}
       data-board-anchor-card-id={anchorCardId ?? ''}
@@ -534,7 +603,7 @@ export function BoardCanvas({
         store={activeStore}
       />
 
-      {status !== 'error' && !contextLost ? (
+      {status !== 'error' && !contextLost && !recall ? (
         <div className="board-canvas__links">
           {cardLimitReached ? (
             <span

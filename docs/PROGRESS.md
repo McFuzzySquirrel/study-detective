@@ -3,8 +3,8 @@
 ## Current State
 **Phase**: RECALL-MODE-2
 **Status**: In Progress
-**Validation Gaps**: 43 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T16:58:27.844Z
+**Validation Gaps**: 46 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T17:32:14.879Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -68,6 +68,8 @@
   - Files: src/features/closure/ClosurePanel.tsx, src/features/closure/useCaseLifecycle.ts, src/domain/caseLifecycle.ts, src/data/caseRepository.ts, src/features/case/CaseBoardPage.tsx, src/features/shelf/CaseCard.tsx, tests/features/closure/ClosurePanel.test.tsx, tests/domain/caseLifecycle.test.ts, e2e/closure.spec.ts, src/domain/model.ts, src/features/case/CaseBoardPage.css, src/features/shelf/shelf.css, tests/domain/model.test.ts, tests/domain/validation.test.ts, tests/shelf/CaseFormDialog.test.tsx, src/features/closure/closure.css
 - [x] Phase RECALL-MODE-1, Task RECALL-1: Implement scratch connections and recall comparison (@board-engineer)
   - Files: src/features/recall/recallStore.ts, src/features/recall/compareConnections.ts, tests/recall/compareConnections.test.ts, tests/recall/recallStore.test.ts
+- [x] Phase RECALL-MODE-2, Task RECALL-2: Build the recall route, hidden strings, and scratch drawing (@board-engineer)
+  - Files: src/features/recall/RecallPage.tsx, src/features/recall/RecallToolbar.tsx, src/features/recall/useScratchConnections.ts, src/features/recall/recall.css, src/board/BoardCanvas.tsx, src/app/routes.tsx, tests/recall/RecallPage.test.tsx, e2e/recall.spec.ts, src/board/BoardScene.ts, src/board/StringLayer.ts, src/features/case/CaseBoardPage.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-1, Task SEARCH-1: Add normalized tags to cards and card forms (@ui-engineer)
   - Files: src/domain/tags.ts, src/features/search/TagInput.tsx, src/features/search/TagInput.css, src/features/capture/NoteSourceForm.tsx, src/features/capture/TopicForm.tsx, src/features/cards/CardDetailPage.tsx, tests/domain/tags.test.ts, tests/search/TagInput.test.tsx, src/features/capture/CapturePage.tsx, src/features/cards/CardDetail.css, tests/capture/CaptureFlow.test.tsx, tests/capture/TopicForm.test.tsx
 - [x] Phase SEARCH-TAGS-AND-FILTERS-2, Task SEARCH-2: Implement live search, filters, and the results panel (@ui-engineer)
@@ -140,6 +142,9 @@
 - Task CLOSE-2: Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair.
 - Task RECALL-1: Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.
 - Task RECALL-1: No browser journey applies to this unit-only task.
+- Task RECALL-2: 45 FPS at 150 cards on the target tablet was not measured; board-feel and FPS still require human review.
+- Task RECALL-2: Culling and texture-cap behavior were not re-measured because these layers were not changed; existing board tests remain green.
+- Task RECALL-2: A component test with a mocked Pixi boundary is supplemented by the real-browser recall journey for scratch drawing and route teardown.
 - Task SEARCH-1: The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task.
 - Task SEARCH-2: Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.

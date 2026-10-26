@@ -60,6 +60,15 @@ export const STRING_PALETTE_FALLBACK: Readonly<StringPalette> = Object.freeze({
   provenance: STRING_COLOR_FALLBACKS.provenance,
 });
 
+/**
+ * Recall scratch strings are deliberately neutral: neither the association red
+ * nor the provenance amber may leak into the layer that is supposed to hide the
+ * truth. The muted ink token is gray-beige, readable on cork and clearly not a
+ * relationship type.
+ */
+export const SCRATCH_STRING_COLOR_TOKEN = '--color-ink-muted';
+export const SCRATCH_STRING_COLOR_FALLBACK = 0xb9b2a6;
+
 export interface StringLayerOptions {
   readonly palette?: StringPalette;
   /** Defaults to false. Kept so the scene can pass the live OS preference. */
@@ -100,6 +109,15 @@ export function readStringPalette(): StringPalette {
     ),
     provenance: readColorToken(STRING_COLOR_TOKENS.provenance, STRING_COLOR_FALLBACKS.provenance),
   };
+}
+
+/**
+ * The scratch layer's neutral palette. Both slots resolve to the same muted
+ * ink so no connection type can be inferred from a recall string.
+ */
+export function readScratchStringPalette(): StringPalette {
+  const neutral = readColorToken(SCRATCH_STRING_COLOR_TOKEN, SCRATCH_STRING_COLOR_FALLBACK);
+  return { association: neutral, provenance: neutral };
 }
 
 function safeCardSize(size: BoardSize | undefined): BoardSize {

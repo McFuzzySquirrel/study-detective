@@ -846,6 +846,11 @@ export function CaseBoardPage({
           >
             Back up case
           </Button>
+          {visibleStatus === 'ready' && cards.length > 0 ? (
+            <Link className="case-board-page__back" to={`/case/${caseId}/recall`}>
+              Recall
+            </Link>
+          ) : null}
           {caseId.length > 0 ? (
             <Link className="case-board-page__back" to={`/case/${caseId}/list`}>
               Open card list

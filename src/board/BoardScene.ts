@@ -29,7 +29,7 @@ import type { CardPosition, Viewport } from '../domain/model';
 import { CardLayer } from './CardLayer';
 import type { BoardCardSnapshot, BoardPalette } from './CardSprite';
 import { readBoardPalette } from './CardSprite';
-import { readStringPalette, StringLayer } from './StringLayer';
+import { readScratchStringPalette, readStringPalette, StringLayer } from './StringLayer';
 import type { BoardStringConnection } from './StringLayer';
 import { ThreadAnchorLayer, threadAnchorScreenPoint } from './ThreadAnchor';
 import { normalizeViewport, type BoardPoint, type BoardSize } from './viewport';
@@ -52,6 +52,12 @@ export interface BoardSnapshot {
    * older page) still renders; an absent list means no strings.
    */
   readonly connections?: readonly BoardStringConnection[];
+  /**
+   * Recall's non-persistent scratch strings. They are rendered in a separate
+   * neutral layer and are never mixed with the truth layer, so entering recall
+   * cannot reveal an association or provenance colour by accident.
+   */
+  readonly scratchConnections?: readonly BoardStringConnection[];
 }
 
 export interface BoardSceneOptions {
@@ -120,11 +126,32 @@ function boardPalette(): BoardPalette {
   return readBoardPalette();
 }
 
+/**
+ * Scratch strings have no relationship type. Mapping every pair to the solid
+ * association geometry keeps the layer simple; its separate neutral palette is
+ * what prevents the truth colours from leaking into recall.
+ */
+function neutralScratchStrings(
+  connections: readonly BoardStringConnection[] | undefined,
+): readonly BoardStringConnection[] {
+  if (connections === undefined || connections.length === 0) {
+    return [];
+  }
+
+  return connections.map((connection) => ({
+    id: connection.id,
+    fromCardId: connection.fromCardId,
+    toCardId: connection.toCardId,
+    type: 'association',
+  }));
+}
+
 /** One Pixi scene, owned by the case-board canvas hook for one mount. */
 export class BoardScene {
   private readonly stage: Container;
   private readonly background: TilingSprite;
   private readonly stringLayer: StringLayer;
+  private readonly scratchLayer: StringLayer;
   private readonly threadLayer: ThreadAnchorLayer;
   private readonly world: Container;
   private readonly cardLayer: CardLayer;
@@ -158,12 +185,24 @@ export class BoardScene {
       palette: stringPalette,
       reducedMotion: options.reducedMotion ?? false,
     });
+    this.scratchLayer = new StringLayer({
+      palette: readScratchStringPalette(),
+      reducedMotion: options.reducedMotion ?? false,
+    });
     this.threadLayer = new ThreadAnchorLayer(stringPalette.association);
     this.cardLayer = new CardLayer({ palette: boardPalette() });
 
     this.world.addChild(this.cardLayer.root);
     // The temporary thread sits below the cards, like the permanent strings.
-    this.stage.addChild(this.background, this.stringLayer.root, this.threadLayer.root, this.world);
+    // Scratch strings sit above truth strings but below the draft thread; in
+    // recall the truth layer is empty, so only the neutral layer is visible.
+    this.stage.addChild(
+      this.background,
+      this.stringLayer.root,
+      this.scratchLayer.root,
+      this.threadLayer.root,
+      this.world,
+    );
 
     this.setSnapshot(options.snapshot);
   }
@@ -177,9 +216,12 @@ export class BoardScene {
     this.cardLayer.setCards(snapshot.cards);
     this.stringLayer.setCards(snapshot.cards);
     this.stringLayer.setConnections(snapshot.connections ?? []);
+    this.scratchLayer.setCards(snapshot.cards);
+    this.scratchLayer.setConnections(neutralScratchStrings(snapshot.scratchConnections));
     this.cardLayer.setAnchorCard(this.anchorCardId);
     this.cardLayer.setViewport(this.viewport, this.size);
     this.stringLayer.setViewport(this.viewport, this.size);
+    this.scratchLayer.setViewport(this.viewport, this.size);
   }
 
   /** Apply the camera and canvas size, then redraw the visible window. */
@@ -201,6 +243,7 @@ export class BoardScene {
     this.world.scale.set(scale);
     this.cardLayer.setViewport(this.viewport, this.size);
     this.stringLayer.setViewport(this.viewport, this.size);
+    this.scratchLayer.setViewport(this.viewport, this.size);
   }
 
   /** Resize the cork surface without changing the camera. */
@@ -212,6 +255,7 @@ export class BoardScene {
   moveCard(cardId: string, position: CardPosition): void {
     this.cardLayer.moveCard(cardId, position);
     this.stringLayer.moveCard(cardId, position);
+    this.scratchLayer.moveCard(cardId, position);
   }
 
   setCardLifted(cardId: string, lifted: boolean, reducedMotion: boolean): void {
@@ -275,6 +319,7 @@ export class BoardScene {
   /** Record a mid-session motion preference for the static string layer. */
   setReducedMotion(reducedMotion: boolean): void {
     this.stringLayer.setReducedMotion(reducedMotion);
+    this.scratchLayer.setReducedMotion(reducedMotion);
   }
 
   /** Resolve a screen-space point to a card, respecting the live camera. */
@@ -299,6 +344,7 @@ export class BoardScene {
     this.background.texture.source.update();
     this.cardLayer.rebuildAfterContextLoss();
     this.stringLayer.rebuildAfterContextLoss();
+    this.scratchLayer.rebuildAfterContextLoss();
     this.threadLayer.rebuildAfterContextLoss();
     this.setViewport(this.viewport, this.size);
   }
@@ -316,10 +362,12 @@ export class BoardScene {
       this.world,
       this.background,
       this.stringLayer.root,
+      this.scratchLayer.root,
       this.threadLayer.root,
     );
     this.cardLayer.destroy();
     this.stringLayer.destroy();
+    this.scratchLayer.destroy();
     this.threadLayer.destroy();
     this.world.destroy({ children: true, context: true, style: true });
     this.background.destroy({ texture: true, textureSource: true });

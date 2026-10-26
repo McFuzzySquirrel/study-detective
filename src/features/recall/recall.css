@@ -1,0 +1,254 @@
+/*
+ * Recall route chrome.
+ *
+ * Recall keeps the case-file language of the board: a header, a slim toolbar,
+ * and the same stage. The only new visual grammar is the neutral scratch list,
+ * which is deliberately a normal text list rather than a canvas overlay.
+ */
+
+.recall-page {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+.recall-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding-block-end: var(--space-3);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.recall-page__heading {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.recall-page__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.recall-page__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-heading);
+}
+
+.recall-page__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.recall-page__summary {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recall-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.recall-page__nav-link,
+.recall-page__text-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.recall-page__nav-link:focus-visible,
+.recall-page__text-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Toolbar                                                                   */
+/* ------------------------------------------------------------------------- */
+
+.recall-toolbar {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.recall-toolbar__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+.recall-toolbar__count {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.recall-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.recall-toolbar__hint {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.recall-toolbar__scratch {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.recall-toolbar__scratch-title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-heading);
+}
+
+.recall-toolbar__list {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recall-toolbar__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-sunken);
+}
+
+.recall-toolbar__pair {
+  min-inline-size: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Stage and states                                                          */
+/* ------------------------------------------------------------------------- */
+
+.recall-page__stage {
+  position: relative;
+  display: grid;
+  min-block-size: clamp(24rem, calc(100dvh - 24rem), 52rem);
+  min-inline-size: 0;
+}
+
+.recall-page__status {
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+}
+
+.recall-page__error,
+.recall-page__empty {
+  align-self: start;
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 40rem;
+  padding: var(--space-4);
+  border: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.recall-page__error {
+  border-color: var(--color-danger-border);
+}
+
+.recall-page__error h3,
+.recall-page__empty h3 {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-lg);
+}
+
+.recall-page__error p,
+.recall-page__empty p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.recall-page__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (max-width: 40rem) {
+  .recall-page__header {
+    align-items: stretch;
+  }
+
+  .recall-toolbar__bar {
+    align-items: stretch;
+  }
+
+  .recall-toolbar__actions {
+    inline-size: 100%;
+  }
+
+  .recall-page__stage {
+    min-block-size: clamp(22rem, calc(100dvh - 22rem), 44rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .recall-page__nav-link,
+  .recall-page__text-link {
+    transition: none;
+  }
+}
