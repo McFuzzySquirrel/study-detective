@@ -14,6 +14,7 @@ import type {
   Viewport,
 } from '../domain/model';
 import {
+  DomainValidationError,
   normalizeTags,
   parseAttachmentRecord,
   parseCaseRecord,
@@ -26,6 +27,7 @@ import {
 import type { NewAttachment } from './attachmentStore';
 import { assertDistinctAttachmentKinds, buildAttachmentRecord } from './attachmentStore';
 import type { NotesDetectiveDatabase } from './db';
+import type { CardDeletionSnapshot } from './deleteCard';
 import { deleteCase as deleteCaseTransaction, readCaseDeletionPreview } from './deleteCase';
 import type { CaseDeletionCounts, CaseDeletionPreview } from './deleteCase';
 import { RecordNotFoundError, readStored } from './errors';
@@ -36,6 +38,7 @@ import {
   toAttachmentRow,
   toCardRow,
   toCaseRow,
+  toConnectionRow,
 } from './mappers';
 import { latestTimestamp, markCaseUpdated, readCaseRow, saveTouchedCase } from './transactions';
 
@@ -145,7 +148,14 @@ export interface CaseRepositoryPort {
   /** Every validated string in one case, ordered by canonical pair key. */
   listConnections(caseId: string): Promise<ConnectionRecord[]>;
   updateCard(cardId: string, patch: CardPatch): Promise<CardRecord>;
+  /** Remove the card, every string with it as an endpoint, and every Blob it owns. */
   deleteCard(cardId: string): Promise<boolean>;
+  /**
+   * Restore one card, its strings, its attachments, and its exact position from
+   * a snapshot taken immediately before deletion. The write is one transaction:
+   * undo never leaves a card without the strings or Blobs the snapshot held.
+   */
+  restoreCardDeletion(snapshot: CardDeletionSnapshot): Promise<CardRecord>;
   /** Counts a destructive confirmation must name before deleting a case. */
   getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null>;
   /**
@@ -605,6 +615,67 @@ export class CaseRepository implements CaseRepositoryPort {
     );
   }
 
+  /**
+   * Undo writes the snapshot back exactly. The card row, the strings, and the
+   * attachment Blobs share one transaction, so a failure restores none of them
+   * and a success restores all of them with their original IDs.
+   */
+  async restoreCardDeletion(snapshot: CardDeletionSnapshot): Promise<CardRecord> {
+    const card = parseCardRecord(snapshot.card);
+    const connections = snapshot.connections.map((connection) => parseConnectionRecord(connection));
+    const attachments = snapshot.attachments.map((attachment) => parseAttachmentRecord(attachment));
+
+    for (const connection of connections) {
+      if (connection.caseId !== card.caseId) {
+        throw new DomainValidationError('Snapshot string belongs to another case');
+      }
+      if (connection.fromCardId !== card.id && connection.toCardId !== card.id) {
+        throw new DomainValidationError('Snapshot string is not attached to the restored card');
+      }
+    }
+
+    for (const attachment of attachments) {
+      if (attachment.cardId !== card.id) {
+        throw new DomainValidationError('Snapshot attachment belongs to another card');
+      }
+    }
+
+    return this.db.transaction(
+      'rw',
+      this.db.cases,
+      this.db.cards,
+      this.db.connections,
+      this.db.attachments,
+      async () => {
+        const caseRow = await this.db.cases.get(card.caseId);
+        if (caseRow === undefined) {
+          throw new RecordNotFoundError('case', card.caseId);
+        }
+        const currentCase = readStored('case', card.caseId, () =>
+          readCaseRow(caseRow, card.caseId),
+        );
+
+        await this.db.cards.put(toCardRow(card));
+        for (const connection of connections) {
+          const otherCardId =
+            connection.fromCardId === card.id ? connection.toCardId : connection.fromCardId;
+          const otherRow = await this.db.cards.get(otherCardId);
+          if (otherRow === undefined) {
+            throw new RecordNotFoundError('card', otherCardId);
+          }
+        }
+        if (connections.length > 0) {
+          await this.db.connections.bulkPut(connections.map(toConnectionRow));
+        }
+        if (attachments.length > 0) {
+          await this.db.attachments.bulkPut(attachments.map(toAttachmentRow));
+        }
+        await saveTouchedCase(this.db, currentCase, this.clock);
+        return card;
+      },
+    );
+  }
+
   async getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null> {
     return readCaseDeletionPreview(this.db, caseId);
   }
@@ -842,6 +913,51 @@ export class InMemoryCaseRepository implements CaseRepositoryPort {
     this.cards.delete(cardId);
     this.cases.set(card.caseId, markCaseUpdated(this.requireCase(card.caseId), this.clock));
     return true;
+  }
+
+  /**
+   * Mirrors the production undo write. The fake applies the snapshot only after
+   * every record validates, so a rejected restore leaves the fake unchanged.
+   */
+  async restoreCardDeletion(snapshot: CardDeletionSnapshot): Promise<CardRecord> {
+    const card = parseCardRecord(snapshot.card);
+    const connections = snapshot.connections.map((connection) => parseConnectionRecord(connection));
+    const attachments = snapshot.attachments.map((attachment) => parseAttachmentRecord(attachment));
+
+    const currentCase = this.requireCase(card.caseId);
+
+    for (const connection of connections) {
+      if (connection.caseId !== card.caseId) {
+        throw new DomainValidationError('Snapshot string belongs to another case');
+      }
+      if (connection.fromCardId !== card.id && connection.toCardId !== card.id) {
+        throw new DomainValidationError('Snapshot string is not attached to the restored card');
+      }
+    }
+
+    for (const attachment of attachments) {
+      if (attachment.cardId !== card.id) {
+        throw new DomainValidationError('Snapshot attachment belongs to another card');
+      }
+    }
+
+    for (const connection of connections) {
+      const otherCardId =
+        connection.fromCardId === card.id ? connection.toCardId : connection.fromCardId;
+      if (!this.cards.has(otherCardId)) {
+        throw new RecordNotFoundError('card', otherCardId);
+      }
+    }
+
+    this.cards.set(card.id, card);
+    for (const connection of connections) {
+      this.connections.set(connection.id, connection);
+    }
+    for (const attachment of attachments) {
+      this.attachments.set(attachment.id, attachment);
+    }
+    this.cases.set(card.caseId, markCaseUpdated(currentCase, this.clock));
+    return card;
   }
 
   async getCaseDeletionPreview(caseId: string): Promise<CaseDeletionPreview | null> {

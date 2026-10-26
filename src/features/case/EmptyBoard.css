@@ -1,0 +1,57 @@
+/*
+ * Empty-board panel. Every value comes from tokens.css; the action links reuse
+ * the shared Button classes so their 44 px targets and focus ring are the same
+ * as every other control.
+ */
+
+.empty-board {
+  display: grid;
+  align-content: start;
+  gap: var(--space-4);
+  inline-size: 100%;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+  padding-block: var(--space-6);
+}
+
+.empty-board__panel {
+  max-inline-size: 100%;
+}
+
+.empty-board__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.empty-board__hint {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface-sunken);
+  border-inline-start: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 37.5rem) {
+  .empty-board {
+    padding-block: var(--space-4);
+  }
+
+  .empty-board__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .empty-board__actions .nd-button {
+    inline-size: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-board .nd-button {
+    transition: none;
+  }
+}

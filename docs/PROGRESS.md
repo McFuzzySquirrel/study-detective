@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: BACKUP-AND-RESTORE-3
+**Phase**: CASE-BOARD-2
 **Status**: In Progress
-**Validation Gaps**: 22 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T04:51:03.992Z
+**Validation Gaps**: 23 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T05:06:07.568Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -48,6 +48,8 @@
   - Files: src/board/CardSprite.ts, src/board/CardLayer.ts, src/board/BoardScene.ts, src/board/useCardGestures.ts, tests/board/useCardGestures.test.ts, e2e/board-drag.spec.ts, src/board/BoardCanvas.tsx, src/board/boardInput.ts, src/board/usePixiApp.ts, src/features/case/CaseBoardPage.tsx
 - [x] Phase CASE-BOARD-2, Task BOARD-4: Add fit-to-view, minimap, culling, texture release, and scale warnings (@board-engineer)
   - Files: src/board/Minimap.tsx, src/board/useCulling.ts, src/board/FitToViewButton.tsx, src/features/case/ScaleWarning.tsx, src/features/capture/CapturePage.tsx, src/board/textureCache.ts, src/features/case/CaseBoardPage.tsx, tests/board/Minimap.test.tsx, tests/board/culling.test.ts, tests/case/ScaleWarning.test.tsx, src/board/BoardCanvas.css, src/board/BoardCanvas.tsx, src/board/CardLayer.ts, src/board/CardSprite.ts, tests/board/BoardCanvas.test.tsx, src/board/boardCapacity.ts, src/board/fitToView.ts, src/features/case/ScaleWarning.css, tests/board/FitToViewButton.test.tsx
+- [x] Phase CASE-BOARD-2, Task BOARD-5: Build the keyboard card list, empty state, and delete undo (@ui-engineer)
+  - Files: src/features/case/CardListPage.tsx, src/features/case/CardListPanel.tsx, src/features/case/EmptyBoard.tsx, src/features/case/useUndoDelete.ts, src/data/deleteCard.ts, src/features/case/CaseBoardPage.tsx, src/app/routes.tsx, tests/case/CardListPanel.test.tsx, tests/case/useUndoDelete.test.tsx, e2e/keyboard-cards.spec.ts, src/data/caseRepository.ts, src/features/capture/CapturePage.tsx, src/features/case/CardListPage.css, src/features/case/CardListPanel.css, src/features/case/EmptyBoard.css
 - [x] Phase BACKUP-AND-RESTORE-1, Task BACKUP-1: Implement the single-case archive format and exporter (@data-engineer)
   - Files: src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, tests/backup/exportCase.test.ts, src/data/caseRepository.ts
 - [x] Phase BACKUP-AND-RESTORE-2, Task BACKUP-2: Implement validated copy and replace restore (@data-engineer)
@@ -61,7 +63,6 @@
 - None currently running
 
 ## Remaining
-- [ ] Phase CASE-BOARD-2: Phase 2: Scale and non-spatial path
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-1: Phase 1: Graph rules and rendering
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-2: Phase 2: Drawing and editing
 - [ ] Phase CONNECTIONS-AND-PROVENANCE-3: Phase 3: Keyboard path and feel review
@@ -105,6 +106,7 @@
 - Task BOARD-4: The pre-existing e2e/board.spec.ts pan/zoom pointer-anchor assertion fails by about 0.166 CSS px in this environment even after removing this task's Fit/Minimap controls and rebuilding; the phone run of that test also timed out. It is not one of BOARD-4's required validation commands.
 - Task BOARD-4: e2e/board-drag.spec.ts passed for mouse and touch drag, tap, persistence, and context recovery in the combined run.
 - Task BOARD-4: Browser evidence covers Chromium-based projects only.
+- Task BOARD-5: Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design.
 - Task BACKUP-1: Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.
 - Task BACKUP-1: No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.
 - Task BACKUP-2: Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that).

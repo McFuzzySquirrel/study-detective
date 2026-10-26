@@ -34,6 +34,7 @@ import BackupDialog from '../backup/BackupDialog';
 import { useBackupReminder } from '../backup/useBackupReminder';
 
 import ScaleWarning from './ScaleWarning';
+import EmptyBoard from './EmptyBoard';
 import './CaseBoardPage.css';
 
 const BoardCanvas = lazy(() =>
@@ -455,7 +456,9 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </h2>
           <p className="case-board-page__summary">
             {visibleStatus === 'ready'
-              ? `${cardCountLabel(cards.length)} pinned to the cork. Drag a card to move it, drag the background to pan, and pinch or scroll to zoom.`
+              ? cards.length === 0
+                ? 'No cards are pinned yet. Add a note, a source, or a topic to start this case file.'
+                : `${cardCountLabel(cards.length)} pinned to the cork. Drag a card to move it, drag the background to pan, and pinch or scroll to zoom.`
               : visibleStatus === 'loading'
                 ? 'Loading this case from local storage.'
                 : 'This case is not available in local storage.'}
@@ -470,6 +473,11 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           >
             Back up case
           </Button>
+          {caseId.length > 0 ? (
+            <Link className="case-board-page__back" to={`/case/${caseId}/list`}>
+              Open card list
+            </Link>
+          ) : null}
           <Link className="case-board-page__back" to="/">
             Back to case shelf
           </Link>
@@ -555,7 +563,11 @@ export function CaseBoardPage({ repository, loadRepository, store }: CaseBoardPa
           </section>
         ) : null}
 
-        {visibleStatus === 'ready' && caseRecord !== null ? (
+        {visibleStatus === 'ready' && caseRecord !== null && cards.length === 0 ? (
+          <EmptyBoard caseId={caseId} />
+        ) : null}
+
+        {visibleStatus === 'ready' && caseRecord !== null && cards.length > 0 ? (
           <Suspense
             fallback={
               <p className="case-board-page__status" role="status">

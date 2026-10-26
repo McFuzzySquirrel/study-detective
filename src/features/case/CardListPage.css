@@ -1,0 +1,153 @@
+/*
+ * Card-list route chrome. It shares the case-file language of the board but
+ * replaces the canvas with readable text, native links, and real buttons.
+ * Every colour and target comes from tokens.css.
+ */
+
+.card-list-page {
+  display: grid;
+  gap: var(--space-5);
+  min-inline-size: 0;
+}
+
+.card-list-page__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding-block-end: var(--space-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.card-list-page__heading {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.card-list-page__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.card-list-page__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-heading);
+}
+
+.card-list-page__title:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.card-list-page__summary {
+  max-inline-size: var(--measure-body);
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.card-list-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card-list-page__nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.card-list-page__nav-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.card-list-page__status {
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.card-list-page__error {
+  display: grid;
+  gap: var(--space-3);
+  max-inline-size: 40rem;
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width-strong) solid var(--color-danger-border);
+  border-radius: var(--radius-md);
+}
+
+.card-list-page__error h3 {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-size: var(--font-size-lg);
+}
+
+.card-list-page__error p {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.card-list-page__error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card-list-form {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.card-list-form__error {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 37.5rem) {
+  .card-list-page__header {
+    align-items: stretch;
+  }
+
+  .card-list-page__actions {
+    inline-size: 100%;
+  }
+
+  .card-list-page__actions .nd-button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-list-page__nav-link {
+    transition: none;
+  }
+}

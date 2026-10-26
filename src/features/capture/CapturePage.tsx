@@ -9,7 +9,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 
 import Button from '../../components/Button';
 import { MAX_BOARD_CARDS, SPLIT_CASE_MESSAGE, canAddCard } from '../../board/boardCapacity';
@@ -240,6 +240,12 @@ export function CapturePage({
   const caseId = caseIdParam ?? '';
   const casePath = `/case/${caseId}`;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // The empty board and card list link straight to one capture kind. A topic
+  // opens its text form; note/source keep the shared photo picker and preselect
+  // the final card type.
+  const requestedKind = searchParams.get('kind');
+  const initialImageType: ImageCardType = requestedKind === 'source' ? 'source' : 'note';
 
   const [step, setStep] = useState<Step>('loading');
   const [loadFailure, setLoadFailure] = useState<LoadFailure | null>(null);
@@ -341,7 +347,13 @@ export function CapturePage({
         setActiveRepository(target);
         setCaseRecord(record);
         setExistingCardCount(cards.length);
-        setStep(canAddCard(cards.length) ? 'picker' : 'capacity-blocked');
+        setStep(
+          canAddCard(cards.length)
+            ? requestedKind === 'topic'
+              ? 'topic'
+              : 'picker'
+            : 'capacity-blocked',
+        );
       } catch {
         if (!cancelled) {
           setActiveRepository(null);
@@ -359,7 +371,7 @@ export function CapturePage({
     return () => {
       cancelled = true;
     };
-  }, [caseId, resolveRepository, reloadToken]);
+  }, [caseId, requestedKind, resolveRepository, reloadToken]);
 
   // Move focus to the step container when the flow changes. This keeps the
   // keyboard path intact when the picker buttons unmount after a selection.
@@ -819,7 +831,7 @@ export function CapturePage({
 
         {step === 'details' && selectedFile !== null && cropResult !== null ? (
           <NoteSourceForm
-            initialType={pendingCard?.type ?? 'note'}
+            initialType={pendingCard?.type ?? initialImageType}
             initialTitle={pendingCard?.title ?? ''}
             onBack={() => setStep('crop')}
             onSubmit={handleNoteSourceSubmit}

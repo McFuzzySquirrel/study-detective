@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router';
 
 import type { CaseRepositoryPort } from '../data/caseRepository';
 import type { CardDetailRepositoryLoader } from '../features/cards/CardDetailPage';
+import type { CardListRepositoryLoader } from '../features/case/CardListPage';
 import type { CaseBoardRepositoryLoader } from '../features/case/CaseBoardPage';
 import type { CaptureRepositoryLoader } from '../features/capture/CapturePage';
 import type { CaseRepositoryLoader } from '../features/shelf/CaseShelfPage';
@@ -17,6 +18,11 @@ const ShelfScreen = lazy(() =>
 const CaseBoardScreen = lazy(() =>
   import('../features/case/CaseBoardPage').then((module) => ({
     default: module.CaseBoardPage,
+  })),
+);
+const CardListScreen = lazy(() =>
+  import('../features/case/CardListPage').then((module) => ({
+    default: module.CardListPage,
   })),
 );
 const CaptureScreen = lazy(() =>
@@ -56,6 +62,10 @@ export interface AppRoutesProps {
   readonly boardRepository?: CaseRepositoryPort | undefined;
   /** Replaces the board route's repository opener, including its failure path. */
   readonly loadBoardRepository?: CaseBoardRepositoryLoader | undefined;
+  /** Replaces the card-list route's repository in tests and future composition. */
+  readonly cardListRepository?: CaseRepositoryPort | undefined;
+  /** Replaces the card-list route's repository opener, including its failure path. */
+  readonly loadCardListRepository?: CardListRepositoryLoader | undefined;
 }
 
 /**
@@ -72,6 +82,8 @@ export function AppRoutes({
   loadCardRepository,
   boardRepository,
   loadBoardRepository,
+  cardListRepository,
+  loadCardListRepository,
 }: AppRoutesProps = {}) {
   const location = useLocation();
 
@@ -95,6 +107,15 @@ export function AppRoutes({
             path="/case/:caseId"
             element={
               <CaseBoardScreen repository={boardRepository} loadRepository={loadBoardRepository} />
+            }
+          />
+          <Route
+            path="/case/:caseId/list"
+            element={
+              <CardListScreen
+                repository={cardListRepository ?? boardRepository}
+                loadRepository={loadCardListRepository ?? loadBoardRepository}
+              />
             }
           />
           <Route
