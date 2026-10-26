@@ -1,12 +1,12 @@
 {
   "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
   "startedAt": "2026-10-25T18:40:27.055Z",
-  "lastUpdatedAt": "2026-10-26T16:33:22.724Z",
+  "lastUpdatedAt": "2026-10-26T16:37:33.382Z",
   "manifestPath": "/home/mcfuzzysquirrel/Projects/testing/notes-detective/docs/EXECUTION-MANIFEST.json",
   "manifestVersion": "1.0",
   "harness": "opencode",
   "status": "running",
-  "currentPhase": "CONNECTIONS-AND-PROVENANCE-3",
+  "currentPhase": "RECALL-MODE-1",
   "tasks": {
     "FND-1": {
       "taskId": "FND-1",
@@ -926,10 +926,33 @@
     },
     "CLOSE-1": {
       "taskId": "CLOSE-1",
-      "status": "pending",
+      "status": "complete",
       "ownerAgent": "data-engineer",
-      "attempt": 0,
-      "outputFiles": []
+      "attempt": 1,
+      "outputFiles": [
+        "src/domain/readiness.ts",
+        "tests/domain/readiness.test.ts"
+      ],
+      "startedAt": "2026-10-26T16:33:22.810Z",
+      "attemptHistory": [
+        {
+          "attempt": 1,
+          "outcome": "passed",
+          "resultPath": "docs/artifacts/CLOSE-1.2026-10-26T16-37-33-367Z.attempt-1.result.json"
+        }
+      ],
+      "completedAt": "2026-10-26T16:37:33.376Z",
+      "agentOutput": "Implemented CLOSE-1.\n\n## Files created\n- `src/domain/readiness.ts`\n- `tests/domain/readiness.test.ts`\n\nNo other files were changed by me; `docs/artifacts/` was not modified.\n\n## Delivered API\n- `deriveReadiness(cards, connections?) => CaseReadiness`\n- `deriveLooseThreads`, `countLooseThreads`, `isCaseReady`\n- `deriveTopicReadiness`, `getNoteReadiness`, `getTopicReadiness`\n- Types: `ReadinessCard`, `ReadinessConnection`, `CaseReadiness`, `NoteReadiness`, `TopicReadiness`, `LooseThread`, `LooseNoteThread`, `LooseTopicThread`, `LooseNoteReason`, `TopicStatus`\n\n## Key behavior\n- Notes need provenance→Source plus association→Topic; sources are never loose.\n- Topics are loose only at zero distinct connections; status is `orphan` 0, `developing` 1, `solved` 2+ associated notes.\n- One loose row per offending card: a note missing both requirements has both reason codes but counts once.\n- Duplicate card/connection rows, self-links, and dangling endpoints are ignored or deduped.\n- Results are recomputed from the graph only, never stored readiness flags.\n- Stable ordering: title, exact title, then id; loose notes before loose topics.\n\n## Validation\n- `npm test -- tests/domain/readiness.test.ts` — 27 passed.\n- `npm run typecheck` — exit 0.\n- `npm test -- tests/domain` — 133 passed.\n- Targeted coverage for `readiness.ts` — 100% lines, 100% statements, 91.22% branches.\n\n```forge-result\n{\"summary\":\"Implemented pure readiness, loose-thread, and topic-status selectors with 27 boundary tests; the required test and typecheck commands pass.\",\"unresolved\":[],\"decisions\":[\"One loose thread per offending card; a note missing both requirements carries both reason codes but contributes one to the total count.\",\"Topic status counts distinct notes linked by association only; any distinct connection, including a source or topic neighbour, clears topic looseness.\",\"Wrong-type links never satisfy readiness: association does not satisfy a source link and provenance does not satisfy a topic link or linked-note count.\",\"Corrupt rows are defensive: duplicate card rows collapse to the first occurrence, duplicate connection rows count once, and self-links or dangling endpoints are ignored.\",\"Output order is deterministic by title, exact title, then id; loose notes precede loose topics.\"],\"interfaces\":[\"deriveReadiness(cards: readonly ReadinessCard[], connections?: readonly ReadinessConnection[]): CaseReadiness\",\"deriveLooseThreads(...): readonly LooseThread[]\",\"countLooseThreads(...): number\",\"isCaseReady(...): boolean\",\"deriveTopicReadiness(...): readonly TopicReadiness[]\",\"getNoteReadiness(cardId, cards, connections?): NoteReadiness | undefined\",\"getTopicReadiness(cardId, cards, connections?): TopicReadiness | undefined\",\"CaseReadiness includes ready, looseThreadCount, looseNoteCount, looseTopicCount, looseThreads, looseNotes, looseTopics, notes, topics\"],\"tests\":[\"npm test -- tests/domain/readiness.test.ts: 27 passed\",\"npm run typecheck: exit 0\",\"npm test -- tests/domain: 133 passed\",\"npx vitest run tests/domain/readiness.test.ts --coverage --coverage.include=src/domain/readiness.ts: 100% lines, 100% statements, 91.22% branches\"],\"warnings\":[\"CLOSE-2 and CLOSE-3 should derive readiness once and index results by cardId rather than calling getTopicReadiness per card in large graphs.\",\"Loose-thread ordering is title/id order, not the repository's createdAt order; consumers that need case order should re-sort explicitly.\"],\"validationLimitations\":[\"No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.\",\"Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note.\"]}\n```\n",
+      "validationLimitations": [
+        "No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.",
+        "Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note."
+      ],
+      "artifactId": "work-close-1-001",
+      "inputArtifactIds": [
+        "work-link-1-001",
+        "work-link-5-001",
+        "work-link-hr-1-001"
+      ]
     },
     "CLOSE-2": {
       "taskId": "CLOSE-2",

@@ -260,3 +260,11 @@
 {"timestamp":"2026-10-26T16:33:22.599Z","action":"run.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","note":"harness=opencode"}
 {"timestamp":"2026-10-26T16:33:22.712Z","action":"phase.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","phaseId":"CONNECTIONS-AND-PROVENANCE-3"}
 {"timestamp":"2026-10-26T16:33:22.718Z","action":"task.complete","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"LINK-HR-1","note":"Human attestation: docs/reviews/board-feel.json"}
+{"timestamp":"2026-10-26T16:33:22.808Z","action":"task.committed","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"LINK-HR-1","commitSha":"f4458f4441bcf738fe4c43416aff200ce479647f"}
+{"timestamp":"2026-10-26T16:33:22.808Z","action":"phase.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","phaseId":"CASE-CLOSURE-1"}
+{"timestamp":"2026-10-26T16:33:22.809Z","action":"phase.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","phaseId":"RECALL-MODE-1"}
+{"timestamp":"2026-10-26T16:33:22.810Z","action":"context.projected","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"CLOSE-1","sourceTokenEstimate":1928,"projectedTokenEstimate":1521,"reductionPercent":21.1,"note":"3 artifact(s) projected for task CLOSE-1"}
+{"timestamp":"2026-10-26T16:33:22.815Z","action":"task.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"CLOSE-1","phaseId":"CASE-CLOSURE-1","attempt":1}
+{"timestamp":"2026-10-26T16:37:33.375Z","action":"task.attempt.finished","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"CLOSE-1","phaseId":"CASE-CLOSURE-1","attempt":1,"durationMs":238879,"note":"All applicable completion gates passed","resultPath":"docs/artifacts/CLOSE-1.2026-10-26T16-37-33-367Z.attempt-1.result.json"}
+{"timestamp":"2026-10-26T16:37:33.376Z","action":"artifact.created","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"CLOSE-1","artifactId":"work-close-1-001","artifactType":"work.close-1","inputArtifacts":["work-link-1-001","work-link-5-001","work-link-hr-1-001"]}
+{"timestamp":"2026-10-26T16:37:33.382Z","action":"task.complete","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"CLOSE-1","phaseId":"CASE-CLOSURE-1","outputFiles":["src/domain/readiness.ts","tests/domain/readiness.test.ts"],"durationMs":238879}
