@@ -40,7 +40,9 @@ const RecallScreen = lazy(() =>
   import('../features/recall/RecallPage').then((module) => ({ default: module.RecallPage })),
 );
 const SettingsScreen = lazy(() =>
-  import('./placeholders').then((module) => ({ default: module.SettingsPlaceholder })),
+  import('../features/settings/SettingsPage').then((module) => ({
+    default: module.SettingsPage,
+  })),
 );
 const NotFoundScreen = lazy(() =>
   import('./placeholders').then((module) => ({ default: module.NotFoundPlaceholder })),

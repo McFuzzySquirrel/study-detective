@@ -1,0 +1,242 @@
+/*
+ * Hint popover and hint replay settings.
+ *
+ * The hint is a non-modal layer above route content but below a true dialog.
+ * Its only motion is a short entrance; the reduced-motion query removes it
+ * while preserving focus and the final position. All palette, spacing, and
+ * target values come from tokens.css.
+ */
+
+.nd-hint-layer {
+  position: fixed;
+  z-index: calc(var(--z-dialog) - 1);
+  inset-inline: 0;
+  inset-block-end: 0;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-4);
+  padding-block-end: max(var(--space-4), calc(var(--safe-area-bottom) + var(--space-2)));
+  pointer-events: none;
+}
+
+.nd-hint {
+  pointer-events: auto;
+  display: grid;
+  gap: var(--space-3);
+  inline-size: min(100%, 27rem);
+  max-block-size: min(80dvh, 30rem);
+  padding: var(--space-5);
+  color: var(--color-ink);
+  background-color: var(--color-surface-raised);
+  border: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  overflow: auto;
+  overscroll-behavior: contain;
+  animation: nd-hint-enter var(--motion-duration-base) var(--motion-ease-standard) both;
+}
+
+.nd-hint:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.nd-hint__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+  overflow-wrap: anywhere;
+}
+
+.nd-hint__body {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.nd-hint__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.nd-hint__action {
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+@keyframes nd-hint-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-toast-offset));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nd-hint {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Settings: replay hints                                                    */
+/* ------------------------------------------------------------------------- */
+
+.settings-page {
+  display: grid;
+  gap: var(--space-6);
+  min-inline-size: 0;
+}
+
+.settings-page__header {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-end: var(--space-4);
+  border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.settings-page__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.settings-page__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-2xl);
+  line-height: var(--line-height-heading);
+}
+
+.settings-page__intro {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+.hint-settings {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.hint-settings__header {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.hint-settings__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  line-height: var(--line-height-heading);
+}
+
+.hint-settings__intro {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  max-inline-size: var(--measure-body);
+}
+
+.hint-settings__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hint-settings__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  padding-block: var(--space-3);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.hint-settings__copy {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  flex: 1 1 16rem;
+}
+
+.hint-settings__name {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+  overflow-wrap: anywhere;
+}
+
+.hint-settings__text {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+  overflow-wrap: anywhere;
+}
+
+.hint-settings__status {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.hint-settings__replay {
+  flex: none;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+}
+
+.hint-settings__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block-start: var(--space-4);
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+.hint-settings__announcement {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 599px) {
+  .hint-settings {
+    padding: var(--space-4);
+  }
+
+  .hint-settings__replay {
+    inline-size: 100%;
+  }
+}

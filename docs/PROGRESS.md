@@ -1,10 +1,10 @@
 # Project Progress
 
 ## Current State
-**Phase**: FIRST-RUN-DEMO-AND-HINTS-1
+**Phase**: FIRST-RUN-DEMO-AND-HINTS-2
 **Status**: In Progress
-**Validation Gaps**: 48 unverified check(s) - see "Validation Gaps"
-**Last Updated**: 2026-10-26T17:57:01.148Z
+**Validation Gaps**: 49 unverified check(s) - see "Validation Gaps"
+**Last Updated**: 2026-10-26T18:06:33.110Z
 **Run ID**: d2be3a1e-ee48-4d3b-aa16-87811c2b0532
 **Harness**: opencode
 **Execution Mode**: auto
@@ -96,12 +96,13 @@
   - Files: src/features/search/searchCards.ts, src/features/backup/archiveFormat.ts, src/features/backup/exportCase.ts, src/features/backup/importCase.ts, tests/search/ocrSearch.test.ts, tests/backup/ocrRoundTrip.test.ts
 - [x] Phase FIRST-RUN-DEMO-AND-HINTS-1, Task DEMO-1: Generate the demo case and implement one-time seeding (@data-engineer)
   - Files: src/features/demo/demoImages.ts, src/features/demo/demoCase.ts, src/features/demo/seedDemoCase.ts, tests/demo/seedDemoCase.test.ts, tests/demo/demoCase.test.ts, tests/demo/demoBackup.test.ts, tests/demo/demoFixtures.ts
+- [x] Phase FIRST-RUN-DEMO-AND-HINTS-2, Task DEMO-2: Implement persistent hints, the hint popover, and replay settings (@ui-engineer)
+  - Files: src/features/onboarding/hints.ts, src/features/onboarding/HintPopover.tsx, src/features/onboarding/hints.css, src/features/settings/SettingsPage.tsx, src/app/routes.tsx, tests/onboarding/hints.test.ts, tests/onboarding/HintPopover.test.tsx, tests/settings/SettingsPage.test.tsx
 
 ## Current Task
 - None currently running
 
 ## Remaining
-- [ ] Phase FIRST-RUN-DEMO-AND-HINTS-2: Phase 2: Hints
 - [ ] Phase FIRST-RUN-DEMO-AND-HINTS-3: Phase 3: First-run integration
 - [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-1: Phase 1: Layout, keyboard, and motion
 - [ ] Phase RESPONSIVE-AND-ACCESSIBILITY-HARDENING-2: Phase 2: Automated audits
@@ -161,6 +162,7 @@
 - Task OCR-2: Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey.
 - Task OCR-3: No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow.
 - Task DEMO-1: No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests.
+- Task DEMO-2: No Playwright/browser reload or viewport matrix was run for DEMO-2 because the task's required validation is unit/component plus typecheck; the browser first-run journey belongs to DEMO-3. Persistence across reload is covered by reconstructing the store over the same injected storage.
 
 ## Notes
 - Workflow engine run d2be3a1e-ee48-4d3b-aa16-87811c2b0532
