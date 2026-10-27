@@ -66,27 +66,22 @@ frame is `src/app/AppShell.tsx` + `AppShell.css`; breakpoints are
   the gate fails in all three modes (67.2 % / 62.8 % / 73.6 % board share), the board starts at
   60–70 % of the fold, the canvas controls are off-screen everywhere, and `ClosurePanel`'s
   loose-thread list — not the board — sets page height (2 448 px at 12 cards, 18 861 px at 150).
+- [Tablet and desktop composition](issues/02-tablet-and-desktop-composition.md): one wide frame —
+  a 48 px identity band, a 56 px leading icon rail, and a full-bleed stage whose width is
+  invariant under selection; the closure column is deleted and detail floats. Board share becomes
+  92.4 % at 1280×800, 93.3 % at 1440×900, 95.1 % on portrait tablet, with zero page scroll.
 
 ## Not yet specified
 
 <!-- in-scope fog: suspected questions not yet sharp enough to ticket -->
 
-- **Feature-doc reconciliation.** `docs/features/case-board.md` §4 already describes a
-  leaner board than the one built. Once the spec has a shape, decide whether it rewrites
-  that section in place, supersedes it, or becomes a new feature document.
-- **Shell ownership.** How much of the `AppShell` topbar this spec owns (it is shared with
-  every other route) versus how much is deferred to a future shell pass.
-- **Shared frame component.** Whether the phone bottom bar and the tablet/desktop clusters
-  are one component with two presentations or two deliberate implementations.
-- **Canvas performance headroom.** Whether a materially taller/wider canvas changes the
-  culling margin and texture-cache assumptions in `BOARD-FR-03`/`BOARD-FR-07`.
-- **Icon authoring.** Where an inline SVG icon set lives (a component module, or the theme),
-  and how each glyph is proven to read at 44 px against both themes.
-- **Persistent-warning conflict.** `ScaleWarning` becomes persistent at 150+ cards, and a
-  persistent banner is incompatible with the dominance gate. Its home needs a decision.
-- **CSS ownership.** Three files set this page's geometry (`CaseBoardPage.css`, the override
-  layer in `styles/responsive.css`, `AppShell.css`). The spec must name one owner per value, or
-  the same drift that produced the current stage clamp will recur.
+Nothing noted. Every remaining question is either a live ticket (03–08) or out of scope.
+
+<!--
+  Graduated by 02: shell ownership (topbar untouched above 600), shared frame component (one
+  component set, rail ↔ bottom bar), persistent-warning conflict (05), icon authoring (03),
+  CSS ownership (07), feature-doc reconciliation (07), canvas headroom (08).
+-->
 
 ## Out of scope
 

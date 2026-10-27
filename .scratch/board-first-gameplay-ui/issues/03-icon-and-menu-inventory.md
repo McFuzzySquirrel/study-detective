@@ -35,6 +35,13 @@ Work through:
 6. **Naming.** Propose the canonical accessible name for every icon and every menu — this is
    the seed of the name table the spec must ship (`Case actions` → `Case menu`?, `Search and
    filters` → `Search`?).
+7. **Authoring home and proof** (graduated from the map’s fog). Where the inline SVG glyph set
+   lives — a component module or the theme — and how each glyph is proven to read at 44 px
+   against both themes, with no new dependency and no icon library.
+8. **Rail fit and minimap default.** The rail must fit the shortest supported stage (~273 px at
+   844×390) or define an overflow/collapse strategy. Also settle the minimap’s default state per
+   mode: ticket 01 found it open by default on phone, covering 15 % of the board and hiding most
+   visible cards.
 
 Deliver an inventory table: slot · icon/glyph idea · accessible name · opens (popover / sheet /
 drawer / modal) · contents. Flag anything that is *not* an icon but still earns permanent space,

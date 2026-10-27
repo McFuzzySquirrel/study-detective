@@ -2,7 +2,7 @@
 
 Type: task
 Status: open
-Blocked by: 02, 03, 04, 05, 06
+Blocked by: 02, 03, 04, 05, 06, 08
 
 ## Question
 
@@ -34,8 +34,16 @@ again. Contents:
    `case-board.md` §4), the e2e specs that need renamed selectors (`a11y`, `responsive`,
    `keyboard-journey`, `closure`, `demo`, `board`), and a suggested order of work with the
    gate check as the acceptance step.
-8. **Explicit non-goals.** The Out-of-scope list from the map, restated so implementers do not
-   absorb nearby routes into the change.
+8. **CSS ownership** (graduated from the map’s fog). One owner per value is mandatory: the spec
+   must state which file owns band/rail/stage geometry, which owns in-stage floating chrome, and
+   which owns shell values. `styles/responsive.css` currently overrides the stage at two
+   breakpoints and the content cap at a third; the spec must say what it loses, or the same drift
+   that produced the current clamp recurs.
+9. **Text zoom and no-cap rule.** The band is `min-height: 48px`, so 200 % text may grow it; state
+   that the gate is measured at 100 % text and how 200 % text is verified without clipping or
+   overlap. State that the board route has no width cap above 600 px and the stage simply grows.
+10. **Explicit non-goals.** The Out-of-scope list from the map, restated so implementers do not
+    absorb nearby routes into the change.
 
 Placement: decide where it lives — `docs/features/` as a new feature document,
 `docs/research/`, or a rewrite of `case-board.md` §4 — and record why (that is the fog item
