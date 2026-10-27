@@ -1,7 +1,7 @@
 # 07 — Write the redesign spec
 
 Type: task
-Status: open
+Status: resolved
 Blocked by: 02, 03, 04, 05, 06, 08
 
 ## Question
@@ -54,4 +54,22 @@ Do not implement. Do not edit `src/`.
 
 ## Answer
 
-<!-- resolution: append the spec path and a one-line summary of what it decides -->
+**Spec:** [spec.md](../spec.md) — the decision-complete handoff for the board-first case frame.
+
+Placement: the spec lives in the effort folder (`.scratch/board-first-gameplay-ui/spec.md`) because
+it is the map's decision artifact, not a shipped feature document; the implementation phase folds
+the accepted values into `docs/features/case-board.md` §4 and the requirement amendments listed in
+§11. That keeps the forge pipeline from treating a scratch spec as a new product feature and keeps
+the history next to the map.
+
+It decides: the measured gate and verification script (93.3 % / 92.4 % / 86.8 %; zero page scroll;
+stage-width invariance); the wide and phone compositions; the quiet three-slot rail and four-slot
+phone bar; the canonical icon/name table including the renames; the wide non-modal / phone modal
+panel mechanics and the new `Panel` contract; the interruption table, attention dot, toast/hint
+layers, and `System status` chip; CSS ownership and the values `responsive.css` loses; text-zoom and
+no-cap rules; the requirement text for `BOARD-FR-03`/`06`/`07`/`09` and the doc amendments; and the
+migration/test order with the gate as the acceptance step. No `src/` changes were made.
+
+There are no open design questions. The risks that remain are listed in spec §13 (phone gate margin,
+safe-area interpretation, 200 % text, the new primitive, search-state lift, selector churn, the
+texture transient, fit wording, and the topbar amendment).

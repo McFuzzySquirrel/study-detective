@@ -43,6 +43,10 @@ icon rail, and a full-bleed stage that never reflows under selection. The perman
 column is deleted. The shell topbar is untouched above 600 px. Tablet and desktop resolve to
 the same frame; portrait tablet does too. No height-specific exception.
 
+> **Amended by 05:** the shell topbar may carry one conditional `System status` chip at its
+> trailing edge when offline, update, or browser-support notices are active. The Case shelf /
+> Settings nav and the 60 px height are unchanged; no routine board screen shows it.
+
 ### Composition
 
 **Pinned outside the canvas** (subtracts from the stage):

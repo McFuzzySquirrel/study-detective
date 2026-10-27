@@ -1,7 +1,7 @@
 # Map: Board-first gameplay UI
 
 Label: wayfinder:map
-Status: open
+Status: complete
 
 ## Destination
 
@@ -70,12 +70,46 @@ frame is `src/app/AppShell.tsx` + `AppShell.css`; breakpoints are
   a 48 px identity band, a 56 px leading icon rail, and a full-bleed stage whose width is
   invariant under selection; the closure column is deleted and detail floats. Board share becomes
   92.4 % at 1280×800, 93.3 % at 1440×900, 95.1 % on portrait tablet, with zero page scroll.
+- [Icon and menu inventory](issues/03-icon-and-menu-inventory.md): wide rail is three slots
+  (Search, Open card list, Case menu); phone bar stays four (Search, Add, Closure, Case menu). One
+  closure surface per mode (band readiness chip wide, Closure icon on phone), one Search surface
+  with filters inside, and `Thread types` inside the Case menu. Six-glyph module, text-only menu
+  items, no badges, rail caps at five slots, minimap collapsed everywhere. Canonical names rename
+  `Case actions` → `Case menu`, `Connection legend` → `Thread types`, `Back to case shelf` →
+  `Case shelf`.
+- [Three-viewport prototype](issues/04-three-viewport-prototype.md): the frame holds at 390×844,
+  1280×800 and 1440×900. The walkthrough locked a **quiet rail**, a full-height trailing detail
+  panel (Add is covered while inspecting), the retained readiness dot, **modal phone sheets that
+  cover the bar**, restored-camera density on phone, and the Case menu anchored under its rail
+  trigger. Evidence: `prototype/index.html` plus `evidence/screenshots/04-*`.
+- [Interruption and overlay policy](issues/05-interruption-and-overlay-policy.md): nothing enters
+  the board's flow. Capacity and backup live in Case menu attention sections behind one trigger
+  dot; the backup reminder is live (01's zero reading was a fixture artifact); toasts move
+  top-centre; hints stay and teaching moves to the `?` help dialog; offline/update/browser
+  notices become one shell `System status` chip + dialog.
+- [Panel mechanics](issues/06-panel-mechanics.md): wide panels are non-modal — Search/Menu
+  transient, Closure/Detail persistent — and phone surfaces stay modal sheets. A new non-modal
+  `Panel` primitive carries focus entry, Escape, outside-click rules, and focus return without a
+  trap, `inert`, or scroll lock; `Dialog` stays modal-only. One persistent + one transient on
+  wide, one sheet on phone; `aria-expanded`/`aria-haspopup`; the canvas is not a tab stop.
+- [Write the redesign spec](issues/07-write-the-redesign-spec.md): [spec.md](spec.md) is the
+  decision-complete handoff. It fixes the gate (93.3 % / 92.4 % / 86.8 %, zero page scroll, invariant
+  stage width), the wide/phone compositions and inventory, the canonical name table, non-modal wide
+  panels vs modal phone sheets with the new `Panel` contract, the interruption/attention policy and
+  `System status` chip, one-owner CSS, and the exact `BOARD-FR-03`/`06`/`07`/`09` and doc/test
+  migration. No `src/` changes; no open design questions.
+- [Canvas headroom at the new stage size](issues/08-canvas-headroom-at-new-stage-size.md): keep the
+  200 px screen-space cull margin (1.95×/2.10× of the stage vs 2.48× on the old stage) and the
+  200-texture ceiling (130 worst rendered desktop, 70 headroom). Fit is the real regression: the
+  0.25 floor renders 130/150 cards on desktop and 110/150 on tablet. Amend `BOARD-FR-03`/`FR-07`
+  and add a 0.25-floor perf pass; research file linked.
 
 ## Not yet specified
 
 <!-- in-scope fog: suspected questions not yet sharp enough to ticket -->
 
-Nothing noted. Every remaining question is either a live ticket (03–08) or out of scope.
+None. The destination is reached: every decision ticket is resolved and
+[spec.md](spec.md) is the handoff document. Implementation is out of scope for this map.
 
 <!--
   Graduated by 02: shell ownership (topbar untouched above 600), shared frame component (one

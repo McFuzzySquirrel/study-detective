@@ -115,6 +115,10 @@ Same stage height at 150 cards as at 12: the board never grows while the page gr
    `80rem` (1280 px measured) from `responsive.css` at ≥ 75 rem, not the `72rem` in
    `AppShell.css`. Any spec must name which file owns the new values.
 
+> **05 follow-up (2026-10-27):** the backup reminder is live. It rendered the full
+> `.backup-reminder` card on the demo case (6 cards, 5 connections, `backupPromptedAt: null`).
+> Finding 7's zero-node reading was a fixture/measurement artifact, not dead code.
+
 ### Evidence
 
 - Raw geometry: `.scratch/board-first-gameplay-ui/evidence/raw/*.json` (one file per pass).
