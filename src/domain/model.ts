@@ -18,7 +18,12 @@ export type ConnectionType = (typeof CONNECTION_TYPES)[number];
 export const ATTACHMENT_KINDS = ['original', 'display', 'thumbnail'] as const;
 export type AttachmentKind = (typeof ATTACHMENT_KINDS)[number];
 
-export const ATTACHMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const ATTACHMENT_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+] as const;
 export type AttachmentMime = (typeof ATTACHMENT_MIME_TYPES)[number];
 
 /**

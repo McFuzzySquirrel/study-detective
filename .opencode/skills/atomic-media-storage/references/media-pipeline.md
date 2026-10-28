@@ -6,7 +6,7 @@ Use this reference for the capture and card-detail image path.
 
 1. File count: exactly one image per card.
 2. Size: `file.size <= 30 * 1024 * 1024`. The exact boundary passes; one byte over fails.
-3. Extension and MIME: JPEG, PNG, or WebP only. Reject HEIC, HEIF, SVG, GIF, PDF, and unknown.
+3. Extension and MIME: JPEG, PNG, WebP, or GIF. Reject HEIC, HEIF, SVG, PDF, and unknown.
 4. Magic bytes: JPEG `FF D8 FF`, PNG `89 50 4E 47 0D 0A 1A 0A`, WebP `RIFF....WEBP`.
 5. Decode: `createImageBitmap` or an `Image` load must succeed; a corrupt or truncated file fails.
 
@@ -38,6 +38,8 @@ Free crop with a square shortcut is the v1 editor. Provide keyboard rotation and
 | Thumbnail | 320 | quality 0.9 | Thumbnail-first board texture |
 
 Compute `scale = min(1, cap / max(width, height))`. Round dimensions with a floor of 1. Preserve aspect ratio. Re-crop and rotation regenerate all three outputs from the retained original, not from the display derivative.
+
+Animated GIFs are the exception: keep the original frame data for the original and display attachments, and create only a bounded static PNG thumbnail. Do not crop, rotate, or re-encode GIFs; the UI skips the crop editor and disables later crop/rotate actions. Still-image originals, display derivatives, and thumbnails continue to use the 4096/2048/320px caps.
 
 Store MIME, width, height, byte size, and SHA-256 with each attachment. The archive exporter reuses the same metadata.
 

@@ -90,6 +90,7 @@ function urlsEqual(first: BoardCardImage | undefined, second: BoardCardImage | u
   return (
     first?.thumbnailUrl === second?.thumbnailUrl &&
     first?.displayUrl === second?.displayUrl &&
+    first?.mime === second?.mime &&
     first?.width === second?.width &&
     first?.height === second?.height
   );
@@ -123,6 +124,7 @@ export class CardSprite {
 
   private thumbnailTexture: Texture | null = null;
   private displayTexture: Texture | null = null;
+  private gifRefreshTimer: ReturnType<typeof setInterval> | null = null;
   private visible = false;
   private imageGeneration = 0;
   private destroyed = false;
@@ -408,6 +410,9 @@ export class CardSprite {
       if (kind === 'display') {
         this.displayTexture = texture;
         this.applyTexture(texture);
+        if (this.imageValue?.mime === 'image/gif') {
+          this.startGifRefresh(texture);
+        }
         this.destroyThumbnail();
         return;
       }
@@ -460,6 +465,22 @@ export class CardSprite {
     }
   }
 
+  private startGifRefresh(texture: Texture): void {
+    this.stopGifRefresh();
+    this.gifRefreshTimer = setInterval(() => {
+      if (this.visible && !this.destroyed && this.displayTexture === texture) {
+        texture.source.update();
+      }
+    }, 33);
+  }
+
+  private stopGifRefresh(): void {
+    if (this.gifRefreshTimer !== null) {
+      clearInterval(this.gifRefreshTimer);
+      this.gifRefreshTimer = null;
+    }
+  }
+
   /**
    * Drop the card's image textures while keeping its paper, pin, title, and
    * type geometry. Culling calls this after the offscreen grace period; a
@@ -467,6 +488,7 @@ export class CardSprite {
    */
   releaseImages(): void {
     this.imageGeneration += 1;
+    this.stopGifRefresh();
     this.photo.visible = false;
     this.photo.texture = Texture.EMPTY;
     this.photoFrame.alpha = 1;

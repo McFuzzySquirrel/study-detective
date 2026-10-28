@@ -26,8 +26,13 @@ import {
   type ImportImageCardOptions,
   type ImportStage,
 } from './cardImport';
-import { isAbortError, validateImageFile, type ImageValidationResult } from './imageValidation';
-import type { CropRect, Rotation } from './imagePipeline';
+import {
+  isAbortError,
+  validateImageFile,
+  type ImageValidationResult,
+  type SupportedImageMime,
+} from './imageValidation';
+import { FULL_CROP, type CropRect, type Rotation } from './imagePipeline';
 import {
   computeInitialCardPosition,
   readBrowserViewportSize,
@@ -261,6 +266,7 @@ export function CapturePage({
   const [reloadToken, setReloadToken] = useState(0);
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedMime, setSelectedMime] = useState<SupportedImageMime | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [sourceSize, setSourceSize] = useState<CaptureViewportSize | null>(null);
   const [cropResult, setCropResult] = useState<CropResult | null>(null);
@@ -304,6 +310,7 @@ export function CapturePage({
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(null);
+    setSelectedMime(null);
     setCropResult(null);
     setSourceSize(null);
     setFailure(null);
@@ -411,6 +418,7 @@ export function CapturePage({
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(file);
+    setSelectedMime(null);
     setCropResult(null);
     setSourceSize(null);
     setFailure(null);
@@ -440,7 +448,13 @@ export function CapturePage({
       }
 
       setSourceSize({ width: result.width, height: result.height });
-      setStep('crop');
+      setSelectedMime(result.mime);
+      if (result.mime === 'image/gif') {
+        setCropResult({ crop: FULL_CROP, rotation: 0 });
+        setStep('details');
+      } else {
+        setStep('crop');
+      }
     } catch (error) {
       if (controller.signal.aborted || isAbortError(error)) {
         return;
@@ -471,6 +485,7 @@ export function CapturePage({
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(null);
+    setSelectedMime(null);
     setCropResult(null);
     setFailure(null);
     setStep('topic');
@@ -486,6 +501,7 @@ export function CapturePage({
     releasePreview();
     setPreviewUrl(null);
     setSelectedFile(null);
+    setSelectedMime(null);
     setCropResult(null);
     setSourceSize(null);
     setStep('picker');
@@ -846,7 +862,7 @@ export function CapturePage({
           >
             <h3>Checking the photo…</h3>
             <p>
-              Reading the image locally and confirming it is a JPEG, PNG, or WebP under 30 MB.
+              Reading the image locally and confirming it is a JPEG, PNG, WebP, or GIF under 30 MB.
               Nothing is uploaded.
             </p>
             <div className="capture__progress-actions">
@@ -884,7 +900,15 @@ export function CapturePage({
             initialDetails={pendingCard?.details ?? ''}
             initialTags={pendingCard?.tags ?? []}
             image={selectedFile}
-            onBack={() => setStep('crop')}
+            animated={selectedMime === 'image/gif'}
+            backLabel={selectedMime === 'image/gif' ? 'Choose another image' : 'Back to crop'}
+            onBack={() => {
+              if (selectedMime === 'image/gif') {
+                handleCropCancel();
+              } else {
+                setStep('crop');
+              }
+            }}
             onSubmit={handleNoteSourceSubmit}
           />
         ) : null}

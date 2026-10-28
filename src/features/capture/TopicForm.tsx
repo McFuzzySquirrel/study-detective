@@ -101,7 +101,7 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
 
         <Field
           label="Topic image"
-          hint="Optional. Choose a JPEG, PNG, or WebP image from this device."
+          hint="Optional. Choose a JPEG, PNG, WebP, or GIF image from this device."
         >
           {(control) => (
             <input

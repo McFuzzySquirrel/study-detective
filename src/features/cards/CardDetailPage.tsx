@@ -1111,7 +1111,9 @@ export function CardDetailPage({
             <Button
               ref={cropTriggerRef}
               className="card-detail__action"
-              disabled={replacing || originalAttachment === null}
+              disabled={
+                replacing || originalAttachment === null || originalAttachment.mime === 'image/gif'
+              }
               onClick={handleOpenCrop}
             >
               Crop/rotate
@@ -1155,15 +1157,16 @@ export function CardDetailPage({
           </p>
 
           <p className="card-detail__hint">
-            Replace photo uses a new image. Crop/rotate reuses the retained original, so you can
-            refine this card again later.
+            {displayAttachment?.mime === 'image/gif'
+              ? 'Animated GIFs keep their original frames and dimensions, so they cannot be cropped or rotated.'
+              : 'Replace photo uses a new image. Crop/rotate reuses the retained original, so you can refine this card again later.'}
           </p>
 
           <input
             ref={replaceInputRef}
             className="card-detail__file"
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             tabIndex={-1}
             aria-hidden="true"
             disabled={replacing}

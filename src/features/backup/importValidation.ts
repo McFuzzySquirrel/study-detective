@@ -45,7 +45,7 @@ const MAX_ZIP_COMMENT_LENGTH = 0xffff;
  * roots, drive letters, backslashes, and names outside `images/` in one place.
  */
 const ARCHIVE_IMAGE_PATH_PATTERN =
-  /^images\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(?:png|jpg|jpeg|webp)$/;
+  /^images\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(?:png|jpg|jpeg|webp|gif)$/;
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 

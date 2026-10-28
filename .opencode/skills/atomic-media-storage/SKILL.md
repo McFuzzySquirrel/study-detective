@@ -15,7 +15,7 @@ Load `references/atomic-writes.md` when implementing card creation, attachment r
 
 ### Step 1: Validate before decoding
 
-Accept one JPEG, PNG, or WebP image up to 30 MB. Check the size boundary, magic bytes, MIME compatibility, and decodability in that order. Reject SVG, HEIC, a spoofed MIME, a truncated file, and one byte over the limit with a visible error and no write. Do not trust the file extension or the browser-reported type alone.
+Accept one JPEG, PNG, WebP, or GIF image up to 30 MB. Check the size boundary, magic bytes, MIME compatibility, and decodability in that order. Reject SVG, HEIC, a spoofed MIME, a truncated file, and one byte over the limit with a visible error and no write. Preserve GIF frames; do not crop, rotate, or re-encode animated GIFs. Do not trust the file extension or the browser-reported type alone.
 
 If validation fails, then stop before any bitmap, canvas, transaction, or object URL exists.
 
@@ -27,7 +27,7 @@ Keep crop coordinates normalized 0-1 and a rotation in `{0, 90, 180, 270}`. Cycl
 
 ### Step 3: Generate bounded derivatives
 
-Default original: longest edge at most 4096px, quality 0.9. Display: longest edge 2048px. Thumbnail: longest edge 320px. Preserve aspect ratio and never upscale; a 900px source produces a 900px original, not a 4096px one. A per-card full-resolution opt-in retains the decoded size and defaults off with a storage warning.
+For still images, default original: longest edge at most 4096px, quality 0.9. Display: longest edge 2048px. Thumbnail: longest edge 320px. Preserve aspect ratio and never upscale; a 900px source produces a 900px original, not a 4096px one. A per-card full-resolution opt-in retains the decoded size and defaults off with a storage warning. GIF original and display attachments preserve the animated source bytes; make only a bounded static PNG thumbnail.
 
 Derive all three outputs from the retained original so a later re-crop regenerates them without the original import file. Do not mutate or overwrite the retained original when cropping.
 

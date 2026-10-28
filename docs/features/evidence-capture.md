@@ -21,7 +21,7 @@
 
 **Feature Name:** Evidence Capture
 **ID Prefix:** CAP
-**Summary:** Imports photos through the native camera or library control, normalizes orientation and derivatives, provides non-destructive crop and rotation, and creates Study Note, Source, and Topic cards inside a case.
+**Summary:** Imports photos and animated GIFs through the native camera or library control, normalizes image derivatives, provides non-destructive crop and rotation for still images, and creates Study Note, Source, and Topic cards inside a case.
 **Dependencies:** Local Data and Case Shelf
 **Priority:** Must
 
@@ -52,15 +52,15 @@
 ## 3. Functional Requirements
 
 ```forge-requirement
-{"id":"CAP-FR-01","kind":"requirement","text":"Accept one JPEG, PNG, or WebP image up to 30 MB through a native file control that offers camera capture and photo-library selection; reject unsupported types, corrupt images, and oversized files with a clear error and create no card."}
+{"id":"CAP-FR-01","kind":"requirement","text":"Accept one JPEG, PNG, WebP, or GIF image up to 30 MB through a native file control that offers camera capture and photo-library selection; preserve all GIF animation frames and reject unsupported types, corrupt images, and oversized files with a clear error and create no card."}
 ```
 
 ```forge-requirement
-{"id":"CAP-FR-02","kind":"requirement","text":"Normalize EXIF orientation and store a display derivative at 2048px longest edge, a 320px thumbnail, and an original capped at 4096px longest edge at quality 0.9 by default, with a per-card opt-in to retain the imported full resolution; never upscale."}
+{"id":"CAP-FR-02","kind":"requirement","text":"For still images, normalize EXIF orientation and store a display derivative at 2048px longest edge, a 320px thumbnail, and an original capped at 4096px longest edge at quality 0.9 by default, with a per-card opt-in to retain the imported full resolution; never upscale. GIFs retain their original animated image and receive a resized static thumbnail."}
 ```
 
 ```forge-requirement
-{"id":"CAP-FR-03","kind":"requirement","text":"Offer non-destructive crop and 90-degree rotation at import and later from card detail, store the normalized crop rectangle and rotation with the card, and regenerate derivatives from the retained original."}
+{"id":"CAP-FR-03","kind":"requirement","text":"Offer non-destructive crop and 90-degree rotation for still images at import and later from card detail, store the normalized crop rectangle and rotation with the card, and regenerate derivatives from the retained original; do not crop or rotate GIFs because re-encoding would discard animation."}
 ```
 
 ```forge-requirement
