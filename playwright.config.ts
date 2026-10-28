@@ -24,7 +24,10 @@ export default defineConfig({
     storageState: './e2e/fixtures/no-demo-storage.json',
   },
   webServer: {
-    command: 'npm run preview -- --port 4173 --strictPort',
+    // Bind IPv4 explicitly. Vite's default `localhost` can resolve to ::1 on
+    // CI, while Playwright polls 127.0.0.1, which makes the webServer timeout
+    // with no useful output.
+    command: 'npm run preview -- --port 4173 --strictPort --host 127.0.0.1',
     url: previewUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
