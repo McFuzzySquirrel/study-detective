@@ -61,6 +61,7 @@ import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
 import { deriveCaseLifecycle } from '../../domain/caseLifecycle';
 import type {
+  AttachmentMime,
   CardRecord,
   CaseRecord,
   ConnectionRecord,
@@ -652,6 +653,7 @@ export function CaseBoardPage({
             const image: {
               thumbnailUrl?: string;
               displayUrl?: string;
+              mime?: AttachmentMime;
               width?: number;
               height?: number;
             } = {};
@@ -663,6 +665,7 @@ export function CaseBoardPage({
               image.displayUrl = displayUrl;
             }
             if (displayAttachment !== null) {
+              image.mime = displayAttachment.mime;
               image.width = displayAttachment.width;
               image.height = displayAttachment.height;
             }

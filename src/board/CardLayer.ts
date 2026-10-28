@@ -9,6 +9,7 @@
 
 import { Container } from 'pixi.js';
 
+import type { AttachmentMime } from '../domain/model';
 import type { Viewport } from '../domain/model';
 
 import type { BoardCardSnapshot, BoardPalette } from './CardSprite';
@@ -31,6 +32,7 @@ export { BOARD_CULL_MARGIN, computeCullingWindow, filterVisibleCards } from './u
 export interface BoardCardImage {
   readonly thumbnailUrl?: string;
   readonly displayUrl?: string;
+  readonly mime?: AttachmentMime;
   readonly width?: number;
   readonly height?: number;
 }

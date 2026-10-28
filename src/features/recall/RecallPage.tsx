@@ -35,7 +35,7 @@ import type { ToastTone } from '../../components/Toast';
 import { CaseRepository } from '../../data/caseRepository';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
-import type { CardRecord, CaseRecord, ConnectionRecord } from '../../domain/model';
+import type { AttachmentMime, CardRecord, CaseRecord, ConnectionRecord } from '../../domain/model';
 import HintPopover from '../onboarding/HintPopover';
 import { getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
 import type { HintSeenStore } from '../onboarding/hints';
@@ -318,6 +318,7 @@ export function RecallPage({
             const image: {
               thumbnailUrl?: string;
               displayUrl?: string;
+              mime?: AttachmentMime;
               width?: number;
               height?: number;
             } = {};
@@ -329,6 +330,7 @@ export function RecallPage({
               image.displayUrl = displayUrl;
             }
             if (displayAttachment !== null) {
+              image.mime = displayAttachment.mime;
               image.width = displayAttachment.width;
               image.height = displayAttachment.height;
             }

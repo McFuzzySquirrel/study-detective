@@ -39,6 +39,9 @@ export interface NoteSourceFormProps {
   readonly initialTags?: readonly string[];
   /** The cropped/pending photo; OCR is offered but never started automatically. */
   readonly image?: OcrImage | null;
+  /** Animated GIFs keep their frames and cannot be cropped or resized. */
+  readonly animated?: boolean;
+  readonly backLabel?: string;
   /** Returns to the crop step without creating a card. */
   readonly onBack: () => void;
   readonly onSubmit: (values: NoteSourceValues) => void;
@@ -54,6 +57,8 @@ export default function NoteSourceForm({
   initialDetails = '',
   initialTags = [],
   image = null,
+  animated = false,
+  backLabel = 'Back to crop',
   onBack,
   onSubmit,
 }: NoteSourceFormProps) {
@@ -101,8 +106,9 @@ export default function NoteSourceForm({
       <div className="capture-form__heading">
         <h3 id="capture-note-form-title">Name the card</h3>
         <p>
-          The cropped photo is attached when you save. The card type is fixed at creation so later
-          connections keep the same evidence.
+          {animated
+            ? 'The animated GIF is attached when you save. The card type is fixed at creation so later connections keep the same evidence.'
+            : 'The cropped photo is attached when you save. The card type is fixed at creation so later connections keep the same evidence.'}
         </p>
       </div>
 
@@ -186,31 +192,38 @@ export default function NoteSourceForm({
           onResultChange={setOcrResult}
         />
 
-        <label className="capture-toggle" htmlFor="capture-keep-full-resolution">
-          <input
-            id="capture-keep-full-resolution"
-            className="capture-toggle__input"
-            type="checkbox"
-            name="retainFullResolution"
-            checked={retainFullResolution}
-            aria-labelledby={resolutionLabelId}
-            aria-describedby={resolutionHintId}
-            onChange={(event) => setRetainFullResolution(event.currentTarget.checked)}
-          />
-          <span className="capture-toggle__body">
-            <span className="capture-toggle__label" id={resolutionLabelId}>
-              Keep full resolution
+        {animated ? (
+          <p className="capture-form__hint">
+            Animated GIFs keep their original frames and dimensions. Cropping, rotation, and image
+            resizing are not available for GIFs.
+          </p>
+        ) : (
+          <label className="capture-toggle" htmlFor="capture-keep-full-resolution">
+            <input
+              id="capture-keep-full-resolution"
+              className="capture-toggle__input"
+              type="checkbox"
+              name="retainFullResolution"
+              checked={retainFullResolution}
+              aria-labelledby={resolutionLabelId}
+              aria-describedby={resolutionHintId}
+              onChange={(event) => setRetainFullResolution(event.currentTarget.checked)}
+            />
+            <span className="capture-toggle__body">
+              <span className="capture-toggle__label" id={resolutionLabelId}>
+                Keep full resolution
+              </span>
+              <span className="capture-toggle__hint" id={resolutionHintId}>
+                Off by default. Keeping the full imported resolution stores a larger original image
+                and uses more of this device&apos;s storage.
+              </span>
             </span>
-            <span className="capture-toggle__hint" id={resolutionHintId}>
-              Off by default. Keeping the full imported resolution stores a larger original image
-              and uses more of this device&apos;s storage.
-            </span>
-          </span>
-        </label>
+          </label>
+        )}
 
         <div className="capture-form__actions">
           <Button variant="quiet" onClick={onBack}>
-            Back to crop
+            {backLabel}
           </Button>
           <Button className="capture-form__submit" variant="primary" type="submit">
             Save card
