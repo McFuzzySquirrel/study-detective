@@ -29,7 +29,7 @@ import type {
   CaseRecord,
   ConnectionRecord,
 } from '../../domain/model';
-import { TITLE_MAX_LENGTH } from '../../domain/model';
+import { CARD_DETAILS_MAX_LENGTH, TITLE_MAX_LENGTH } from '../../domain/model';
 import { deriveReadiness } from '../../domain/readiness';
 import type { TopicReadiness } from '../../domain/readiness';
 import TopicStatusBadge from '../case/TopicStatusBadge';
@@ -380,6 +380,75 @@ function TagsEditDialog({ initialTags, onClose, onSubmit }: TagsEditDialogProps)
   );
 }
 
+interface DetailsEditDialogProps {
+  readonly initialDetails: string;
+  readonly onClose: () => void;
+  readonly onSubmit: (details: string) => Promise<void>;
+}
+
+function DetailsEditDialog({ initialDetails, onClose, onSubmit }: DetailsEditDialogProps) {
+  const [details, setDetails] = useState(initialDetails);
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    if (saving) {
+      return;
+    }
+    setFormError(null);
+    setSaving(true);
+    try {
+      await onSubmit(details.trim());
+    } catch {
+      setFormError('The additional notes could not be saved. Your text is still here; try again.');
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open
+      onClose={onClose}
+      title="Edit additional notes"
+      description="Add context or extra information to this study note. Leave it blank to clear."
+      dismissible={!saving}
+      closeOnBackdrop={!saving}
+    >
+      <form className="card-detail-form" onSubmit={handleSubmit} noValidate>
+        <Field label="Additional notes" hint={`Up to ${CARD_DETAILS_MAX_LENGTH} characters.`}>
+          {(control) => (
+            <textarea
+              {...control}
+              name="details"
+              value={details}
+              maxLength={CARD_DETAILS_MAX_LENGTH}
+              rows={6}
+              onChange={(event) => {
+                setDetails(event.currentTarget.value);
+                setFormError(null);
+              }}
+            />
+          )}
+        </Field>
+        {formError !== null ? (
+          <p className="card-detail-form__error" role="alert">
+            {formError}
+          </p>
+        ) : null}
+        <div className="nd-dialog__actions">
+          <Button variant="quiet" onClick={onClose} disabled={saving}>
+            Cancel
+          </Button>
+          <Button variant="primary" type="submit" disabled={saving}>
+            {saving ? 'Saving…' : 'Save notes'}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 interface DeleteCardDialogProps {
   readonly title: string;
   readonly onClose: () => void;
@@ -470,6 +539,7 @@ export function CardDetailPage({
   const [displayUrl, setDisplayUrl] = useState<string | null>(null);
 
   const [titleDialogOpen, setTitleDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [pickerIntent, setPickerIntent] = useState<ConnectionPickerIntent | null>(null);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -894,6 +964,22 @@ export function CardDetailPage({
     setFeedback({ message: 'Card tags updated.', tone: 'success' });
   };
 
+  const handleDetailsSubmit = async (details: string): Promise<void> => {
+    const target = activeRepository;
+    const currentCard = card;
+
+    if (target === null || currentCard === null) {
+      throw new Error('The card repository is not open.');
+    }
+
+    const updated = await target.updateCard(currentCard.id, {
+      details: details.length > 0 ? details : null,
+    });
+    setCard(updated);
+    setDetailsDialogOpen(false);
+    setFeedback({ message: 'Additional notes saved.', tone: 'success' });
+  };
+
   const handleOcrPersist = async (result: OcrResult): Promise<void> => {
     const target = activeRepository;
     const currentCard = card;
@@ -1015,25 +1101,21 @@ export function CardDetailPage({
               Edit title
             </Button>
 
-            {card.type === 'topic' ? null : (
-              <>
-                <Button
-                  className="card-detail__action"
-                  disabled={replacing}
-                  onClick={() => replaceInputRef.current?.click()}
-                >
-                  Replace photo
-                </Button>
-                <Button
-                  ref={cropTriggerRef}
-                  className="card-detail__action"
-                  disabled={replacing || originalAttachment === null}
-                  onClick={handleOpenCrop}
-                >
-                  Crop/rotate
-                </Button>
-              </>
-            )}
+            <Button
+              className="card-detail__action"
+              disabled={replacing}
+              onClick={() => replaceInputRef.current?.click()}
+            >
+              {displayAttachment === null ? 'Add image' : 'Replace photo'}
+            </Button>
+            <Button
+              ref={cropTriggerRef}
+              className="card-detail__action"
+              disabled={replacing || originalAttachment === null}
+              onClick={handleOpenCrop}
+            >
+              Crop/rotate
+            </Button>
 
             <Button
               className="card-detail__action"
@@ -1072,12 +1154,10 @@ export function CardDetailPage({
             attach a Source as provenance.
           </p>
 
-          {card.type === 'topic' ? null : (
-            <p className="card-detail__hint">
-              Replace photo uses a new image. Crop/rotate reuses the retained original, so you can
-              refine this card again later.
-            </p>
-          )}
+          <p className="card-detail__hint">
+            Replace photo uses a new image. Crop/rotate reuses the retained original, so you can
+            refine this card again later.
+          </p>
 
           <input
             ref={replaceInputRef}
@@ -1208,7 +1288,7 @@ export function CardDetailPage({
             </h2>
             <p className="card-detail__summary">
               {card.type === 'topic'
-                ? 'A text-only topic. It has no photo to crop or replace.'
+                ? 'A topic can include an optional image to help explain its theme.'
                 : 'This card owns one retained original, one display copy, and one thumbnail. Editing the photo keeps the card ID.'}
             </p>
           </header>
@@ -1229,7 +1309,7 @@ export function CardDetailPage({
           ) : (
             <div className="card-detail__layout">
               <section className="card-detail__photo" aria-labelledby="card-photo-title">
-                <h3 id="card-photo-title">Photo</h3>
+                <h3 id="card-photo-title">{card.type === 'topic' ? 'Image' : 'Photo'}</h3>
                 {displayUrl !== null ? (
                   <img
                     className="card-detail__image"
@@ -1239,7 +1319,7 @@ export function CardDetailPage({
                 ) : (
                   <p className="card-detail__no-photo">
                     {card.type === 'topic'
-                      ? 'No photo is attached to this topic.'
+                      ? 'No image is attached to this topic.'
                       : 'The display image could not be loaded. Replace the photo to restore this card.'}
                   </p>
                 )}
@@ -1268,6 +1348,25 @@ export function CardDetailPage({
               )}
             </div>
           )}
+
+          {card.type === 'note' ? (
+            <section className="card-detail__details" aria-labelledby="card-details-title">
+              <div className="card-detail__tags-header">
+                <h3 id="card-details-title">Additional notes</h3>
+                <Button
+                  className="card-detail__tag-edit"
+                  onClick={() => setDetailsDialogOpen(true)}
+                >
+                  {card.details === undefined ? 'Add details' : 'Edit details'}
+                </Button>
+              </div>
+              {card.details === undefined ? (
+                <p className="card-detail__muted">No additional notes yet.</p>
+              ) : (
+                <p className="card-detail__details-text">{card.details}</p>
+              )}
+            </section>
+          ) : null}
 
           {card.type === 'topic' ? null : (
             <OcrPanel
@@ -1356,6 +1455,14 @@ export function CardDetailPage({
               initialTitle={card.title}
               onClose={() => setTitleDialogOpen(false)}
               onSubmit={handleTitleSubmit}
+            />
+          ) : null}
+
+          {detailsDialogOpen && card.type === 'note' ? (
+            <DetailsEditDialog
+              initialDetails={card.details ?? ''}
+              onClose={() => setDetailsDialogOpen(false)}
+              onSubmit={handleDetailsSubmit}
             />
           ) : null}
 

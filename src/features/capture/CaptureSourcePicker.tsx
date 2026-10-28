@@ -1,6 +1,6 @@
 /**
  * The capture entry point: two native photo controls that share one file path,
- * plus a text-only topic action.
+ * plus a topic action.
  *
  * The visible buttons are the accessible controls. The file inputs stay hidden
  * from the accessibility tree and keyboard order because the native picker is
@@ -12,6 +12,7 @@ import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
 
 import Button from '../../components/Button';
+import type { ImageCardType } from './cardImport';
 
 import './capture.css';
 
@@ -19,6 +20,7 @@ export const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
 export interface CaptureSourcePickerProps {
   readonly disabled?: boolean;
+  readonly cardType?: ImageCardType;
   /** One selection path for both camera and library photos. */
   readonly onFileSelected: (file: File) => void;
   readonly onAddTopic: () => void;
@@ -26,6 +28,7 @@ export interface CaptureSourcePickerProps {
 
 export default function CaptureSourcePicker({
   disabled = false,
+  cardType = 'note',
   onFileSelected,
   onAddTopic,
 }: CaptureSourcePickerProps) {
@@ -47,10 +50,13 @@ export default function CaptureSourcePicker({
   return (
     <section className="capture-source-picker" aria-labelledby="capture-source-picker-title">
       <div className="capture-source-picker__heading">
-        <h3 id="capture-source-picker-title">Add evidence</h3>
+        <h3 id="capture-source-picker-title">
+          {cardType === 'source' ? 'Add a source' : 'Add a study note'}
+        </h3>
         <p>
-          Photograph a page of notes or choose one from this device. The photo is cropped before it
-          is saved, and it never leaves this device.
+          {cardType === 'source'
+            ? 'Photograph a source or choose its image from this device. The image is cropped before it is saved and never leaves this device.'
+            : 'Photograph a page of notes or choose its image from this device. The image is cropped before it is saved and never leaves this device.'}
         </p>
       </div>
 
@@ -64,7 +70,7 @@ export default function CaptureSourcePicker({
           disabled={disabled}
           onClick={() => takePhotoRef.current?.click()}
         >
-          Take photo
+          {cardType === 'source' ? 'Photograph source' : 'Take photo'}
         </Button>
 
         <Button
@@ -76,7 +82,7 @@ export default function CaptureSourcePicker({
           disabled={disabled}
           onClick={() => choosePhotoRef.current?.click()}
         >
-          Choose photo
+          {cardType === 'source' ? 'Choose source image' : 'Choose photo'}
         </Button>
 
         <Button
@@ -93,8 +99,8 @@ export default function CaptureSourcePicker({
       </div>
 
       <p className="capture-source-picker__note">
-        A topic is a text label only. Use it for a theme you want to connect evidence to later; it
-        never asks for a photo.
+        Add a topic separately when you need a theme or heading. Topics can also have an optional
+        image.
       </p>
 
       <input

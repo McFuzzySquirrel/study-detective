@@ -333,16 +333,16 @@ describe('atomic failure', () => {
     expect(await db.attachments.count()).toBe(0);
   });
 
-  it('rejects a Topic card before reading the image', async () => {
-    const decode = vi.fn();
-    const outcome = await importImageCard(
-      baseInput({ caseId, type: 'topic' as unknown as ImageCardType }),
-      { repository, decode: decode as unknown as ImageDecoder },
-    );
+  it('allows an image to be attached to a Topic card', async () => {
+    const outcome = await importImageCard(baseInput({ caseId, type: 'topic' }), {
+      repository,
+      decode: decoderFor(fakeDecoded(640, 480)),
+      createCanvas: canvasHarness().factory,
+    });
 
-    expect(outcome).toMatchObject({ status: 'failed', code: 'unsupported-card-type' });
-    expect(decode).not.toHaveBeenCalled();
-    expect(await db.cards.count()).toBe(0);
+    expect(outcome).toMatchObject({ status: 'imported', card: { type: 'topic' } });
+    expect(await db.cards.count()).toBe(1);
+    expect(await db.attachments.count()).toBe(3);
   });
 });
 

@@ -1,9 +1,5 @@
 /**
- * Text-only topic creation.
- *
- * A topic never renders a file control and never calls the image pipeline. It
- * exists so a student can name a theme before or after attaching evidence, and
- * it shares the same 1–80 character title contract as every other card.
+ * Topic creation with an optional image.
  */
 
 import { useRef, useState } from 'react';
@@ -13,11 +9,13 @@ import Button from '../../components/Button';
 import Field from '../../components/Field';
 import { TITLE_MAX_LENGTH } from '../../domain/model';
 import TagInput from '../search/TagInput';
+import { PHOTO_ACCEPT } from './CaptureSourcePicker';
 
 import './capture.css';
 
 export type TopicFormValues = {
   readonly title: string;
+  readonly image?: File;
   /** Omitted when the topic has no tags. */
   readonly tags?: readonly string[];
 };
@@ -31,6 +29,7 @@ export interface TopicFormProps {
 export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState<readonly string[]>([]);
+  const [image, setImage] = useState<File | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +51,11 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
     }
 
     setTitleError(null);
-    onSubmit({ title: trimmed, ...(tags.length > 0 ? { tags } : {}) });
+    onSubmit({
+      title: trimmed,
+      ...(tags.length > 0 ? { tags } : {}),
+      ...(image !== null ? { image } : {}),
+    });
   }
 
   return (
@@ -60,8 +63,8 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
       <div className="capture-form__heading">
         <h3 id="capture-topic-form-title">Add a topic</h3>
         <p>
-          A topic is a text-only card for a theme, question, or heading. It has no photo and never
-          asks for one.
+          A topic names a theme, question, or heading. Add an image if it helps explain the topic;
+          this is optional.
         </p>
       </div>
 
@@ -95,6 +98,27 @@ export default function TopicForm({ onBack, onSubmit }: TopicFormProps) {
           label="Topic tags"
           hint="Optional. Type a tag and press Enter or comma to add it. Backspace removes the last tag."
         />
+
+        <Field
+          label="Topic image"
+          hint="Optional. Choose a JPEG, PNG, or WebP image from this device."
+        >
+          {(control) => (
+            <input
+              {...control}
+              type="file"
+              name="image"
+              accept={PHOTO_ACCEPT}
+              data-testid="topic-image-input"
+              onChange={(event) => setImage(event.currentTarget.files?.[0] ?? null)}
+            />
+          )}
+        </Field>
+        {image !== null ? (
+          <p className="capture-form__file-name" role="status">
+            Image selected: {image.name}
+          </p>
+        ) : null}
 
         <div className="capture-form__actions">
           <Button variant="quiet" onClick={onBack}>

@@ -195,6 +195,7 @@ describe('card CRUD', () => {
       caseId: createdCase.id,
       type: 'note',
       title: 'First',
+      details: 'Read this alongside the diagram.',
       position: { x: 0, y: 0 },
       tags: ['Biology'],
       ocrText: 'initial OCR',
@@ -216,16 +217,21 @@ describe('card CRUD', () => {
       title: 'First revised',
       position: { x: 55, y: 66 },
       tags: ['Energy'],
+      details: 'Keep this example in mind.',
       ocrText: 'revised OCR',
     });
 
     expect(updated.title).toBe('First revised');
     expect(updated.position).toEqual({ x: 55, y: 66 });
     expect(updated.tags).toEqual(['Energy']);
+    expect(updated.details).toBe('Keep this example in mind.');
     expect(updated.ocrText).toBe('revised OCR');
     expect(updated.ocrConfidence).toBe(80);
     expect(updated.type).toBe('note');
     expect(updated.createdAt).toBe(first.createdAt);
+
+    const cleared = await repository.updateCard(first.id, { details: null });
+    expect(cleared.details).toBeUndefined();
   });
 
   it('rejects a card whose case does not exist and an invalid card', async () => {

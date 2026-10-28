@@ -301,6 +301,19 @@ describe('Card detail route', () => {
     expect(screen.getByText(CARD_ID)).toBeInTheDocument();
   });
 
+  it('shows an optional image and image actions on a topic', async () => {
+    const repository = makeRepository(makeCard({ type: 'topic', title: 'Cell structure' }));
+    renderDetail({ repository });
+
+    await screen.findByRole('heading', { level: 2, name: 'Cell structure' });
+    expect(screen.getByRole('heading', { level: 3, name: 'Image' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: 'Display image for Cell structure' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Replace photo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Crop/rotate' })).toBeInTheDocument();
+  });
+
   it('reports a wrong-case URL as a missing card without loading another case', async () => {
     renderDetail({ caseId: OTHER_CASE_ID });
 
@@ -349,6 +362,25 @@ describe('Title editing', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => expect(trigger).toHaveFocus());
+  });
+});
+
+describe('Additional note details', () => {
+  it('saves and displays optional details on a study note', async () => {
+    const user = userEvent.setup();
+    const repository = makeRepository();
+    renderDetail({ repository });
+
+    await screen.findByRole('heading', { level: 2, name: 'Photosynthesis' });
+    await user.click(screen.getByRole('button', { name: 'Add details' }));
+    const details = await screen.findByRole('textbox', { name: 'Additional notes' });
+    await user.type(details, 'Remember the light-dependent reactions.');
+    await user.click(screen.getByRole('button', { name: 'Save notes' }));
+
+    expect(await repository.getCard(CARD_ID)).toMatchObject({
+      details: 'Remember the light-dependent reactions.',
+    });
+    expect(screen.getByText('Remember the light-dependent reactions.')).toBeInTheDocument();
   });
 });
 

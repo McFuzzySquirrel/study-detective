@@ -8,6 +8,7 @@
 import type { NewAttachment } from '../../data/attachmentStore';
 import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { DomainValidationError } from '../../domain/validation';
+import { CARD_TYPES } from '../../domain/model';
 import type { CardPosition, CardRecord, AttachmentRecord, CardType } from '../../domain/model';
 
 import {
@@ -31,14 +32,15 @@ import {
   type Rotation,
 } from './imagePipeline';
 
-/** Image cards are Study Notes and Sources; Topic cards are text-only. */
-export type ImageCardType = Extract<CardType, 'note' | 'source'>;
+/** Any card type may optionally own a photo. */
+export type ImageCardType = CardType;
 
 export type ImportImageCardInput = {
   readonly file: File;
   readonly caseId: string;
   readonly type: ImageCardType;
   readonly title: string;
+  readonly details?: string;
   readonly position: CardPosition;
   readonly tags?: readonly string[];
   /** Normalized 0-1 rectangle of the oriented source. Defaults to the whole image. */
@@ -123,7 +125,7 @@ function failureFromValidation(validation: ImageValidationFailure): CardImportFa
 }
 
 function isImageCardType(type: string): type is ImageCardType {
-  return type === 'note' || type === 'source';
+  return CARD_TYPES.some((candidate) => candidate === type);
 }
 
 function toNewAttachment(derivative: ImageDerivative): NewAttachment {
@@ -153,10 +155,7 @@ export async function importImageCard(
 
   try {
     if (!isImageCardType(input.type)) {
-      return failure(
-        'unsupported-card-type',
-        'Only Study Note and Source cards can use a photo. Create a Topic card from text.',
-      );
+      return failure('unsupported-card-type', 'Choose a valid card type before attaching a photo.');
     }
 
     throwIfAborted(options.signal);
@@ -200,6 +199,7 @@ export async function importImageCard(
         caseId: input.caseId,
         type: input.type,
         title: input.title,
+        ...(input.details !== undefined ? { details: input.details } : {}),
         position: input.position,
         crop: processed.crop,
         rotation: processed.rotation,

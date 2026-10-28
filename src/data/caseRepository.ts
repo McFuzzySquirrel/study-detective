@@ -74,6 +74,7 @@ export type CardCreateInput = {
   readonly caseId: string;
   readonly type: CardType;
   readonly title: string;
+  readonly details?: string;
   readonly position: CardPosition;
   readonly tags?: readonly string[];
   /** Normalized source-frame crop chosen at import. */
@@ -88,6 +89,7 @@ export type CardCreateInput = {
 
 export type CardPatch = {
   readonly title?: string;
+  readonly details?: string | null;
   readonly type?: CardType;
   readonly position?: CardPosition;
   readonly tags?: readonly string[];
@@ -227,6 +229,7 @@ function buildCardRecord(input: CardCreateInput, id: string, now: string): CardR
     caseId: input.caseId,
     type: input.type,
     title: input.title,
+    ...(input.details !== undefined ? { details: input.details } : {}),
     position: { x: input.position.x, y: input.position.y },
     tags: normalizeTags(input.tags ?? []),
     createdAt: now,
@@ -247,6 +250,7 @@ function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): C
   // OCR fields are nullable in a patch so Clear OCR can remove them. The rest
   // of the card is spread from the validated current row.
   const {
+    details: currentDetails,
     ocrText: currentOcrText,
     ocrConfidence: currentOcrConfidence,
     ocrEngineVersion: currentOcrEngineVersion,
@@ -263,10 +267,12 @@ function mergeCardRecord(current: CardRecord, patch: CardPatch, clock: Clock): C
       : (patch.ocrEngineVersion ?? undefined);
   const ocrUpdatedAt =
     patch.ocrUpdatedAt === undefined ? currentOcrUpdatedAt : (patch.ocrUpdatedAt ?? undefined);
+  const details = patch.details === undefined ? currentDetails : (patch.details ?? undefined);
 
   return parseCardRecord({
     ...currentWithoutOcr,
     ...(patch.title !== undefined ? { title: patch.title } : {}),
+    ...(details !== undefined ? { details } : {}),
     ...(patch.type !== undefined ? { type: patch.type } : {}),
     ...(patch.position !== undefined
       ? { position: { x: patch.position.x, y: patch.position.y } }
