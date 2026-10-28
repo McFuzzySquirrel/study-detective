@@ -9,7 +9,7 @@
 
 .nd-hint-layer {
   position: fixed;
-  z-index: calc(var(--z-dialog) - 1);
+  z-index: var(--z-hint);
   inset-inline: 0;
   inset-block-end: 0;
   display: flex;
@@ -17,6 +17,11 @@
   padding: var(--space-4);
   padding-block-end: max(var(--space-4), calc(var(--safe-area-bottom) + var(--space-2)));
   pointer-events: none;
+}
+
+/* Above the wide view cluster, so it never covers the zoom/fit controls. */
+.nd-hint-layer[data-placement='board'] {
+  inset-block-end: calc(var(--space-3) + var(--target-min) + var(--space-4));
 }
 
 .nd-hint {
@@ -246,6 +251,11 @@
 }
 
 @media (max-width: 37.4375rem) {
+  /* Above the phone bar, which is 56 px plus the device inset. */
+  .nd-hint-layer[data-placement='board'] {
+    inset-block-end: calc(56px + var(--safe-area-bottom) + var(--space-2));
+  }
+
   .settings-page {
     padding-block-end: calc(var(--space-4) + var(--safe-area-bottom));
   }

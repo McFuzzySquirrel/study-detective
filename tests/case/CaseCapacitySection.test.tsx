@@ -12,7 +12,7 @@ import {
 import { InMemoryCaseRepository } from '../../src/data/caseRepository';
 import type { CardRecord, CaseRecord } from '../../src/domain/model';
 import { CapturePage } from '../../src/features/capture/CapturePage';
-import ScaleWarning from '../../src/features/case/ScaleWarning';
+import CaseCapacitySection from '../../src/features/case/CaseCapacitySection';
 
 const CASE_ID = '11111111-1111-4111-8111-111111111111';
 
@@ -54,10 +54,10 @@ function makeRepository(cardCount: number): InMemoryCaseRepository {
   });
 }
 
-function renderWarning(cardCount: number) {
+function renderSection(cardCount: number) {
   return render(
     <MemoryRouter>
-      <ScaleWarning cardCount={cardCount} />
+      <CaseCapacitySection cardCount={cardCount} />
     </MemoryRouter>,
   );
 }
@@ -101,15 +101,15 @@ describe('board capacity guard', () => {
   });
 });
 
-describe('ScaleWarning', () => {
+describe('CaseCapacitySection', () => {
   it('renders nothing below 120 cards', () => {
-    const { container } = renderWarning(119);
+    const { container } = renderSection(119);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it('shows a dismissible soft warning at 120 cards', () => {
-    renderWarning(120);
+    renderSection(120);
 
     const warning = screen.getByRole('status');
     expect(warning).toHaveAttribute('data-card-capacity', 'soft');
@@ -120,7 +120,7 @@ describe('ScaleWarning', () => {
   });
 
   it('shows a persistent warning at 150 cards with no dismiss control', () => {
-    renderWarning(150);
+    renderSection(150);
 
     const warning = screen.getByRole('status');
     expect(warning).toHaveAttribute('data-card-capacity', 'persistent');
@@ -129,14 +129,14 @@ describe('ScaleWarning', () => {
   });
 
   it('keeps the persistent warning at 199 cards but does not block new cards', () => {
-    renderWarning(199);
+    renderSection(199);
 
     expect(screen.getByRole('status')).toHaveAttribute('data-card-capacity', 'persistent');
     expect(canAddCard(199)).toBe(true);
   });
 
   it('blocks at 200 with the shared split-case message and a new-case link', () => {
-    renderWarning(200);
+    renderSection(200);
 
     const alert = screen.getByRole('alert');
     expect(alert).toHaveAttribute('data-card-capacity', 'blocked');

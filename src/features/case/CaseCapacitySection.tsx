@@ -1,10 +1,10 @@
 /**
- * The board-capacity warning.
+ * The board-capacity section of the Case menu.
  *
- * Three states share one component so the board and its tests cannot drift:
+ * Three states share one component so the menu and its tests cannot drift:
  *
- * - 120-149 cards: a dismissible soft warning.
- * - 150-199 cards: a persistent warning advising a case split.
+ * - 120-149 cards: a dismissible soft notice for the page session.
+ * - 150-199 cards: a persistent notice advising a case split.
  * - 200 cards: a hard-stop alert with the shared split-case message.
  *
  * The count is supplied by the page. This component never reads storage and
@@ -24,10 +24,13 @@ import {
   remainingCardCapacity,
 } from '../../board/boardCapacity';
 
-import './ScaleWarning.css';
+import './CaseCapacitySection.css';
 
-export interface ScaleWarningProps {
+export interface CaseCapacitySectionProps {
   readonly cardCount: number;
+  /** Soft-tier session dismissal, owned by the page. */
+  readonly dismissed?: boolean | undefined;
+  readonly onDismiss?: (() => void) | undefined;
   readonly className?: string | undefined;
 }
 
@@ -54,58 +57,71 @@ function warningBody(level: 'soft' | 'persistent' | 'blocked', count: number): s
   return `${count} cards are pinned. A case becomes hard to scan at 150 cards, so plan a split before then.`;
 }
 
-/** Capacity warning for the board header. Renders nothing below 120 cards. */
-export default function ScaleWarning({ cardCount, className }: ScaleWarningProps) {
+/** Capacity section for the Case menu. Renders nothing below 120 cards. */
+export default function CaseCapacitySection({
+  cardCount,
+  dismissed = false,
+  onDismiss,
+  className,
+}: CaseCapacitySectionProps) {
   const count = normalizeCardCount(cardCount);
   const level = boardCapacityLevel(count);
-  const [softDismissed, setSoftDismissed] = useState(false);
   const headingId = useId();
+  const [internalDismissed, setInternalDismissed] = useState(false);
+  const isDismissed = dismissed || internalDismissed;
 
-  if (level === 'normal' || (level === 'soft' && softDismissed)) {
+  if (level === 'normal' || (level === 'soft' && isDismissed)) {
     return null;
   }
 
   const blocked = level === 'blocked';
   const persistent = level === 'persistent' || blocked;
   const role = blocked ? 'alert' : 'status';
-  const classes = ['scale-warning', `scale-warning--${level}`, className]
+  const classes = ['case-capacity', `case-capacity--${level}`, className]
     .filter((value): value is string => value !== undefined)
     .join(' ');
 
   return (
-    <aside
+    <section
       className={classes}
       role={role}
       aria-labelledby={headingId}
       data-card-count={count}
       data-card-capacity={level}
     >
-      <div className="scale-warning__copy">
-        <h3 id={headingId} className="scale-warning__title">
-          {warningTitle(level)}
-          {blocked ? '' : ` (${count})`}
-        </h3>
-        <p className="scale-warning__body">{warningBody(level, count)}</p>
-        {blocked ? (
-          <p className="scale-warning__body">
-            New cards are blocked on the board and on the capture route. No case below{' '}
-            {MAX_BOARD_CARDS} cards is limited.
-          </p>
-        ) : null}
-      </div>
+      <h3 id={headingId} className="case-capacity__title">
+        Case capacity
+      </h3>
+      <p className="case-capacity__heading">
+        {warningTitle(level)}
+        {blocked ? '' : ` (${count})`}
+      </p>
+      <p className="case-capacity__body">{warningBody(level, count)}</p>
+      {blocked ? (
+        <p className="case-capacity__body">
+          New cards are blocked on the board and on the capture route. No case below{' '}
+          {MAX_BOARD_CARDS} cards is limited.
+        </p>
+      ) : null}
 
-      <div className="scale-warning__actions">
+      <div className="case-capacity__actions">
         {blocked ? (
-          <Link className="scale-warning__link" to="/">
+          <Link className="case-capacity__link" to="/">
             Create a new case
           </Link>
         ) : null}
         {persistent ? null : (
-          <Button variant="quiet" onClick={() => setSoftDismissed(true)}>
+          <Button
+            variant="quiet"
+            onClick={() => {
+              setInternalDismissed(true);
+              onDismiss?.();
+            }}
+          >
             Dismiss warning
           </Button>
         )}
       </div>
-    </aside>
+    </section>
   );
 }

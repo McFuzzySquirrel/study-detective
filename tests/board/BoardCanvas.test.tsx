@@ -103,7 +103,7 @@ function fireWheel(
 }
 
 describe('BoardCanvas', () => {
-  it('renders the accessible canvas region, zoom controls, and case links', () => {
+  it('renders the accessible canvas region and view controls without page links', () => {
     renderBoard();
 
     expect(screen.getByRole('group', { name: 'Case board canvas' })).toBeInTheDocument();
@@ -113,14 +113,8 @@ describe('BoardCanvas', () => {
     expect(screen.getByRole('button', { name: 'Reset view' })).toBeInTheDocument();
     expect(screen.getByLabelText('Board zoom')).toHaveTextContent('100%');
 
-    expect(screen.getByRole('link', { name: 'Add evidence' })).toHaveAttribute(
-      'href',
-      '/case/case-1/capture',
-    );
-    expect(screen.getByRole('link', { name: 'Open card list' })).toHaveAttribute(
-      'href',
-      '/case/case-1/list',
-    );
+    expect(screen.queryByRole('link', { name: 'Add evidence' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open card list' })).not.toBeInTheDocument();
 
     const canvas = screen.getByTestId('board-canvas');
     expect(canvas).toHaveAttribute('data-board-card-count', '2');
@@ -240,21 +234,11 @@ describe('BoardCanvas', () => {
     expect(store.getState().viewport).toEqual(before);
   });
 
-  it('blocks the Add evidence link at the 200-card hard stop', () => {
-    render(
-      <MemoryRouter initialEntries={['/case/case-1']}>
-        <BoardCanvas snapshot={snapshot} store={createBoardStore()} cardLimitReached />
-      </MemoryRouter>,
-    );
+  it('leaves Add evidence and the card-list link to the page chrome', () => {
+    renderBoard();
 
+    expect(screen.queryByTestId('board-add-evidence-blocked')).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Add evidence' })).not.toBeInTheDocument();
-    expect(screen.getByTestId('board-add-evidence-blocked')).toHaveAttribute(
-      'aria-disabled',
-      'true',
-    );
-    expect(screen.getByRole('link', { name: 'Open card list' })).toHaveAttribute(
-      'href',
-      '/case/case-1/list',
-    );
+    expect(screen.queryByRole('link', { name: 'Open card list' })).not.toBeInTheDocument();
   });
 });

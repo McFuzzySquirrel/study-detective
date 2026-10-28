@@ -57,7 +57,7 @@ describe('OfflineNotice', () => {
     expect(screen.getByRole('status')).toHaveTextContent('You are offline.');
   });
 
-  it('is mounted by the app shell and clears from the shell', async () => {
+  it('is mounted by the shell status chip and clears from the shell', async () => {
     render(
       <MemoryRouter>
         <AppShell>
@@ -68,11 +68,13 @@ describe('OfflineNotice', () => {
 
     announce(false);
 
-    expect(screen.getByRole('status')).toHaveTextContent('You are offline.');
+    expect(screen.getByRole('button', { name: /^System status: offline/ })).toBeInTheDocument();
 
     announce(true);
 
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /^System status: offline/ }),
+    ).not.toBeInTheDocument();
   });
 
   it('stops listening after unmount', () => {

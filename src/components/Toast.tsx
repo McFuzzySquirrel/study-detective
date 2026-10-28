@@ -5,6 +5,7 @@ import IconButton from './IconButton';
 import './components.css';
 
 export type ToastTone = 'info' | 'success' | 'error';
+export type ToastPlacement = 'bottom' | 'top';
 
 const TONE_LABELS: Record<ToastTone, string> = {
   info: 'Notice',
@@ -26,6 +27,11 @@ export interface ToastProps {
   /** Optional dismiss control. Undo/error feedback should outlive focus travel. */
   readonly onDismiss?: () => void;
   readonly dismissLabel?: string;
+  /**
+   * The board route places toasts top-centre below its identity band. Every
+   * other route keeps the longstanding bottom stack.
+   */
+  readonly placement?: ToastPlacement;
 }
 
 function hasMessage(message: ReactNode | null): boolean {
@@ -47,12 +53,19 @@ export default function Toast({
   onAction,
   onDismiss,
   dismissLabel = 'Dismiss message',
+  placement = 'bottom',
 }: ToastProps) {
   const showMessage = hasMessage(message);
   const showAction = showMessage && actionLabel !== undefined && onAction !== undefined;
 
   return (
-    <div className="nd-toast-region" role="status" aria-live="polite" aria-atomic="true">
+    <div
+      className="nd-toast-region"
+      data-placement={placement}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       {showMessage ? (
         <div className="nd-toast" data-tone={tone}>
           <p className="nd-toast__message">

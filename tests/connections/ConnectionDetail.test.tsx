@@ -326,15 +326,19 @@ describe('CaseBoardPage connection detail and undo', () => {
     );
 
     await screen.findByRole('heading', { level: 2, name: 'Case board' });
-    expect(screen.getByRole('button', { name: 'Connection legend' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Case menu' }));
+    const menu = await screen.findByRole('dialog', { name: 'Case menu' });
+    expect(within(menu).getByRole('button', { name: 'Thread types' })).toBeInTheDocument();
+    await user.keyboard('{Escape}');
 
     act(() => {
       store.getState().selectConnection(NOTE_SOURCE_CONNECTION_ID);
     });
 
     const detail = await screen.findByTestId('connection-detail');
-    expect(within(detail).getByText(/Membrane transport/)).toBeInTheDocument();
-    expect(within(detail).getByText(/Lecture handout/)).toBeInTheDocument();
+    const detailPanel = screen.getByRole('dialog', { name: 'Connection details' });
+    expect(detailPanel).toHaveAccessibleDescription('“Membrane transport” and “Lecture handout”');
     expect(await screen.findByTestId('board-canvas-stub')).toHaveAttribute(
       'data-connection-ids',
       `${NOTE_SOURCE_CONNECTION_ID}:association`,
@@ -395,7 +399,7 @@ describe('CaseBoardPage connection detail and undo', () => {
       NOTE_SOURCE_CONNECTION_ID,
     );
     await waitFor(() => {
-      expect(document.getElementById('connection-detail-title')).toHaveFocus();
+      expect(document.getElementById('case-board-page-title')).toHaveFocus();
     });
     expect(
       screen.queryByText(/Connection deleted: .*Undo within 8 seconds/),

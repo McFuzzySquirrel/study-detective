@@ -41,6 +41,12 @@ export interface ConnectionDetailProps {
   readonly onDelete: () => Promise<void> | void;
   /** Clears the board selection and closes the inspector. */
   readonly onClose?: (() => void) | undefined;
+  /**
+   * Rendered inside the page's Panel/Dialog, which already provides the
+   * `Connection details` heading and close control. The body keeps the type
+   * controls, error copy, and delete action only.
+   */
+  readonly embedded?: boolean | undefined;
 }
 
 export const RETYPE_CONNECTION_ERROR =
@@ -57,6 +63,7 @@ export default function ConnectionDetail({
   onRetype,
   onDelete,
   onClose,
+  embedded = false,
 }: ConnectionDetailProps) {
   const idBase = useId();
   const reasonId = `${idBase}-provenance-reason`;
@@ -117,23 +124,34 @@ export default function ConnectionDetail({
   return (
     <section
       className="connection-detail"
-      aria-labelledby="connection-detail-title"
+      {...(embedded
+        ? { 'aria-label': 'Connection details' }
+        : { 'aria-labelledby': 'connection-detail-title' })}
       data-testid="connection-detail"
       data-connection-id={connection.id}
       data-current-type={connection.type}
     >
-      <header className="connection-detail__header">
-        <p className="connection-detail__eyebrow">Selected connection</p>
-        <h3 id="connection-detail-title" className="connection-detail__title" tabIndex={-1}>
-          “{fromCard.title}” and “{toCard.title}”
-        </h3>
+      {embedded ? (
         <p className="connection-detail__summary">
           Current type: <strong>{currentLabel}</strong>.{' '}
           {connection.type === 'association'
             ? 'A solid red thread between any two cards.'
             : 'A thin dashed amber thread between a Study Note and a Source.'}
         </p>
-      </header>
+      ) : (
+        <header className="connection-detail__header">
+          <p className="connection-detail__eyebrow">Selected connection</p>
+          <h3 id="connection-detail-title" className="connection-detail__title" tabIndex={-1}>
+            “{fromCard.title}” and “{toCard.title}”
+          </h3>
+          <p className="connection-detail__summary">
+            Current type: <strong>{currentLabel}</strong>.{' '}
+            {connection.type === 'association'
+              ? 'A solid red thread between any two cards.'
+              : 'A thin dashed amber thread between a Study Note and a Source.'}
+          </p>
+        </header>
+      )}
 
       <fieldset className="connection-detail__types" disabled={disabled}>
         <legend className="connection-detail__legend">Thread type</legend>
@@ -213,7 +231,7 @@ export default function ConnectionDetail({
         <Button variant="danger" onClick={openConfirmation} disabled={disabled}>
           Delete connection
         </Button>
-        {onClose !== undefined ? (
+        {!embedded && onClose !== undefined ? (
           <Button variant="quiet" onClick={onClose} disabled={disabled}>
             Close detail
           </Button>

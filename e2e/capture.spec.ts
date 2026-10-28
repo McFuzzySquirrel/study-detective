@@ -232,24 +232,33 @@ test('imports, crops, rotates, reloads, edits, and replaces a real photo without
 
   await page.goto(`/#/case/${caseId}/card/${importedCard.id}`);
   await expect(page.getByRole('heading', { level: 2, name: CARD_TITLE })).toBeVisible();
-  await expect(page.getByText('Study Note')).toBeVisible();
+  await expect(page.getByText('Study Note', { exact: true })).toBeVisible();
   await imageIsLoaded(page);
 
   const cardSection = page.locator('.card-detail');
   await expect(cardSection).toHaveAttribute('data-card-id', importedCard.id);
 
   // Keyboard path: the heading focuses on load, then Tab reaches each action
-  // with a visible focus ring; every action keeps the 44 px target.
-  await page.getByRole('heading', { level: 2, name: CARD_TITLE }).focus();
-  await page.keyboard.press('Tab');
+  // with a visible focus ring; every action keeps the 44 px target. On phone
+  // those actions live in the Card actions and tags sheet.
   const editTitleButton = page.getByRole('button', { name: 'Edit title' });
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.getByRole('button', { name: 'Card actions and tags' }).click();
+    await expect(page.getByRole('dialog', { name: 'Card actions and tags' })).toBeVisible();
+    await editTitleButton.focus();
+  } else {
+    await page.getByRole('heading', { level: 2, name: CARD_TITLE }).focus();
+    await page.keyboard.press('Tab');
+  }
   await expect(editTitleButton).toBeFocused();
-  const focusStyle = await editTitleButton.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
-  });
-  expect(focusStyle.outlineStyle).not.toBe('none');
-  expect(Number.parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(2);
+  if ((page.viewportSize()?.width ?? 1440) >= 600) {
+    const focusStyle = await editTitleButton.evaluate((element) => {
+      const style = getComputedStyle(element);
+      return { outlineStyle: style.outlineStyle, outlineWidth: style.outlineWidth };
+    });
+    expect(focusStyle.outlineStyle).not.toBe('none');
+    expect(Number.parseFloat(focusStyle.outlineWidth)).toBeGreaterThanOrEqual(2);
+  }
 
   for (const name of ['Edit title', 'Replace photo', 'Crop/rotate', 'Delete card']) {
     const box = await page.getByRole('button', { name }).boundingBox();
@@ -340,6 +349,9 @@ test('imports, crops, rotates, reloads, edits, and replaces a real photo without
     .toBe(`${importedCard.id}|${EDITED_TITLE}|${replacedDisplay?.sha256 ?? ''}`);
 
   // The destructive action is gated by a confirmation; Escape must leave the card.
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.getByRole('button', { name: 'Card actions and tags' }).click();
+  }
   await page.getByRole('button', { name: 'Delete card' }).click();
   const deleteDialog = page.getByRole('dialog', { name: /Delete “Light reactions”\?/ });
   await expect(deleteDialog).toBeVisible();

@@ -16,19 +16,33 @@ import type { CoreApiEnvironment } from './browserSupport';
 export interface BrowserNoticeProps {
   /** Injected environment for component tests; production reads the globals. */
   readonly environment?: CoreApiEnvironment | undefined;
+  /** Controlled dismissal, for embedding in the shell status dialog. */
+  readonly dismissed?: boolean | undefined;
+  /** Called when the student dismisses; the owner decides where the state lives. */
+  readonly onDismiss?: (() => void) | undefined;
 }
 
-export default function BrowserNotice({ environment }: BrowserNoticeProps = {}) {
-  const [dismissed, setDismissed] = useState(false);
+export default function BrowserNotice({
+  environment,
+  dismissed,
+  onDismiss,
+}: BrowserNoticeProps = {}) {
+  const [internalDismissed, setInternalDismissed] = useState(false);
+  const isDismissed = dismissed ?? internalDismissed;
   const support = useMemo(() => supportsCoreApis(environment), [environment]);
   const missing = useMemo(
     () => CORE_API_NOTICES.filter((notice) => !support[notice.key]),
     [support],
   );
 
-  if (dismissed || missing.length === 0) {
+  if (isDismissed || missing.length === 0) {
     return null;
   }
+
+  const dismiss = (): void => {
+    setInternalDismissed(true);
+    onDismiss?.();
+  };
 
   return (
     <section
@@ -57,7 +71,7 @@ export default function BrowserNotice({ environment }: BrowserNoticeProps = {}) 
           type="button"
           className="browser-notice__dismiss"
           aria-label="Dismiss browser support notice"
-          onClick={() => setDismissed(true)}
+          onClick={dismiss}
         >
           Dismiss
         </button>

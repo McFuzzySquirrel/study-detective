@@ -54,7 +54,6 @@ export function FitToViewButton({
       onClick={handleFit}
       disabled={disabled}
       aria-label="Fit all cards"
-      title="Fit every card on the board"
     >
       Fit
     </Button>

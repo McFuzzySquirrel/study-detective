@@ -58,7 +58,7 @@
 ```
 
 ```forge-requirement
-{"id":"SEARCH-FR-04","kind":"requirement","text":"Present results in a keyboard-navigable list; selecting a result centers the card on the board or opens its detail, and the panel remains usable on tablet and phone."}
+{"id":"SEARCH-FR-04","kind":"requirement","text":"Open Search from the board rail or phone bar as a non-modal popover on wide and a modal sheet on phone. Filters live inside the surface. Present results in a keyboard-navigable list; the committed query, type, and tags survive closing and reopening the surface for the open case; selecting a result closes the surface, centers and selects the card, and moves focus to the board heading."}
 ```
 
 ```forge-requirement
@@ -81,11 +81,11 @@
 
 ## 4. UI / Interaction Design
 
-- A search field sits in the case toolbar with a filter button. On tablet it expands to a panel from the right; on phone it is a full-height sheet.
+- Search is a rail/bar icon (`Search`, or `Search, filters active`) that opens a non-modal popover on wide and a modal bottom sheet on phone. Filters live inside that surface; there is no permanent toolbar.
 - Typing filters live after 150ms. The panel shows result count, active filter chips, and a Clear all action.
 - Filters are card type (All, Notes, Sources, Topics) and one or more tags. Tags are OR within the tag filter and AND with type and query.
 - Results show type icon, title, matched tag or OCR snippet, and topic status for topics. The list is a single tab stop with arrow-key movement or a standard list of buttons; either way it is fully operable by keyboard.
-- Selecting a result closes the panel, centers the card on the board, and selects it; a secondary Open detail action navigates to the card detail.
+- Selecting a result closes the surface, centers the card on the board, selects it, and moves focus to the board heading; a secondary Open detail action navigates to the card detail. Committed criteria survive close and reopen for the open case.
 - Tag input in card forms: type a tag and press Enter or comma to add; Backspace removes the last; a counter shows `n/10`. Invalid or duplicate tags are announced and not added.
 - No result state explains that only titles, tags, and OCR text are searched, not the handwritten image itself.
 

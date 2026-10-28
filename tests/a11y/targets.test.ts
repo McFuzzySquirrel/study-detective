@@ -286,7 +286,8 @@ describe('CSS target contract', () => {
   it('keeps board, card, and connection controls at 44 px', () => {
     for (const [css, selector] of [
       [boardCss, '.board-minimap__toggle'],
-      [caseBoardCss, '.case-board-page__sheet-trigger'],
+      [caseBoardCss, '.case-board-rail__link'],
+      [caseBoardCss, '.case-board-bar__add'],
       [cardDetailCss, '.card-detail__sheet-trigger'],
       [cardListCss, '.card-list__action-link'],
       [cardListCss, '.card-list__action'],

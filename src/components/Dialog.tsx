@@ -87,6 +87,7 @@ export interface DialogProps {
   readonly initialFocusRef?: RefObject<HTMLElement | null>;
   /** Overrides the element that receives focus after the dialog closes. */
   readonly returnFocusRef?: RefObject<HTMLElement | null>;
+  readonly id?: string | undefined;
   readonly className?: string;
 }
 
@@ -112,6 +113,7 @@ export default function Dialog({
   closeLabel = 'Close dialog',
   initialFocusRef,
   returnFocusRef,
+  id,
   className,
 }: DialogProps) {
   const titleId = useId();
@@ -278,6 +280,7 @@ export default function Dialog({
     >
       <div
         ref={panelRef}
+        id={id}
         className={['nd-dialog__panel', className].filter(Boolean).join(' ')}
         role="dialog"
         aria-modal="true"

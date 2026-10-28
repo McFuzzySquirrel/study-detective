@@ -1,33 +1,24 @@
 import { useSyncExternalStore } from 'react';
 
-function subscribeToConnectivity(onStoreChange: () => void): () => void {
-  window.addEventListener('online', onStoreChange);
-  window.addEventListener('offline', onStoreChange);
-
-  return () => {
-    window.removeEventListener('online', onStoreChange);
-    window.removeEventListener('offline', onStoreChange);
-  };
-}
-
-function getOnlineSnapshot(): boolean {
-  return navigator.onLine;
-}
-
-function getServerSnapshot(): boolean {
-  return true;
-}
+import {
+  getOnlineServerSnapshot,
+  getOnlineSnapshot,
+  subscribeToConnectivity,
+} from './connectivity';
 
 /**
- * Non-blocking connectivity notice. It is rendered by the app shell, appears
- * only while the browser reports an offline state, and clears as soon as the
- * browser fires the online event.
+ * Non-blocking connectivity notice copy.
+ *
+ * It appears only while the browser reports an offline state and clears as soon
+ * as the browser fires the online event. The shell renders the same copy inside
+ * its `System status` dialog; this component remains the standalone form used
+ * by older screens and tests.
  */
 export default function OfflineNotice() {
   const online = useSyncExternalStore(
     subscribeToConnectivity,
     getOnlineSnapshot,
-    getServerSnapshot,
+    getOnlineServerSnapshot,
   );
 
   if (online) {

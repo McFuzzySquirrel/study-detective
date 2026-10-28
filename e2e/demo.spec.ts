@@ -125,24 +125,43 @@ test('a fresh install seeds, explains, removes, and replays the demo without res
   // readiness rather than a stored solved flag.
   await demoLink.click();
   await expect(page.getByRole('heading', { level: 2, name: 'Case board' })).toBeVisible();
-  await expect(page.getByText(/6 cards pinned to the cork/)).toBeVisible();
+
+  const isPhone = (page.viewportSize()?.width ?? 1440) < 600;
+
+  // The thread-anchor hint is the one contextual hint present on this board.
+  // It is non-modal and marks itself seen on dismissal. Dismiss it before
+  // opening any surface, because a surface suppresses hints without seeing them.
+  const hint = page.getByRole('dialog', { name: 'Thread anchor' });
+  await expect(hint).toBeVisible({ timeout: 20_000 });
+  await hint.getByRole('button', { name: 'Got it' }).click();
+  await expect(hint).toBeHidden();
+
+  if (isPhone) {
+    await page.getByRole('button', { name: 'Case closure' }).click();
+  } else {
+    await page.getByRole('button', { name: /^Readiness:/ }).click();
+  }
+
   const closure = page.getByTestId('closure-panel');
   await expect(closure).toContainText('Ready to close');
   await expect(closure).toContainText('No loose threads.');
 
-  // The thread-anchor hint is the one contextual hint present on this board.
-  // It is non-modal, moves focus, and marks itself seen on dismissal.
-  const hint = page.getByRole('dialog', { name: 'Thread anchor' });
-  await expect(hint).toBeVisible({ timeout: 20_000 });
-  await expect(hint).toBeFocused();
-  await hint.getByRole('button', { name: 'Got it' }).click();
-  await expect(hint).toBeHidden();
+  if (isPhone) {
+    await page.keyboard.press('Escape');
+  }
 
   const seenAfterDismiss = await page.evaluate((key) => localStorage.getItem(key), HINT_SEEN_KEY);
   expect(seenAfterDismiss).toContain('thread-anchor');
 
   // Removal uses the normal confirmed cascade, but names the demo case.
-  await page.getByRole('link', { name: 'Back to case shelf' }).click();
+  if (isPhone) {
+    await page.goto('/#/');
+  } else {
+    await page
+      .getByRole('navigation', { name: 'Primary' })
+      .getByRole('link', { name: 'Case shelf' })
+      .click();
+  }
   await expect(page.getByRole('link', { name: DEMO_TITLE })).toBeVisible();
 
   await page.getByRole('button', { name: `Remove demo ${DEMO_TITLE}` }).click();
@@ -173,7 +192,11 @@ test('a fresh install seeds, explains, removes, and replays the demo without res
   expect((await readStoredGraph(page)).cases).toHaveLength(0);
 
   // Settings can replay the hint after it has been seen and dismissed.
-  await page.getByRole('link', { name: 'Settings' }).click();
+  if (isPhone) {
+    await page.goto('/#/settings');
+  } else {
+    await page.getByRole('link', { name: 'Settings' }).click();
+  }
   await expect(page.getByRole('heading', { level: 2, name: 'Settings' })).toBeVisible();
 
   const threadAnchorItem = page.locator('[data-hint-id="thread-anchor"]');

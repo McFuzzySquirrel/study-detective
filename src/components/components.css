@@ -336,6 +336,18 @@
   pointer-events: none;
 }
 
+/*
+ * Board variant: directly below the identity band, never over the stage
+ * chrome. The board page inherits the shell/band custom properties that place
+ * it, so this rule stays a layout constant rather than a second shell value.
+ */
+.nd-toast-region[data-placement='top'] {
+  inset-block-start: calc(
+    var(--shell-height, 61px) + var(--band-height, 48px) + var(--band-gap, 8px) + var(--space-3)
+  );
+  inset-block-end: auto;
+}
+
 .nd-toast {
   display: flex;
   flex-wrap: wrap;
@@ -669,4 +681,45 @@
   .nd-toast {
     transform: none !important;
   }
+}
+
+/* ------------------------------------------------------------------------- */
+/* Board gestures (help dialog)                                              */
+/* ------------------------------------------------------------------------- */
+
+.board-gestures {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-5);
+}
+
+.board-gestures__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+}
+
+.board-gestures__list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.board-gestures__row {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.board-gestures__row dt {
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.board-gestures__row dd {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
 }

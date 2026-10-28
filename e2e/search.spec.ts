@@ -287,7 +287,7 @@ async function expectUsablePhoneSheet(page: Page): Promise<void> {
 
   await expectNoHorizontalPageOverflow(page);
 
-  const panel = page.locator('.search-panel');
+  const panel = page.getByRole('dialog', { name: 'Search this case' });
   const panelBox = await panel.boundingBox();
   expect(panelBox).not.toBeNull();
 
@@ -296,7 +296,9 @@ async function expectUsablePhoneSheet(page: Page): Promise<void> {
   }
 
   expect(panelBox.width).toBeLessThanOrEqual(viewport.width + 1);
-  expect(panelBox.height).toBeGreaterThanOrEqual(viewport.height - 2);
+  // The sheet leaves the 176 px top corridor for the shell and compact line.
+  expect(panelBox.y).toBeGreaterThanOrEqual(175);
+  expect(panelBox.y + panelBox.height).toBeLessThanOrEqual(viewport.height + 10);
 
   const controls = panel.locator('input, button, a');
   const controlCount = await controls.count();
@@ -308,7 +310,6 @@ async function expectUsablePhoneSheet(page: Page): Promise<void> {
       continue;
     }
 
-    await expect(control).toBeEnabled();
     await expect(control).toHaveAccessibleName(/\S/);
 
     const box = await control.boundingBox();
@@ -337,7 +338,7 @@ async function expectSelectedCardCentered(page: Page, cardId: string): Promise<v
   const anchorPoint = await board.getAttribute('data-board-anchor-point');
   expect(anchorPoint === null ? '' : anchorPoint.length).toBeGreaterThan(0);
 
-  const stage = page.locator('.case-board-page__stage');
+  const stage = page.locator('.case-board-stage');
   await expect(stage).toBeVisible();
 
   await expect
@@ -418,19 +419,22 @@ test('opens, queries, filters, clears, and selects a search result with the keyb
   const caseBeforeSearch = await readCase(page, caseId);
 
   const searchbox = page.getByRole('searchbox', { name: 'Search cards' });
-  const filtersButton = page.getByRole('button', { name: 'Filters' });
+  const filtersButton = page.getByRole('button', { name: 'Filters', exact: true });
   const clearAllButton = page.getByRole('button', { name: 'Clear all' });
   const resultButtons = page.getByRole('button', {
     name: /Select .+ from search results/,
   });
   const summary = page.locator('.search-panel__summary');
 
-  // The page starts with focus on the document, so Tab is the honest keyboard
-  // path into the always-present search region.
-  expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true);
-  await tabUntilFocused(page, searchbox);
+  // Search is a rail/bar trigger that opens the Popover (wide) or sheet
+  // (phone); the surface focuses its field on open.
+  await page.getByRole('button', { name: 'Search' }).click();
   await expect(searchbox).toBeVisible();
   await expect(searchbox).toBeFocused();
+
+  if (isPhone) {
+    await expectUsablePhoneSheet(page);
+  }
   await expect(summary).toContainText('3 cards available');
   await expectNoHorizontalPageOverflow(page);
 
@@ -554,10 +558,9 @@ test('opens, queries, filters, clears, and selects a search result with the keyb
   );
 
   if (isPhone) {
-    await expectUsablePhoneSheet(page);
-  } else {
-    await expectNoHorizontalPageOverflow(page);
+    await expect(page.getByRole('dialog', { name: 'Search this case' })).toBeHidden();
   }
+  await expectNoHorizontalPageOverflow(page);
 
   // Search and selection are read-only: same card rows and same stored camera.
   // The camera is a temporary jump, so the 500 ms persistence pass must not run.

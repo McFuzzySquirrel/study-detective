@@ -135,6 +135,31 @@ export default function KeyboardShortcuts({ enabled = true }: KeyboardShortcutsP
       returnFocusRef={returnFocusRef}
     >
       <ShortcutList />
+
+      <section className="board-gestures" aria-labelledby="board-gestures-title">
+        <h3 id="board-gestures-title" className="board-gestures__title">
+          Board gestures
+        </h3>
+        <dl className="board-gestures__list">
+          <div className="board-gestures__row">
+            <dt>Pan</dt>
+            <dd>Drag the empty cork, or swipe with one finger.</dd>
+          </div>
+          <div className="board-gestures__row">
+            <dt>Zoom</dt>
+            <dd>Pinch, scroll, or use the view cluster.</dd>
+          </div>
+          <div className="board-gestures__row">
+            <dt>Move a card</dt>
+            <dd>Drag it with a mouse, or long-press for 500 ms on touch.</dd>
+          </div>
+          <div className="board-gestures__row">
+            <dt>Draw a thread</dt>
+            <dd>Select a card, then drag its pin anchor to another card.</dd>
+          </div>
+        </dl>
+      </section>
+
       <p className="shortcut-list__note">
         Every non-spatial action also has a visible button or link in the card list, card detail,
         search panel, or recall toolbar. Letter, bracket, and slash shortcuts stay inert while you

@@ -10,11 +10,13 @@
   display: block;
   inline-size: 100%;
   block-size: 100%;
-  min-block-size: 24rem;
+  min-block-size: 0;
+  min-inline-size: 0;
   overflow: hidden;
-  border: var(--border-width-strong) solid var(--color-cork-edge);
-  border-radius: var(--radius-lg);
-  background-color: var(--color-cork-edge);
+  border: 0;
+  border-radius: 0;
+  background-color: var(--color-cork);
+  box-shadow: inset 0 0 0 var(--border-width-strong) var(--color-cork-edge);
   isolation: isolate;
 }
 
@@ -46,14 +48,14 @@
 
 .board-canvas__controls {
   position: absolute;
-  inset-block-end: var(--space-4);
-  inset-inline-start: var(--space-4);
+  inset-block-end: var(--stage-inset, 12px);
+  inset-inline-start: var(--stage-inset, 12px);
   z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1);
-  max-inline-size: calc(100% - var(--space-8));
+  max-inline-size: calc(100% - (var(--stage-inset, 12px) * 2));
   padding: var(--space-1);
   border: var(--border-width) solid var(--color-border-strong);
   border-radius: var(--radius-md);
@@ -79,19 +81,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.board-canvas__links {
-  position: absolute;
-  inset-block-end: var(--space-4);
-  inset-inline-end: var(--space-4);
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  max-inline-size: calc(100% - var(--space-8));
-}
-
-.board-canvas__link,
 .board-canvas__fallback-link {
   display: inline-flex;
   align-items: center;
@@ -109,22 +98,13 @@
   text-decoration: none;
 }
 
-.board-canvas__link:hover,
 .board-canvas__fallback-link:hover {
   background-color: var(--color-control-surface-hover);
 }
 
-.board-canvas__link:focus-visible,
 .board-canvas__fallback-link:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-ring-offset);
-}
-
-.board-canvas__link--blocked {
-  color: var(--color-ink-muted);
-  background-color: var(--color-surface-sunken);
-  border-style: dashed;
-  cursor: not-allowed;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -133,13 +113,13 @@
 
 .board-minimap {
   position: absolute;
-  inset-block-start: var(--space-3);
-  inset-inline-end: var(--space-3);
+  inset-block-start: var(--stage-inset, 12px);
+  inset-inline-end: var(--stage-inset, 12px);
   z-index: 2;
   display: grid;
   justify-items: end;
   gap: var(--space-1);
-  max-inline-size: min(16rem, calc(100% - var(--space-6)));
+  max-inline-size: min(14rem, calc(100% - (var(--stage-inset, 12px) * 2)));
 }
 
 .board-minimap__toggle {
@@ -238,15 +218,8 @@
 
 @media (max-width: 40rem) {
   .board-canvas__controls {
-    inset-block-end: var(--space-2);
-    inset-inline: var(--space-2);
-    justify-content: flex-start;
-  }
-
-  .board-canvas__links {
-    inset-block-end: calc(var(--space-2) * 2 + var(--target-min));
-    inset-inline-start: var(--space-2);
-    inset-inline-end: auto;
+    inset-block-end: var(--stage-inset, 8px);
+    inset-inline: var(--stage-inset, 8px);
     justify-content: flex-start;
   }
 
@@ -255,9 +228,9 @@
   }
 
   .board-minimap {
-    inset-block-start: var(--space-2);
-    inset-inline-end: var(--space-2);
-    max-inline-size: calc(100% - var(--space-4));
+    inset-block-start: var(--stage-inset, 8px);
+    inset-inline-end: var(--stage-inset, 8px);
+    max-inline-size: calc(100% - (var(--stage-inset, 8px) * 2));
   }
 
   .board-minimap__panel {
@@ -266,7 +239,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .board-canvas__link,
   .board-canvas__fallback-link,
   .board-canvas__fallback {
     transition: none;

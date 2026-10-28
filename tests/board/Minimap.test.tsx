@@ -56,6 +56,7 @@ function mockSvgRect(svg: HTMLElement): void {
 function renderMinimap(
   viewport: Viewport = { x: 0, y: 0, scale: 1 },
   cards: BoardCardSnapshot[] = makeCards(),
+  autoOpen = true,
 ) {
   const store = createBoardStore(viewport);
   const view = render(
@@ -63,6 +64,10 @@ function renderMinimap(
       <Minimap cards={cards} viewport={viewport} viewportSize={VIEWPORT_SIZE} store={store} />
     </MemoryRouter>,
   );
+
+  if (autoOpen) {
+    fireEvent.click(screen.getByRole('button', { name: 'Show minimap' }));
+  }
 
   return { store, ...view };
 }
@@ -157,7 +162,7 @@ describe('Minimap', () => {
     expect(screen.getByTestId('board-minimap')).toBeInTheDocument();
   });
 
-  it('starts collapsed on a phone width', () => {
+  it('starts collapsed at every width', () => {
     const originalMatchMedia = window.matchMedia;
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
@@ -175,7 +180,7 @@ describe('Minimap', () => {
     });
 
     try {
-      renderMinimap();
+      renderMinimap({ x: 0, y: 0, scale: 1 }, makeCards(), false);
 
       expect(screen.getByRole('button', { name: 'Show minimap' })).toBeInTheDocument();
       expect(screen.queryByTestId('board-minimap')).not.toBeInTheDocument();

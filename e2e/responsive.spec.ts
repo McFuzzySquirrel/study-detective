@@ -269,10 +269,10 @@ async function expectTarget(
 }
 
 async function openPhoneSearch(page: Page): Promise<Locator> {
-  const trigger = page.getByRole('button', { name: 'Search and filters' });
+  const trigger = page.getByRole('button', { name: 'Search' });
   await expectTarget(trigger);
   await trigger.click();
-  const sheet = page.getByRole('dialog', { name: 'Search and filters' });
+  const sheet = page.getByRole('dialog', { name: 'Search this case' });
   await expect(sheet).toBeVisible();
   return sheet;
 }
@@ -325,24 +325,34 @@ test.describe('viewport matrix', () => {
       await expectNoHorizontalOverflow(page);
 
       if (viewport.layout === 'phone') {
-        await expectTarget(page.getByRole('button', { name: 'Case actions' }));
-        await expectTarget(page.getByRole('button', { name: 'Search and filters' }));
+        await expectTarget(page.getByRole('button', { name: 'Case menu' }));
+        await expectTarget(page.getByRole('button', { name: 'Search' }));
         await expectTarget(page.getByRole('button', { name: 'Case closure' }));
 
         const sheet = await openPhoneSearch(page);
         await expectTarget(sheet.getByRole('button', { name: 'Filters' }));
         await closePhoneSheet(
           page,
-          'Search and filters',
-          page.getByRole('button', {
-            name: 'Search and filters',
-          }),
+          'Search this case',
+          page.getByRole('button', { name: 'Search' }),
         );
       } else {
-        await expectTarget(page.getByRole('button', { name: 'Back up case' }));
-        await expect(page.getByRole('searchbox', { name: 'Search cards' })).toBeVisible();
-        await expectTarget(page.getByRole('button', { name: 'Filters' }));
+        await expectTarget(page.getByRole('button', { name: 'Case menu' }));
+
+        await page.getByRole('button', { name: 'Search' }).click();
+        const searchPanel = page.getByRole('dialog', { name: 'Search this case' });
+        await expect(searchPanel).toBeVisible();
+        await expectTarget(searchPanel.getByRole('button', { name: 'Filters' }));
+        await page.keyboard.press('Escape');
+
+        await page.getByRole('button', { name: 'Case menu' }).click();
+        const menuPanel = page.getByRole('dialog', { name: 'Case menu' });
+        await expectTarget(menuPanel.getByRole('button', { name: 'Back up case' }));
+        await page.keyboard.press('Escape');
+
+        await page.getByRole('button', { name: /^Readiness:/ }).click();
         await expect(page.getByTestId('closure-panel')).toBeVisible();
+        await page.keyboard.press('Escape');
       }
 
       // Card detail ----------------------------------------------------------
@@ -419,32 +429,31 @@ test.describe('phone bottom sheets', () => {
       }
     }
     await expectTarget(page.getByRole('link', { name: 'Add evidence' }));
-    await expectTarget(page.getByRole('link', { name: 'Open card list' }));
 
-    // Case actions ----------------------------------------------------------
-    const actionsTrigger = page.getByRole('button', { name: 'Case actions' });
+    // Case menu -------------------------------------------------------------
+    const actionsTrigger = page.getByRole('button', { name: 'Case menu' });
     await expectTarget(actionsTrigger);
     await actionsTrigger.click();
 
-    const actionsSheet = page.getByRole('dialog', { name: 'Case actions' });
+    const actionsSheet = page.getByRole('dialog', { name: 'Case menu' });
     await expect(actionsSheet).toBeVisible();
     await expect(actionsSheet).toHaveAttribute('aria-modal', 'true');
 
     for (const name of ['Back up case']) {
       await expectTarget(actionsSheet.getByRole('button', { name }));
     }
-    for (const name of ['Open card list', 'Back to case shelf']) {
+    for (const name of ['Open card list', 'Case shelf']) {
       await expectTarget(actionsSheet.getByRole('link', { name }));
     }
 
-    await closePhoneSheet(page, 'Case actions', actionsTrigger);
+    await closePhoneSheet(page, 'Case menu', actionsTrigger);
 
     // Search sheet ----------------------------------------------------------
-    const searchTrigger = page.getByRole('button', { name: 'Search and filters' });
+    const searchTrigger = page.getByRole('button', { name: 'Search' });
     await expectTarget(searchTrigger);
     await searchTrigger.click();
 
-    const searchSheet = page.getByRole('dialog', { name: 'Search and filters' });
+    const searchSheet = page.getByRole('dialog', { name: 'Search this case' });
     await expect(searchSheet).toBeVisible();
     const searchbox = searchSheet.getByRole('searchbox', { name: 'Search cards' });
     await expect(searchbox).toBeFocused();

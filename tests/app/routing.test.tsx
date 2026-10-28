@@ -90,18 +90,13 @@ describe('route table', () => {
     expect(skipLink).toHaveFocus();
   });
 
-  it('provides a status slot for storage state without replacing the offline notice', async () => {
-    render(
-      <MemoryRouter>
-        <AppShell storageStatus={<p>Storage is best-effort.</p>}>
-          <AppRoutes />
-        </AppShell>
-      </MemoryRouter>,
-    );
+  it('renders no full-width status strip above the content', async () => {
+    renderAt('/');
 
-    expect(screen.getByText('Storage is best-effort.')).toBeInTheDocument();
-    expect(
-      await screen.findByRole('heading', { level: 2, name: 'Case shelf' }),
-    ).toBeInTheDocument();
+    await screen.findByRole('heading', { level: 2, name: 'Case shelf' });
+
+    expect(screen.getByTestId('app-frame')).toHaveAttribute('data-board-route', 'false');
+    expect(document.querySelector('.app-frame__status')).toBeNull();
+    expect(screen.getByRole('main')).toBeInTheDocument();
   });
 });

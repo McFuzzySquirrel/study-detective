@@ -155,17 +155,11 @@ async function createTopic(page: Page, caseId: string, title: string): Promise<v
   });
 }
 
-/** Recall is a header link on wide screens and a sheet action on a phone. */
+/** Recall lives in the Case menu on both compositions. */
 async function enterRecall(page: Page): Promise<void> {
-  const width = page.viewportSize()?.width ?? 1440;
-
-  if (width < 600) {
-    await focusAndEnter(page, page.getByRole('button', { name: 'Case actions' }));
-    const actions = page.getByRole('dialog', { name: 'Case actions' });
-    await focusAndEnter(page, actions.getByRole('link', { name: 'Recall' }));
-  } else {
-    await focusAndEnter(page, page.getByRole('link', { name: 'Recall' }));
-  }
+  await focusAndEnter(page, page.getByRole('button', { name: 'Case menu' }));
+  const menu = page.getByRole('dialog', { name: 'Case menu' });
+  await focusAndEnter(page, menu.getByRole('link', { name: 'Recall' }));
 
   await expect(page.getByRole('heading', { level: 2, name: 'Recall' })).toBeVisible();
 }
@@ -335,7 +329,15 @@ test('completes the non-spatial case workflow with the keyboard only', async ({ 
   await expect(canvasHost).toHaveAccessibleDescription(
     /Case board with 3 cards arranged spatially\. Use Open card list for a keyboard-operable view\./,
   );
-  await expect(page.getByTestId('open-card-list')).toBeVisible();
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.getByRole('button', { name: 'Case menu' }).click();
+    await expect(
+      page.getByRole('dialog', { name: 'Case menu' }).getByRole('link', { name: 'Open card list' }),
+    ).toBeVisible();
+    await page.keyboard.press('Escape');
+  } else {
+    await expect(page.getByTestId('open-card-list')).toBeVisible();
+  }
 
   // 9. Enter recall, check, reset, and exit without touching the canvas.
   await enterRecall(page);

@@ -8,7 +8,11 @@ import {
 } from '../pwa';
 import './UpdatePrompt.css';
 
-export default function UpdatePrompt() {
+export default function UpdatePrompt({
+  variant = 'floating',
+}: {
+  readonly variant?: 'floating' | 'inline' | undefined;
+} = {}) {
   const { needRefresh, blockedByUnsavedChanges } = useSyncExternalStore(
     subscribeToUpdatePrompt,
     getUpdatePromptState,
@@ -19,7 +23,13 @@ export default function UpdatePrompt() {
   }
 
   return (
-    <aside className="update-prompt" role="status" aria-live="polite" aria-atomic="true">
+    <aside
+      className="update-prompt"
+      data-variant={variant}
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="update-prompt__copy">
         <p className="update-prompt__title">A new version of Notes Detective is ready.</p>
         <p className="update-prompt__hint">

@@ -298,47 +298,47 @@ describe('responsive breakpoints', () => {
 });
 
 describe('phone board sheets', () => {
-  it('opens Case actions as a dialog sheet, closes on Escape, and restores the trigger', async () => {
+  it('opens the Case menu as a dialog sheet, closes on Escape, and restores the trigger', async () => {
     const user = userEvent.setup();
     renderBoard(390);
 
     await screen.findByRole('heading', { level: 2, name: 'Case board' });
-    const trigger = await screen.findByRole('button', { name: 'Case actions' });
-    expect(trigger).toHaveClass('case-board-page__sheet-trigger');
+    const trigger = await screen.findByRole('button', { name: 'Case menu' });
+    expect(trigger).toHaveClass('nd-icon-button');
     expect(screen.queryByRole('searchbox', { name: 'Search cards' })).not.toBeInTheDocument();
 
     await user.click(trigger);
 
-    const sheet = screen.getByRole('dialog', { name: 'Case actions' });
+    const sheet = screen.getByRole('dialog', { name: 'Case menu' });
     expect(sheet).toHaveAttribute('aria-modal', 'true');
     expect(within(sheet).getByRole('button', { name: 'Back up case' })).toBeInTheDocument();
     expect(within(sheet).getByRole('link', { name: 'Open card list' })).toBeInTheDocument();
-    expect(within(sheet).getByRole('link', { name: 'Back to case shelf' })).toBeInTheDocument();
-    expect(within(sheet).getByRole('button', { name: 'Connection legend' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('link', { name: 'Case shelf' })).toBeInTheDocument();
+    expect(within(sheet).getByRole('button', { name: 'Thread types' })).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByRole('dialog', { name: 'Case actions' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Case menu' })).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
-  it('opens Search and filters in a sheet and returns focus to its trigger', async () => {
+  it('opens Search in a sheet and returns focus to its trigger', async () => {
     const user = userEvent.setup();
     renderBoard(390);
 
     await screen.findByRole('heading', { level: 2, name: 'Case board' });
-    const trigger = await screen.findByRole('button', { name: 'Search and filters' });
+    const trigger = await screen.findByRole('button', { name: 'Search' });
 
     await user.click(trigger);
 
-    const sheet = screen.getByRole('dialog', { name: 'Search and filters' });
+    const sheet = screen.getByRole('dialog', { name: 'Search this case' });
     expect(within(sheet).getByRole('searchbox', { name: 'Search cards' })).toBeInTheDocument();
     expect(within(sheet).getByRole('button', { name: 'Filters' })).toBeInTheDocument();
     expect(within(sheet).getByRole('button', { name: 'Clear all' })).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
 
-    expect(screen.queryByRole('dialog', { name: 'Search and filters' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog', { name: 'Search this case' })).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
 
@@ -382,14 +382,30 @@ describe('phone board sheets', () => {
     expect(store.getState().selectedConnectionId).toBeNull();
   });
 
-  it('keeps search and closure inline on a 768 px tablet', async () => {
+  it('opens non-modal panels on a 768 px tablet', async () => {
+    const user = userEvent.setup();
     renderBoard(768);
 
     await screen.findByRole('heading', { level: 2, name: 'Case board' });
 
-    expect(screen.queryByRole('button', { name: 'Case actions' })).not.toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Search cards' })).toBeInTheDocument();
-    expect(screen.getByTestId('closure-panel')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Case menu' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Search' }));
+    const searchPanel = screen.getByRole('dialog', { name: 'Search this case' });
+    expect(searchPanel).not.toHaveAttribute('aria-modal');
+    expect(
+      within(searchPanel).getByRole('searchbox', { name: 'Search cards' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search cards' })).toHaveFocus();
+
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', { name: 'Search this case' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /^Readiness:/ }));
+    const closurePanel = screen.getByRole('dialog', { name: 'Case closure' });
+    expect(closurePanel).not.toHaveAttribute('aria-modal');
+    expect(within(closurePanel).getByTestId('closure-panel')).toBeInTheDocument();
   });
 });
 
@@ -463,13 +479,13 @@ describe('responsive CSS contract', () => {
     const tablet = mediaBody(responsive, 'max-width: 74.9375rem');
     expect(tablet).toContain('.app-frame__content');
     expect(tablet).toContain('.card-detail__layout');
-    expect(mediaBody(responsive, 'min-width: 75rem')).toContain('.app-frame__content');
+    expect(mediaBody(responsive, 'min-width: 75rem')).not.toContain('.app-frame__content');
+    expect(appShellCss).toContain('max-inline-size: 72rem');
 
     // Below 600 px in both the stylesheet and the JavaScript layout hook.
-    expect(mediaBody(responsive, 'max-width: 37.4375rem')).toContain(
-      '.case-board-page__sheet-triggers',
-    );
-    expect(boardCss).toContain('.case-board-page__sheet-trigger');
+    expect(mediaBody(responsive, 'max-width: 37.4375rem')).toContain('.nd-dialog__panel');
+    expect(boardCss).toContain('@media (max-width: 37.4375rem)');
+    expect(boardCss).toContain('.case-board-bar');
     expect(cardCss).toContain('.card-detail__sheet-trigger');
   });
 
@@ -482,8 +498,7 @@ describe('responsive CSS contract', () => {
     ).toBe('100%');
 
     const phone = mediaBody(responsive, 'max-width: 37.4375rem');
-    expect(phone).toContain('grid-template-columns: minmax(0, 1fr)');
-    expect(phone).toContain("grid-template-areas: 'stage'");
+    expect(phone).toContain('.nd-dialog__panel');
     expect(phone).not.toContain('overflow-x: hidden');
     expect(responsive).not.toMatch(/overflow-x:\s*hidden/i);
   });
@@ -514,7 +529,8 @@ describe('responsive CSS contract', () => {
 
   it('keeps board controls and sheet actions at the 44 px target floor', () => {
     for (const [css, selector] of [
-      [boardCss, '.case-board-page__sheet-trigger'],
+      [boardCss, '.case-board-rail__link'],
+      [boardCss, '.case-board-bar__add'],
       [cardCss, '.card-detail__sheet-trigger'],
     ] as const) {
       const declarations = declarationsFor(css, selector);
@@ -533,7 +549,6 @@ describe('responsive CSS contract', () => {
 
     const phone = mediaBody(responsive, 'max-width: 37.4375rem');
     expect(phone).toContain('.nd-dialog__actions .nd-button');
-    expect(phone).toContain('.case-board-page__sheet-actions .nd-button');
     expect(phone).toContain('.card-detail__sheet .nd-button');
 
     const sheetAction = declarationsFor(responsive, '.nd-dialog__actions .nd-button', {
@@ -554,7 +569,6 @@ describe('responsive CSS contract', () => {
   it('keeps phone screen rules in every primary stylesheet', () => {
     expect(mediaBody(responsive, 'max-width: 37.4375rem')).toContain('.shelf__grid');
     expect(mediaBody(responsive, 'max-width: 37.4375rem')).toContain('.card-detail__layout');
-    expect(mediaBody(responsive, 'max-width: 37.4375rem')).toContain('.case-board-page__stage');
     expect(mediaBody(recallCss, 'max-width: 37.4375rem')).toContain('.recall-toolbar__actions');
     expect(mediaBody(searchCss, 'max-width: 37.4375rem')).toContain('.search-panel');
     expect(mediaBody(hintsCss, 'max-width: 37.4375rem')).toContain('.settings-page');

@@ -436,7 +436,6 @@ test('reloads offline into the shelf and demo and serves the OCR assets from cac
     await expect(page.getByRole('heading', { level: 2, name: 'Case board' })).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.getByText(/6 cards pinned to the cork/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByTestId('board-canvas')).toHaveAttribute(
       'data-board-scene-status',
       'ready',
@@ -558,14 +557,17 @@ test('a waiting update prompts instead of activating silently', async ({ page },
       )
       .toBe(true);
 
-    await expect(page.getByText('A new version of Notes Detective is ready.')).toBeVisible({
-      timeout: 30_000,
-    });
+    await page.getByRole('button', { name: /^System status: .*update ready/ }).click();
+    const statusDialog = page.getByRole('dialog', { name: 'System status' });
+    await expect(statusDialog).toBeVisible({ timeout: 30_000 });
     await expect(
-      page.getByText('Refresh when you are ready; nothing changes until you confirm.'),
+      statusDialog.getByText('A new version of Notes Detective is ready.'),
     ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Refresh' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Later' })).toBeVisible();
+    await expect(
+      statusDialog.getByText('Refresh when you are ready; nothing changes until you confirm.'),
+    ).toBeVisible();
+    await expect(statusDialog.getByRole('button', { name: 'Refresh' })).toBeVisible();
+    await expect(statusDialog.getByRole('button', { name: 'Later' })).toBeVisible();
 
     const waitingState = await page.evaluate(async () => {
       const registration = await navigator.serviceWorker.getRegistration();
@@ -593,8 +595,8 @@ test('a waiting update prompts instead of activating silently', async ({ page },
 
     // Dismissing leaves the worker waiting and the current document controlled
     // by the old worker. Only Refresh may activate it.
-    await page.getByRole('button', { name: 'Later' }).click();
-    await expect(page.getByText('A new version of Notes Detective is ready.')).toBeHidden();
+    await statusDialog.getByRole('button', { name: 'Later' }).click();
+    await expect(page.getByRole('dialog', { name: 'System status' })).toBeHidden();
 
     const afterDismiss = await page.evaluate(async () => {
       const registration = await navigator.serviceWorker.getRegistration();

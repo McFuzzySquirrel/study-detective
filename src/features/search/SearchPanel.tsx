@@ -39,7 +39,7 @@ import {
   searchCards,
   typeFilterLabel,
 } from './searchCards';
-import type { CardSearchResult, SearchTypeFilter } from './searchCards';
+import type { CardSearchResult, SearchCriteria, SearchTypeFilter } from './searchCards';
 
 import './SearchPanel.css';
 
@@ -59,15 +59,27 @@ export interface SearchPanelProps {
   /** Initial state of the filter drawer. Defaults to closed. */
   readonly defaultFiltersOpen?: boolean | undefined;
   /**
-   * `inline` is the tablet/desktop reading column. `sheet` is the same panel
-   * mounted inside a phone bottom sheet, so it must not claim a full viewport
-   * height or draw its own card border around the sheet.
+   * `inline` is the tablet/desktop reading column. `popover` is the wide board
+   * Panel content. `sheet` is the phone bottom-sheet content; neither of the
+   * board variants claims a full viewport height or draws a second surface.
    */
-  readonly variant?: 'inline' | 'sheet' | undefined;
+  readonly variant?: 'inline' | 'popover' | 'sheet' | undefined;
   /** Debounce for the query. Defaults to the contract's 150 ms. */
   readonly debounceMs?: number | undefined;
   /** Notified when the query or filters begin/stop narrowing the result set. */
   readonly onActiveChange?: ((active: boolean) => void) | undefined;
+  /**
+   * Committed criteria owned by the page. Supplying this together with
+   * `onCriteriaChange` makes the panel controlled, so closing and reopening a
+   * surface keeps the query, type, and tags.
+   */
+  readonly criteria?: SearchCriteria | undefined;
+  readonly onCriteriaChange?: ((criteria: SearchCriteria) => void) | undefined;
+  /**
+   * Omits the panel's own heading when the surrounding Panel/Dialog already
+   * names the surface `Search this case`.
+   */
+  readonly hideTitle?: boolean | undefined;
   readonly className?: string | undefined;
 }
 
@@ -145,6 +157,9 @@ export default function SearchPanel({
   variant = 'inline',
   debounceMs = SEARCH_DEBOUNCE_MS,
   onActiveChange,
+  criteria,
+  onCriteriaChange,
+  hideTitle = false,
   className,
 }: SearchPanelProps) {
   const generatedId = useId();
@@ -152,15 +167,22 @@ export default function SearchPanel({
   const titleId = `${baseId}-title`;
   const searchId = `${baseId}-query`;
   const filtersId = `${baseId}-filters`;
+  const controlled = criteria !== undefined && onCriteriaChange !== undefined;
 
-  const [draft, setDraft] = useState('');
-  const [query, setQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<SearchTypeFilter>('all');
-  const [selectedTags, setSelectedTags] = useState<readonly string[]>([]);
+  // In controlled mode the committed criteria live on the board page; only the
+  // in-flight draft stays here until the debounce commits it.
+  const [draft, setDraft] = useState(criteria?.query ?? '');
+  const [queryState, setQueryState] = useState(criteria?.query ?? '');
+  const [typeState, setTypeState] = useState<SearchTypeFilter>(criteria?.type ?? 'all');
+  const [tagsState, setTagsState] = useState<readonly string[]>(criteria?.tags ?? []);
   const [filtersOpen, setFiltersOpen] = useState(defaultFiltersOpen);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const [searchParams] = useSearchParams();
+
+  const query = criteria?.query ?? queryState;
+  const typeFilter = criteria?.type ?? typeState;
+  const selectedTags = criteria?.tags ?? tagsState;
 
   // The `/` shortcut on card detail or capture navigates here with
   // `?focus=search`. The panel mounts after the case data loads, so focus is
@@ -178,13 +200,20 @@ export default function SearchPanel({
   useEffect(() => {
     const delay = Number.isFinite(debounceMs) ? Math.max(0, debounceMs) : SEARCH_DEBOUNCE_MS;
     const timer = window.setTimeout(() => {
-      setQuery(draft);
+      if (controlled) {
+        if (criteria !== undefined && draft !== criteria.query) {
+          onCriteriaChange?.({ query: draft, type: criteria.type, tags: criteria.tags });
+        }
+        return;
+      }
+
+      setQueryState(draft);
     }, delay);
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [draft, debounceMs]);
+  }, [controlled, criteria, draft, debounceMs, onCriteriaChange]);
 
   const criteriaActive = hasActiveSearch({ query: draft, type: typeFilter, tags: selectedTags });
   const searchActive = hasActiveSearch({ query, type: typeFilter, tags: selectedTags });
@@ -198,26 +227,51 @@ export default function SearchPanel({
     onActiveChange?.(criteriaActive);
   }, [criteriaActive, onActiveChange]);
 
-  const toggleTag = useCallback((tag: string) => {
-    const key = tag.trim().toLowerCase();
-    if (key.length === 0) {
-      return;
-    }
+  const toggleTag = useCallback(
+    (tag: string) => {
+      const key = tag.trim().toLowerCase();
+      if (key.length === 0) {
+        return;
+      }
 
-    setSelectedTags((current) =>
-      current.some((selected) => selected.trim().toLowerCase() === key)
-        ? current.filter((selected) => selected.trim().toLowerCase() !== key)
-        : [...current, tag],
-    );
-  }, []);
+      const next = selectedTags.some((selected) => selected.trim().toLowerCase() === key)
+        ? selectedTags.filter((selected) => selected.trim().toLowerCase() !== key)
+        : [...selectedTags, tag];
+
+      if (controlled && criteria !== undefined) {
+        onCriteriaChange?.({ ...criteria, tags: next });
+        return;
+      }
+
+      setTagsState(next);
+    },
+    [controlled, criteria, onCriteriaChange, selectedTags],
+  );
 
   const clearAll = useCallback((): void => {
     setDraft('');
-    setQuery('');
-    setTypeFilter('all');
-    setSelectedTags([]);
+
+    if (controlled) {
+      onCriteriaChange?.({ query: '', type: 'all', tags: [] });
+    } else {
+      setQueryState('');
+      setTypeState('all');
+      setTagsState([]);
+    }
+
     inputRef.current?.focus();
-  }, []);
+  }, [controlled, onCriteriaChange]);
+
+  const chooseTypeFilter = useCallback(
+    (type: SearchTypeFilter): void => {
+      if (controlled && criteria !== undefined) {
+        onCriteriaChange?.({ ...criteria, type });
+        return;
+      }
+      setTypeState(type);
+    },
+    [controlled, criteria, onCriteriaChange],
+  );
 
   // The shell's `/` shortcut and its Escape handler publish these events.
   // Keeping the listeners here means the panel owns its own focus and reset
@@ -291,7 +345,7 @@ export default function SearchPanel({
   };
 
   const removeTypeFilter = (): void => {
-    setTypeFilter('all');
+    chooseTypeFilter('all');
   };
 
   const activeFilterChips: Array<{ key: string; label: string; remove: () => void }> = [];
@@ -317,20 +371,22 @@ export default function SearchPanel({
   return (
     <section
       className={joinClassNames('search-panel', `search-panel--${variant}`, className)}
-      aria-labelledby={titleId}
+      {...(hideTitle ? { 'aria-label': title } : { 'aria-labelledby': titleId })}
       data-search-active={searchActive ? 'true' : 'false'}
       data-result-count={results.length}
       data-variant={variant}
     >
-      <header className="search-panel__header">
-        <h3 id={titleId} className="search-panel__title">
-          {title}
-        </h3>
-        <p className="search-panel__intro">
-          Matches are found in titles, tags, and stored OCR text. The handwritten image itself is
-          not searched.
-        </p>
-      </header>
+      {hideTitle ? null : (
+        <header className="search-panel__header">
+          <h3 id={titleId} className="search-panel__title">
+            {title}
+          </h3>
+          <p className="search-panel__intro">
+            Matches are found in titles, tags, and stored OCR text. The handwritten image itself is
+            not searched.
+          </p>
+        </header>
+      )}
 
       <div className="search-panel__bar">
         <Field
@@ -350,6 +406,7 @@ export default function SearchPanel({
               autoComplete="off"
               spellCheck={false}
               data-shortcut-target="search"
+              data-panel-autofocus="true"
               aria-keyshortcuts="/"
               onChange={(event) => setDraft(event.currentTarget.value)}
               onKeyDown={handleQueryKeyDown}
@@ -403,7 +460,7 @@ export default function SearchPanel({
                 type="button"
                 className="search-panel__chip"
                 aria-pressed={typeFilter === option}
-                onClick={() => setTypeFilter(option)}
+                onClick={() => chooseTypeFilter(option)}
               >
                 {typeFilterLabel(option)}
               </button>

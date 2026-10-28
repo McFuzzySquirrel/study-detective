@@ -376,7 +376,6 @@ test.describe('open dialogs and sheets', () => {
 
     const contextHint = page.getByRole('dialog', { name: 'Thread anchor' });
     await expect(contextHint).toBeVisible({ timeout: 20_000 });
-    await expect(contextHint).toBeFocused();
     await scanSurface(page, 'board-context-hint', testInfo, scanned);
     await contextHint.getByRole('button', { name: 'Got it' }).click();
     await expect(contextHint).toBeHidden();
@@ -389,7 +388,14 @@ test.describe('open dialogs and sheets', () => {
     await page.keyboard.press('Escape');
     await expect(shortcutHelp).toBeHidden();
 
-    await page.getByRole('button', { name: 'Back up case' }).click();
+    await page.getByRole('button', { name: 'Case menu' }).click();
+    const boardMenu = page.getByRole('dialog', { name: 'Case menu' });
+    await expect(boardMenu).toBeVisible();
+    const boardBackupTrigger = boardMenu.getByRole('button', {
+      name: /^(Back up case|Back up now)$/,
+    });
+    await expect(boardBackupTrigger).toBeVisible();
+    await boardBackupTrigger.click();
     const boardBackup = page.getByRole('dialog', { name: 'Backup and restore' });
     await expect(boardBackup).toBeVisible();
     await expect(boardBackup.getByRole('button', { name: 'Export this case' })).toHaveAttribute(
@@ -493,11 +499,11 @@ test.describe('open dialogs and sheets', () => {
     await dismissHint(page, 'Thread anchor');
 
     // Search sheet ----------------------------------------------------------
-    const searchTrigger = page.getByRole('button', { name: 'Search and filters' });
+    const searchTrigger = page.getByRole('button', { name: 'Search' });
     await expect(searchTrigger).toBeVisible();
     await searchTrigger.click();
 
-    const searchSheet = page.getByRole('dialog', { name: 'Search and filters' });
+    const searchSheet = page.getByRole('dialog', { name: 'Search this case' });
     await expect(searchSheet).toBeVisible();
     const sheetSearch = searchSheet.getByRole('searchbox', { name: 'Search cards' });
     await expect(sheetSearch).toBeFocused();
@@ -512,12 +518,14 @@ test.describe('open dialogs and sheets', () => {
     await expect(searchSheet).toBeHidden();
     await expect(searchTrigger).toBeFocused();
 
-    // Case actions sheet ----------------------------------------------------
-    const actionsTrigger = page.getByRole('button', { name: 'Case actions' });
+    // Case menu sheet --------------------------------------------------------
+    const actionsTrigger = page.getByRole('button', { name: 'Case menu' });
     await actionsTrigger.click();
-    const actionsSheet = page.getByRole('dialog', { name: 'Case actions' });
+    const actionsSheet = page.getByRole('dialog', { name: 'Case menu' });
     await expect(actionsSheet).toBeVisible();
-    await expect(actionsSheet.getByRole('button', { name: 'Back up case' })).toBeVisible();
+    await expect(
+      actionsSheet.getByRole('button', { name: /^(Back up case|Back up now)$/ }),
+    ).toBeVisible();
     await scanSurface(page, 'phone-case-actions-sheet', testInfo, scanned);
     await page.keyboard.press('Escape');
     await expect(actionsSheet).toBeHidden();

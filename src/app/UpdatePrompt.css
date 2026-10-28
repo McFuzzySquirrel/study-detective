@@ -19,6 +19,18 @@
   box-shadow: var(--shadow-toast);
 }
 
+/* Inside the System status dialog it is ordinary content, not an overlay. */
+.update-prompt[data-variant='inline'] {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  display: grid;
+  gap: var(--space-3);
+  max-width: none;
+  margin: 0;
+  box-shadow: none;
+}
+
 .update-prompt__copy {
   display: grid;
   gap: var(--space-1);

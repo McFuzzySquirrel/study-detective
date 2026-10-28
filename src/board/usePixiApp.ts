@@ -223,7 +223,11 @@ export function usePixiApp({
         await next.init({
           width: initialSize.width,
           height: initialSize.height,
-          antialias: true,
+          // The full-bleed stage is roughly twice the old drawable area. Text
+          // and card art are already smoothed textures; MSAA on the default
+          // framebuffer only softens vector pin/frame edges and costs enough
+          // fill rate to drop the 1440x900 frame floor. Keep it off.
+          antialias: false,
           autoDensity: true,
           autoStart: false,
           resolution: Math.min(2, Math.max(1, window.devicePixelRatio || 1)),

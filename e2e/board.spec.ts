@@ -145,8 +145,10 @@ test('pans, zooms, clamps, persists the viewport, reloads it, and tears down cle
   expect(savedAfterPan.viewport?.y ?? Number.NaN).toBeCloseTo(afterPan.y, 1);
 
   // Wheel zoom stays pointer-anchored and inside the clamp.
-  const anchorX = box.width / 2;
-  const anchorY = box.height / 2;
+  // Playwright dispatches integer client coordinates; floor the stage centre
+  // so the expected anchor matches the browser event exactly.
+  const anchorX = Math.floor(box.width / 2);
+  const anchorY = Math.floor(box.height / 2);
   const beforeWheel = await readBoardViewport(page);
   await page.mouse.move(box.x + anchorX, box.y + anchorY);
   await page.mouse.wheel(0, -240);
@@ -327,10 +329,9 @@ test('shows a recoverable fallback after a lost WebGL context and restores the b
   });
 
   await expect(page.getByRole('alert')).toContainText('The board lost its graphics context');
-  await expect(page.getByRole('link', { name: 'Open card list' })).toHaveAttribute(
-    'href',
-    `#/case/${caseId}/list`,
-  );
+  await expect(
+    page.getByTestId('board-canvas').getByRole('link', { name: 'Open card list' }),
+  ).toHaveAttribute('href', `#/case/${caseId}/list`);
 
   await page.getByRole('button', { name: 'Restore board' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);

@@ -394,6 +394,7 @@ describe('SearchPanel wiring', () => {
       </MemoryRouter>,
     );
 
+    await user.click(await screen.findByRole('button', { name: 'Search' }));
     const input = await screen.findByRole('searchbox', { name: 'Search cards' });
     await user.type(input, 'sodium');
 

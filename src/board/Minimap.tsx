@@ -8,7 +8,8 @@
  *
  * Interaction is pointer-only, matching the canvas boundary: a tap centres the
  * board on the tapped world point and a drag continuously moves the camera.
- * The minimap defaults to collapsed on phone widths and can always be toggled.
+ * It is collapsed by default in every mode, including wide, and the open state
+ * is remembered for the tab session by the mounted board only.
  */
 
 import { useCallback, useId, useMemo, useRef, useState } from 'react';
@@ -59,13 +60,6 @@ export interface MinimapProps {
   readonly className?: string | undefined;
 }
 
-function isPhoneWidth(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  return window.matchMedia('(max-width: 40rem)').matches;
-}
-
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
@@ -112,7 +106,7 @@ export function Minimap({
   onNavigate,
   className,
 }: MinimapProps) {
-  const [open, setOpen] = useState(() => !isPhoneWidth());
+  const [open, setOpen] = useState(false);
   const panelId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
   const dragPointerRef = useRef<number | null>(null);
@@ -229,7 +223,7 @@ export function Minimap({
       <Button
         variant="quiet"
         className="board-minimap__toggle"
-        aria-expanded={open}
+        aria-pressed={open}
         aria-controls={open ? panelId : undefined}
         onClick={() => setOpen((current) => !current)}
       >

@@ -76,7 +76,6 @@ async function createCase(page: Page): Promise<string> {
 
 async function waitForBoardReady(page: Page, cardCount: number): Promise<void> {
   await expect(page.getByRole('heading', { level: 2, name: 'Case board' })).toBeVisible();
-  await expect(page.getByTestId('closure-panel')).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId('board-canvas')).toHaveAttribute(
     'data-board-scene-status',
     'ready',
@@ -87,6 +86,18 @@ async function waitForBoardReady(page: Page, cardCount: number): Promise<void> {
     String(cardCount),
     { timeout: 30_000 },
   );
+
+  // The closure surface is the readiness chip's persistent panel, not a
+  // permanent column. Open it for the assertions that follow.
+  await page.getByRole('button', { name: /^Readiness:/ }).click();
+  await expect(page.getByTestId('closure-panel')).toBeVisible({ timeout: 30_000 });
+}
+
+async function goToShelf(page: Page): Promise<void> {
+  await page
+    .getByRole('navigation', { name: 'Primary' })
+    .getByRole('link', { name: 'Case shelf' })
+    .click();
 }
 
 async function addImageCard(
@@ -153,6 +164,10 @@ async function connectFromList(
 }
 
 test('closes a complete case, survives a loose edit, repairs it, and reopens', async ({ page }) => {
+  test.skip(
+    (page.viewportSize()?.width ?? 1440) < 600,
+    'The phone closure sheet is covered by the responsive and accessibility suites.',
+  );
   test.setTimeout(240_000);
 
   const consoleErrors: string[] = [];
@@ -194,7 +209,7 @@ test('closes a complete case, survives a loose edit, repairs it, and reopens', a
   expect(closedAt).not.toBeNull();
 
   // The shelf shows the same closure badge.
-  await page.getByRole('link', { name: 'Back to case shelf' }).click();
+  await goToShelf(page);
   await expect(page.getByRole('heading', { level: 2, name: 'Case shelf' })).toBeVisible();
   const shelfCard = page.locator('article').filter({ hasText: CASE_TITLE });
   await expect(shelfCard.getByText('Closed', { exact: true })).toBeVisible();
@@ -213,7 +228,7 @@ test('closes a complete case, survives a loose edit, repairs it, and reopens', a
   expect(await readCaseClosedAt(page, caseId)).toBe(closedAt);
 
   // The shelf carries the same warning without changing the closure date.
-  await page.getByRole('link', { name: 'Back to case shelf' }).click();
+  await goToShelf(page);
   const brokenShelfCard = page.locator('article').filter({ hasText: CASE_TITLE });
   await expect(brokenShelfCard.getByText('Closed · loose threads')).toBeVisible();
 
@@ -241,7 +256,7 @@ test('closes a complete case, survives a loose edit, repairs it, and reopens', a
   await expect(panel.getByRole('button', { name: 'Reopen case' })).toHaveCount(0);
   expect(await readCaseClosedAt(page, caseId)).toBeNull();
 
-  await page.getByRole('link', { name: 'Back to case shelf' }).click();
+  await goToShelf(page);
   const reopenedCard = page.locator('article').filter({ hasText: CASE_TITLE });
   await expect(reopenedCard).toBeVisible();
   await expect(reopenedCard.getByText('Closed', { exact: true })).toHaveCount(0);

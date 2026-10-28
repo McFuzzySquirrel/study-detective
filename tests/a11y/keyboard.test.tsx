@@ -347,7 +347,7 @@ describe('recall toolbar focus handling', () => {
 });
 
 describe('canvas text alternative', () => {
-  it('exposes a name, description, and visible Open card list action', () => {
+  it('exposes a name and description and leaves the card-list link to the rail', () => {
     render(
       <MemoryRouter initialEntries={[`/case/${CASE_ID}`]}>
         <BoardCanvas snapshot={SNAPSHOT} store={createBoardStore()} />
@@ -359,9 +359,8 @@ describe('canvas text alternative', () => {
       'Case board with 2 cards arranged spatially. Use Open card list for a keyboard-operable view. Placement, panning, and thread drawing stay pointer-only.',
     );
 
-    const openList = screen.getByTestId('open-card-list');
-    expect(openList).toBeVisible();
-    expect(openList).toHaveAttribute('href', `/case/${CASE_ID}/list`);
+    expect(screen.queryByTestId('open-card-list')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Open card list' })).not.toBeInTheDocument();
     expect(screen.getByTestId('board-canvas')).toHaveAttribute('data-board-card-count', '2');
   });
 });

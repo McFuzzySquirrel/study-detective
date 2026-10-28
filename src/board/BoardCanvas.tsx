@@ -25,7 +25,6 @@ import {
   selectSelectedConnectionId,
   selectViewport,
 } from './boardStore';
-import { SPLIT_CASE_MESSAGE } from './boardCapacity';
 import FitToViewButton from './FitToViewButton';
 import Minimap from './Minimap';
 import { findThreadAnchorAtPoint, threadAnchorScreenPoint } from './ThreadAnchor';
@@ -41,7 +40,7 @@ import './BoardCanvas.css';
 
 /** Written to both the canvas host and the generated PixiJS canvas. */
 export const BOARD_CANVAS_LABEL =
-  'Case board canvas. Drag the cork to pan. Drag a card to move it. Select a card and drag its thread anchor to another card to connect them. Pinch or scroll to zoom. Use the controls for zoom and reset.';
+  'Case board canvas. Drag the cork to pan. Drag a card to move it. Select a card and drag its thread anchor to another card to connect them. Pinch or scroll to zoom. Use the view cluster for zoom, fit, and reset, and Open card list for a keyboard-operable view.';
 
 /** The recall canvas has no truth strings; its label must not promise them. */
 export const RECALL_CANVAS_LABEL =
@@ -94,12 +93,6 @@ export interface BoardCanvasProps {
    * imports a connection form or opens storage.
    */
   readonly onConnectionDrop?: ((drop: BoardConnectionDrop) => void) | undefined;
-  /**
-   * The shared 200-card guard already reports the case is full. The canvas
-   * hides its Add evidence link rather than sending the student to a blocked
-   * capture route.
-   */
-  readonly cardLimitReached?: boolean | undefined;
   /** Injected motion store for component tests and future composition. */
   readonly motionStore?: MotionStore | undefined;
 }
@@ -122,7 +115,6 @@ export function BoardCanvas({
   onCardMoved,
   onCardTap,
   onConnectionDrop,
-  cardLimitReached = false,
   motionStore,
 }: BoardCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -145,7 +137,6 @@ export function BoardCanvas({
     : `Case board with ${cardCount} ${
         cardCount === 1 ? 'card' : 'cards'
       } arranged spatially. Use Open card list for a keyboard-operable view. Placement, panning, and thread drawing stay pointer-only.`;
-
   const snapshotRef = useRef(snapshot);
   const viewportRef = useRef(viewport);
   const anchorCardIdRef = useRef<string | null>(null);
@@ -585,7 +576,7 @@ export function BoardCanvas({
           store={activeStore}
         />
         <Button variant="quiet" onClick={resetView} aria-label="Reset view">
-          Reset view
+          Reset
         </Button>
       </div>
 
@@ -595,28 +586,6 @@ export function BoardCanvas({
         viewportSize={viewportSize}
         store={activeStore}
       />
-
-      {status !== 'error' && !contextLost && !recall ? (
-        <div className="board-canvas__links">
-          {cardLimitReached ? (
-            <span
-              className="board-canvas__link board-canvas__link--blocked"
-              aria-disabled="true"
-              title={SPLIT_CASE_MESSAGE}
-              data-testid="board-add-evidence-blocked"
-            >
-              Add evidence
-            </span>
-          ) : (
-            <Link className="board-canvas__link" to={`${casePath}/capture`}>
-              Add evidence
-            </Link>
-          )}
-          <Link className="board-canvas__link" to={`${casePath}/list`} data-testid="open-card-list">
-            Open card list
-          </Link>
-        </div>
-      ) : null}
 
       {status === 'initializing' ? (
         <p className="board-canvas__notice" role="status" aria-live="polite">

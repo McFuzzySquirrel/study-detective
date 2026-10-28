@@ -21,11 +21,9 @@ afterEach(() => {
 });
 
 describe('update prompt', () => {
-  it('is mounted from the app root and appears only for a waiting worker', () => {
+  it('is mounted in the shell System status dialog only for a waiting worker', () => {
     render(<App />);
 
-    // The app root also mounts the first-run bootstrap status; this assertion
-    // is specifically about a waiting service worker, not any live region.
     expect(
       screen.queryByText('A new version of Notes Detective is ready.'),
     ).not.toBeInTheDocument();
@@ -33,6 +31,8 @@ describe('update prompt', () => {
     act(() => {
       __triggerNeedRefresh();
     });
+
+    fireEvent.click(screen.getByRole('button', { name: /^System status: .*update ready/ }));
 
     expect(screen.getByText('A new version of Notes Detective is ready.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled();
