@@ -22,6 +22,7 @@ import { Application } from 'pixi.js';
 
 import { BoardScene } from './BoardScene';
 import type { BoardScene as BoardSceneType, BoardSnapshot } from './BoardScene';
+import { readWebGlRenderer, renderResolutionFor } from './renderResolution';
 import type { Viewport } from '../domain/model';
 import type { BoardSize } from './viewport';
 
@@ -230,7 +231,7 @@ export function usePixiApp({
           antialias: false,
           autoDensity: true,
           autoStart: false,
-          resolution: Math.min(2, Math.max(1, window.devicePixelRatio || 1)),
+          resolution: renderResolutionFor(window.devicePixelRatio || 1, readWebGlRenderer()),
           preference: 'webgl',
           powerPreference: 'high-performance',
           backgroundAlpha: 1,
