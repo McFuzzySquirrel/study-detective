@@ -102,7 +102,7 @@ export function buildArchiveImagePath(attachmentId: string, mime: AttachmentMime
 const archiveImagePathSchema = z
   .string()
   .regex(
-    /^images\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(?:png|jpg|jpeg|webp)$/,
+    /^images\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\.(?:png|jpg|jpeg|webp|gif)$/,
     'Image path must be a relative images/<attachment-id>.<ext> path',
   );
 
