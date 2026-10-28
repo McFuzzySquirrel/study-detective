@@ -11,7 +11,7 @@ import type { FormEvent } from 'react';
 
 import Button from '../../components/Button';
 import Field from '../../components/Field';
-import { TITLE_MAX_LENGTH } from '../../domain/model';
+import { CARD_DETAILS_MAX_LENGTH, TITLE_MAX_LENGTH } from '../../domain/model';
 import type { OcrImage, OcrResult } from '../ocr/ocrWorker';
 import OcrPanel from '../ocr/OcrPanel';
 import TagInput from '../search/TagInput';
@@ -21,8 +21,9 @@ import type { ImageCardType } from './cardImport';
 import './capture.css';
 
 export type NoteSourceValues = {
-  readonly type: ImageCardType;
+  readonly type: Extract<ImageCardType, 'note' | 'source'>;
   readonly title: string;
+  readonly details?: string;
   readonly retainFullResolution: boolean;
   /** Omitted when the card has no tags, so existing callers stay unchanged. */
   readonly tags?: readonly string[];
@@ -31,8 +32,9 @@ export type NoteSourceValues = {
 };
 
 export interface NoteSourceFormProps {
-  readonly initialType?: ImageCardType;
+  readonly initialType?: Extract<ImageCardType, 'note' | 'source'>;
   readonly initialTitle?: string;
+  readonly initialDetails?: string;
   /** Tags restored when the student steps back to this form after a failure. */
   readonly initialTags?: readonly string[];
   /** The cropped/pending photo; OCR is offered but never started automatically. */
@@ -49,13 +51,15 @@ function trimTitle(title: string): string {
 export default function NoteSourceForm({
   initialType = 'note',
   initialTitle = '',
+  initialDetails = '',
   initialTags = [],
   image = null,
   onBack,
   onSubmit,
 }: NoteSourceFormProps) {
-  const [type, setType] = useState<ImageCardType>(initialType);
+  const [type, setType] = useState<Extract<ImageCardType, 'note' | 'source'>>(initialType);
   const [title, setTitle] = useState(initialTitle);
+  const [details, setDetails] = useState(initialDetails);
   const [tags, setTags] = useState<readonly string[]>(initialTags);
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
   const [retainFullResolution, setRetainFullResolution] = useState(false);
@@ -85,6 +89,7 @@ export default function NoteSourceForm({
     onSubmit({
       type,
       title: trimmed,
+      ...(type === 'note' && details.trim().length > 0 ? { details: details.trim() } : {}),
       retainFullResolution,
       ...(tags.length > 0 ? { tags } : {}),
       ...(ocrResult !== null ? { ocr: ocrResult } : {}),
@@ -151,6 +156,24 @@ export default function NoteSourceForm({
           label="Tags"
           hint="Optional. Type a tag and press Enter or comma to add it. Backspace removes the last tag."
         />
+
+        {type === 'note' ? (
+          <Field
+            label="Additional notes"
+            hint={`Optional. Add context or extra information, up to ${CARD_DETAILS_MAX_LENGTH} characters.`}
+          >
+            {(control) => (
+              <textarea
+                {...control}
+                name="details"
+                value={details}
+                maxLength={CARD_DETAILS_MAX_LENGTH}
+                rows={4}
+                onChange={(event) => setDetails(event.currentTarget.value)}
+              />
+            )}
+          </Field>
+        ) : null}
 
         <OcrPanel
           image={image}

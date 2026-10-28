@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe('TopicForm', () => {
-  it('is text-only and submits a trimmed 1 to 80 character title by keyboard', async () => {
+  it('supports an optional image and submits a trimmed title by keyboard', async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn<SubmitHandler>();
     const onBack = vi.fn();
@@ -26,7 +26,8 @@ describe('TopicForm', () => {
     render(<TopicForm onBack={onBack} onSubmit={onSubmit} />);
 
     expect(screen.queryByRole('textbox', { name: 'Topic title' })).toBeInTheDocument();
-    expect(document.querySelector('input[type="file"]')).toBeNull();
+    const imageInput = screen.getByLabelText('Topic image');
+    expect(imageInput).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp');
 
     await user.tab();
     const title = screen.getByRole('textbox', { name: 'Topic title' });
@@ -37,6 +38,8 @@ describe('TopicForm', () => {
     await user.tab();
     expect(screen.getByRole('textbox', { name: 'Topic tags' })).toHaveFocus();
     await user.tab();
+    expect(imageInput).toHaveFocus();
+    await user.tab();
     expect(screen.getByRole('button', { name: 'Back' })).toHaveFocus();
     await user.tab();
 
@@ -46,6 +49,19 @@ describe('TopicForm', () => {
 
     expect(onSubmit).toHaveBeenCalledWith({ title: 'Carbonyls' });
     expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('submits the selected image with the topic details', async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn<SubmitHandler>();
+    const image = new File(['image'], 'topic.png', { type: 'image/png' });
+    render(<TopicForm onBack={vi.fn()} onSubmit={onSubmit} />);
+
+    await user.type(screen.getByRole('textbox', { name: 'Topic title' }), 'Cell structure');
+    fireEvent.change(screen.getByTestId('topic-image-input'), { target: { files: [image] } });
+    await user.click(screen.getByRole('button', { name: 'Add topic' }));
+
+    expect(onSubmit).toHaveBeenCalledWith({ title: 'Cell structure', image });
   });
 
   it('announces and focuses an empty title without submitting', async () => {

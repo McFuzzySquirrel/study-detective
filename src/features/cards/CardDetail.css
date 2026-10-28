@@ -223,6 +223,28 @@
   border-block-start: var(--border-width) solid var(--color-border);
 }
 
+.card-detail__details {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.card-detail__details h3 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+}
+
+.card-detail__details-text {
+  margin: 0;
+  color: var(--color-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .card-detail__tags-header {
   display: flex;
   flex-wrap: wrap;

@@ -74,8 +74,9 @@ connections are the studying.
 
 - Camera, photo library, or image-file upload (JPG/PNG/WebP).
 - One image per card; multi-page material becomes multiple cards.
-- Rotate and crop offered at import.
-- Study notes and sources are photo-only; topics are text-only.
+- Rotate and crop are offered for note and source photos at import; topic images can be cropped later.
+- Study notes and sources use photos; topics can be created with text alone or an optional image.
+- Study notes may include optional additional notes for context beyond the title and photo.
 - **PDF import is a v1 non-goal** — the most likely post-v1 addition.
 
 ## Platform, storage, and privacy

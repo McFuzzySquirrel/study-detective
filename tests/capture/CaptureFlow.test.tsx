@@ -129,6 +129,7 @@ interface RenderOptions {
   readonly validator?: CaptureImageValidator;
   readonly importer?: CaptureImageImporter;
   readonly viewportSize?: CaptureViewportSize;
+  readonly initialUrl?: string;
 }
 
 function renderCapture({
@@ -136,6 +137,7 @@ function renderCapture({
   validator,
   importer,
   viewportSize = DEFAULT_VIEWPORT_SIZE,
+  initialUrl = `/case/${CASE_ID}/capture`,
 }: RenderOptions = {}) {
   const activeRepository = repository ?? makeRepository();
   const activeValidator =
@@ -143,7 +145,7 @@ function renderCapture({
   const activeImporter = importer ?? makeImporter(activeRepository);
 
   const view = render(
-    <MemoryRouter initialEntries={[`/case/${CASE_ID}/capture`]}>
+    <MemoryRouter initialEntries={[initialUrl]}>
       <Routes>
         <Route
           path="/case/:caseId/capture"
@@ -234,6 +236,14 @@ describe('Capture route', () => {
     expect(takeClick).toHaveBeenCalledTimes(1);
     await user.click(screen.getByRole('button', { name: 'Choose photo' }));
     expect(chooseClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('makes the source photo actions explicit when adding a source', async () => {
+    renderCapture({ initialUrl: `/case/${CASE_ID}/capture?kind=source` });
+
+    expect(await screen.findByRole('heading', { name: 'Add a source' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Photograph source' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Choose source image' })).toBeInTheDocument();
   });
 
   it.each([
@@ -364,7 +374,7 @@ describe('Capture route', () => {
     );
   });
 
-  it('creates a text-only topic without touching an image or an attachment', async () => {
+  it('creates a topic without an image without touching the image pipeline', async () => {
     const user = userEvent.setup();
     const repository = makeRepository();
     const validator = vi.fn<CaptureImageValidator>().mockResolvedValue(VALIDATION_OK);
@@ -394,6 +404,27 @@ describe('Capture route', () => {
       position: { x: 600, y: 450 },
     });
     expect(await repository.listAttachments(topic?.id ?? '')).toEqual([]);
+  });
+
+  it('saves an optional topic image through the atomic image importer', async () => {
+    const user = userEvent.setup();
+    const repository = makeRepository();
+    const importer = makeImporter(repository);
+    renderCapture({ repository, importer });
+
+    await user.click(await screen.findByRole('button', { name: 'Add topic' }));
+    await user.type(screen.getByRole('textbox', { name: 'Topic title' }), 'Cell structure');
+    selectFile('topic-image-input', noteFile('cells.png'));
+    await user.click(screen.getByRole('button', { name: 'Add topic' }));
+
+    expect(await screen.findByRole('heading', { name: 'Case board' })).toBeInTheDocument();
+    expect(importer).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'topic', title: 'Cell structure' }),
+      expect.objectContaining({ repository }),
+    );
+    const topic = (await repository.listCards(CASE_ID))[0];
+    expect(topic?.type).toBe('topic');
+    expect(await repository.listAttachments(topic?.id ?? '')).toHaveLength(3);
   });
 
   it('offers Retry and Back after a decode failure and writes nothing', async () => {

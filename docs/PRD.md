@@ -52,7 +52,7 @@
 
 ## 5. Research Findings
 
-- The product idea was sharpened through a structured interview and recorded in [docs/IDEA.md](IDEA.md). That document already resolves the main scope questions: solo use, local-first storage, photo-only notes and sources, text-only topics, undirected strings, and no scoring.
+- The product idea was sharpened through a structured interview and recorded in [docs/IDEA.md](IDEA.md). That document already resolves the main scope questions: solo use, local-first storage, photo-based notes and sources, optional topic images, undirected strings, and no scoring.
 - The main unvalidated questions are sensory rather than functional: the exact aesthetic reference, the feel of pins and string sag, and whether handwriting OCR is accurate enough to be useful. The plan treats the first two as human-gated spikes and the third as an optional, user-triggered feature that never overwrites the student's text.
 - Browser storage eviction is the largest product risk. The mitigation is explicit, tested backup plus persistent-storage requests, not an assumption that IndexedDB is permanent.
 - All technology versions in section 6 were checked against the npm registry on 2026-10-25. TypeScript 7.0.2 is current but is not yet supported by typescript-eslint 8.72.0, so the plan pins TypeScript 6.0.3 and records the constraint.
@@ -409,9 +409,9 @@ All user-facing features
 |------|------------|
 | Case | One exam or course board, containing cards and connections. Cards belong to exactly one case. |
 | Card | A Study Note, Source, or Topic hub pinned to a case board. |
-| Study Note | A photo card representing notes the student wrote, with a short title. |
+| Study Note | A photo card representing notes the student wrote, with a short title and optional additional notes. |
 | Source / Evidence | A photo card representing the original material a note came from. |
-| Topic hub | A text-only card representing a theme or exam topic. |
+| Topic hub | A card representing a theme or exam topic, with text and an optional image. |
 | Association string | A red, undirected connection between two cards, usually a note and a topic. |
 | Provenance string | A thin dashed amber connection between a Study Note and a Source. |
 | Loose thread | A Study Note missing a provenance link or a topic association, or a Topic with no connections. |

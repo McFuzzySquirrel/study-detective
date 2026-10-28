@@ -31,6 +31,7 @@ export type CaseReadinessStatus = (typeof CASE_READINESS_STATES)[number];
 export const TITLE_MIN_LENGTH = 1;
 export const TITLE_MAX_LENGTH = 80;
 export const SUBJECT_MAX_LENGTH = 80;
+export const CARD_DETAILS_MAX_LENGTH = 5_000;
 export const MAX_TAGS = 10;
 export const MAX_TAG_LENGTH = 24;
 export const MIN_VIEWPORT_SCALE = 0.25;
@@ -187,6 +188,7 @@ export const cardRecordSchema = z
     caseId: uuidSchema,
     type: z.enum(CARD_TYPES),
     title: titleSchema,
+    details: z.string().max(CARD_DETAILS_MAX_LENGTH).optional(),
     position: positionSchema,
     tags: tagsSchema,
     // Photo cards may be re-cropped later, so the choice is part of the card

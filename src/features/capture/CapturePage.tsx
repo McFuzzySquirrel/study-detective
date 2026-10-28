@@ -1,6 +1,6 @@
 /**
- * The capture route: one photo path for notes and sources, one text-only path
- * for topics.
+ * The capture route: one photo path for notes and sources, with optional
+ * images on topics.
  *
  * The page owns the step machine, object URL, abort controllers, and progress
  * announcements. Validation, image processing, and persistence stay behind the
@@ -89,6 +89,7 @@ type PendingCard = {
   readonly file: File;
   readonly type: ImageCardType;
   readonly title: string;
+  readonly details?: string;
   readonly retainFullResolution: boolean;
   readonly tags: readonly string[];
   readonly crop: CropRect;
@@ -249,7 +250,8 @@ export function CapturePage({
   // opens its text form; note/source keep the shared photo picker and preselect
   // the final card type.
   const requestedKind = searchParams.get('kind');
-  const initialImageType: ImageCardType = requestedKind === 'source' ? 'source' : 'note';
+  const initialImageType: Extract<ImageCardType, 'note' | 'source'> =
+    requestedKind === 'source' ? 'source' : 'note';
 
   const [step, setStep] = useState<Step>('loading');
   const [loadFailure, setLoadFailure] = useState<LoadFailure | null>(null);
@@ -514,6 +516,7 @@ export function CapturePage({
           caseId,
           type: draft.type,
           title: draft.title,
+          ...(draft.details !== undefined ? { details: draft.details } : {}),
           position: draft.position,
           tags: draft.tags,
           crop: draft.crop,
@@ -637,6 +640,7 @@ export function CapturePage({
       file: selectedFile,
       type: values.type,
       title: values.title,
+      ...(values.details !== undefined ? { details: values.details } : {}),
       retainFullResolution: values.retainFullResolution,
       tags: values.tags ?? [],
       crop: cropResult.crop,
@@ -656,6 +660,22 @@ export function CapturePage({
 
     const position = nextPosition();
     if (position === null) {
+      return;
+    }
+
+    if (values.image !== undefined) {
+      const draft: PendingCard = {
+        file: values.image,
+        type: 'topic',
+        title: values.title,
+        retainFullResolution: false,
+        tags: values.tags ?? [],
+        crop: { x: 0, y: 0, width: 1, height: 1 },
+        rotation: 0,
+        position,
+      };
+      setPendingCard(draft);
+      void runImageImport(draft);
       return;
     }
 
@@ -729,8 +749,8 @@ export function CapturePage({
           <p className="capture__eyebrow">Capture</p>
           <h2 id="capture-title">Capture evidence</h2>
           <p className="capture__intro">
-            Add one photo of your notes, or a text-only topic. Photos are validated, cropped, and
-            saved locally; nothing is uploaded.
+            Add a study note, source, or topic. Images are validated and saved locally; nothing is
+            uploaded.
           </p>
           {caseRecord !== null ? (
             <p className="capture__case">
@@ -809,7 +829,11 @@ export function CapturePage({
         ) : null}
 
         {step === 'picker' ? (
-          <CaptureSourcePicker onFileSelected={handleFileSelected} onAddTopic={handleAddTopic} />
+          <CaptureSourcePicker
+            cardType={initialImageType}
+            onFileSelected={handleFileSelected}
+            onAddTopic={handleAddTopic}
+          />
         ) : null}
 
         {step === 'validating' ? (
@@ -851,8 +875,13 @@ export function CapturePage({
 
         {step === 'details' && selectedFile !== null && cropResult !== null ? (
           <NoteSourceForm
-            initialType={pendingCard?.type ?? initialImageType}
+            initialType={
+              pendingCard !== null && pendingCard.type !== 'topic'
+                ? pendingCard.type
+                : initialImageType
+            }
             initialTitle={pendingCard?.title ?? ''}
+            initialDetails={pendingCard?.details ?? ''}
             initialTags={pendingCard?.tags ?? []}
             image={selectedFile}
             onBack={() => setStep('crop')}

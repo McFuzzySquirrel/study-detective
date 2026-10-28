@@ -33,7 +33,7 @@ const GROUP_LABELS: Record<CardType, string> = {
 const GROUP_DESCRIPTIONS: Record<CardType, string> = {
   note: 'Photographed notes and the explanations you want to remember.',
   source: 'Reference material that supports a note.',
-  topic: 'Text-only headings that can anchor a thread.',
+  topic: 'Headings that can anchor a thread, with an optional image.',
 };
 
 /** How many strings currently name this card as an endpoint. */

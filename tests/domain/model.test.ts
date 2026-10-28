@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  CARD_DETAILS_MAX_LENGTH,
   CONNECTION_PAIR_SEPARATOR,
   attachmentRecordSchema,
   buildPairKey,
@@ -245,6 +246,22 @@ describe('CardRecord schema', () => {
     expect(cardRecordSchema.parse({ ...validCard, title: '  Mitochondria notes  ' }).title).toBe(
       'Mitochondria notes',
     );
+  });
+
+  it('accepts optional additional details within the size limit', () => {
+    expect(cardRecordSchema.safeParse({ ...validCard, details: 'Key context' }).success).toBe(true);
+    expect(
+      cardRecordSchema.safeParse({
+        ...validCard,
+        details: 'x'.repeat(CARD_DETAILS_MAX_LENGTH),
+      }).success,
+    ).toBe(true);
+    expect(
+      cardRecordSchema.safeParse({
+        ...validCard,
+        details: 'x'.repeat(CARD_DETAILS_MAX_LENGTH + 1),
+      }).success,
+    ).toBe(false);
   });
 
   it('accepts zero and positive positions but rejects negative or non-finite values', () => {
