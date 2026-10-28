@@ -8,6 +8,8 @@ connections from memory in recall mode.
 Everything runs in the browser on the device. There is no account, backend, upload, telemetry,
 or remote copy of a case.
 
+![Animated tour: the demo board pans and zooms, the Case closure panel reports Ready to close, and a recall scratch connection is checked against the case](docs/media/demo.gif)
+
 ## What this is
 
 - **Evidence capture.** Import photos, crop and rotate them, and attach them to Study Note,
@@ -27,6 +29,28 @@ or remote copy of a case.
   the board, strings, closure, and recall can be tried immediately.
 - **Offline app shell.** After the first successful load, the shelf, board, recall, search, and
   OCR assets load from the service-worker cache.
+
+## Screenshots
+
+Every image is captured from the production build with the generated demo case. They contain no
+personal notes, photos, account details, or third-party artwork.
+
+| Case board                                                                          | Case closure                                                               |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| ![The demo case board with six pinned cards and five strings](docs/media/board.png) | ![The Case closure panel reporting Ready to close](docs/media/closure.png) |
+
+| Card detail                                                                                      | Recall results                                                                                              |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| ![A Study Note detail screen with its lecture page and card actions](docs/media/card-detail.png) | ![Recall pair lists with the rebuilt scratch connection marked on the board](docs/media/recall-results.png) |
+
+The same case at phone width (390x844):
+
+<img src="docs/media/phone-board.png" alt="The demo board at phone width with the bottom action bar" width="320">
+
+[Full-size phone screenshot](docs/media/phone-board.png)
+
+Regenerate every image with `npm run media`. The capture script, its WebGL requirement, and the
+size budget are documented in [docs/media/README.md](docs/media/README.md).
 
 ## Requirements
 
@@ -79,6 +103,7 @@ service worker, or offline path works. Use the production preview below for thos
 | `npm run test`                         | Run the Vitest unit and component suite once.                                                                             |
 | `npm run test:coverage`                | Run Vitest with V8 coverage and the domain/data thresholds.                                                               |
 | `npm run test:e2e`                     | Build, then run the Playwright journeys against `vite preview` on port 4173.                                              |
+| `npm run media`                        | Build, then capture the screenshots and demo GIF in `docs/media/` from the generated demo case.                           |
 | `npm run validate:workflows`           | Check the CI workflow contract: Node version, required steps, and no bypass.                                              |
 | `npm run format`                       | Format the repository with Prettier.                                                                                      |
 | `npm run format:check`                 | Check formatting without writing.                                                                                         |

@@ -19,6 +19,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "npm run build && playwright test",
+    "media": "npm run build && node scripts/capture-media.mjs",
     "validate:workflows": "node scripts/validate-workflows.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
