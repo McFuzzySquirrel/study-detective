@@ -497,7 +497,7 @@ test.describe('phone bottom sheets', () => {
 
     const detailSheet = page.getByRole('dialog', { name: 'Card actions and tags' });
     await expect(detailSheet).toBeVisible();
-    for (const name of ['Edit title', 'Replace photo', 'Delete card', 'Edit tags']) {
+    for (const name of ['Edit title', 'Add image', 'Delete card', 'Edit tags']) {
       await expectTarget(detailSheet.getByRole('button', { name }));
     }
 
