@@ -31,7 +31,7 @@ export type ImageValidationCode =
   | 'corrupt-image'
   | 'unreadable-file';
 
-export type UnsupportedImageFormat = 'svg' | 'heic' | 'gif' | 'pdf';
+export type UnsupportedImageFormat = 'svg' | 'heic' | 'pdf';
 
 export type ImageValidationFailure = {
   readonly ok: false;
@@ -169,7 +169,6 @@ function failure(
 const FORMAT_LABEL: Record<UnsupportedImageFormat, string> = {
   svg: 'SVG',
   heic: 'HEIC/HEIF',
-  gif: 'GIF',
   pdf: 'PDF',
 };
 
@@ -233,10 +232,6 @@ export function detectUnsupportedImageFormat(header: Uint8Array): UnsupportedIma
     if (HEIC_BRANDS.has(brand)) {
       return 'heic';
     }
-  }
-
-  if (ascii(header, 0, 4) === 'GIF8') {
-    return 'gif';
   }
 
   if (ascii(header, 0, 5) === '%PDF-') {

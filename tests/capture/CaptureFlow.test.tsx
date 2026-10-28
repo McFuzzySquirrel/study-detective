@@ -224,7 +224,7 @@ describe('Capture route', () => {
 
     [take, choose].forEach((input) => {
       expect(input).toHaveAttribute('type', 'file');
-      expect(input).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp');
+      expect(input).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp,image/gif');
     });
     expect(take).toHaveAttribute('capture', 'environment');
     expect(choose).not.toHaveAttribute('capture');
@@ -266,6 +266,46 @@ describe('Capture route', () => {
     await waitFor(() => {
       expect(screen.getByTestId('capture-step')).toHaveFocus();
     });
+
+  });
+
+  it('keeps animated GIFs whole and bypasses the crop editor', async () => {
+    const user = userEvent.setup();
+    const gifBytes = new TextEncoder().encode('GIF89a');
+    const file = new File([gifBytes], 'animation.gif', { type: 'image/gif' });
+    const validator = vi.fn<CaptureImageValidator>().mockResolvedValue({
+      ok: true,
+      mime: 'image/gif',
+      byteLength: file.size,
+      width: 640,
+      height: 480,
+    });
+    const repository = makeRepository();
+    const importer = makeImporter(repository);
+    renderCapture({ repository, validator, importer });
+
+    await screen.findByRole('button', { name: 'Choose photo' });
+    selectFile('capture-choose-photo', file);
+    expect(await screen.findByRole('heading', { name: 'Name the card' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Crop photo' })).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Animated GIFs keep their original frames and dimensions/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /Keep full resolution/i })).not.toBeInTheDocument();
+
+    await user.type(screen.getByRole('textbox', { name: 'Title' }), 'Animated evidence');
+    await user.click(screen.getByRole('button', { name: 'Save card' }));
+    await screen.findByRole('heading', { name: 'Case board' });
+
+    expect(importer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        file,
+        title: 'Animated evidence',
+        crop: { x: 0, y: 0, width: 1, height: 1 },
+        rotation: 0,
+      }),
+      expect.anything(),
+    );
   });
 
   it('saves a Source with one image, a valid title, and a staggered viewport position', async () => {

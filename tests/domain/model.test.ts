@@ -431,7 +431,7 @@ describe('AttachmentRecord schema', () => {
   });
 
   it('accepts every supported image MIME type', () => {
-    for (const mime of ['image/jpeg', 'image/png', 'image/webp']) {
+    for (const mime of ['image/jpeg', 'image/png', 'image/webp', 'image/gif']) {
       expect(attachmentRecordSchema.safeParse({ ...validAttachment, mime }).success).toBe(true);
     }
   });

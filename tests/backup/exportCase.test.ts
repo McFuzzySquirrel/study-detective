@@ -26,7 +26,9 @@ import {
   ARCHIVE_FORMAT,
   ARCHIVE_FORMAT_VERSION,
   ARCHIVE_MANIFEST_PATH,
+  archiveImageExtension,
   buildCaseArchiveFileName,
+  buildArchiveImagePath,
   parseCaseArchiveManifest,
   slugifyCaseTitle,
 } from '../../src/features/backup/archiveFormat';
@@ -224,6 +226,13 @@ afterEach(async () => {
 });
 
 describe('single-case archive export', () => {
+  it('uses the GIF extension for animated image attachments', () => {
+    expect(archiveImageExtension('image/gif')).toBe('gif');
+    expect(buildArchiveImagePath('77777777-7777-4777-8777-777777777777', 'image/gif')).toBe(
+      'images/77777777-7777-4777-8777-777777777777.gif',
+    );
+  });
+
   it('unzips to manifest.json plus only the selected case images', () => {
     const entries = unzipSync(archive.bytes);
     const paths = Object.keys(entries);

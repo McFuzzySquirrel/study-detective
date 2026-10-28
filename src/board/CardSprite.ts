@@ -456,28 +456,28 @@ export class CardSprite {
       return;
     }
 
-    private startGifRefresh(texture: Texture): void {
-      this.stopGifRefresh();
-      this.gifRefreshTimer = setInterval(() => {
-        if (this.visible && !this.destroyed && this.displayTexture === texture) {
-          texture.source.update();
-        }
-      }, 33);
-    }
-
-    private stopGifRefresh(): void {
-      if (this.gifRefreshTimer !== null) {
-        clearInterval(this.gifRefreshTimer);
-        this.gifRefreshTimer = null;
-      }
-    }
-
     const texture = this.thumbnailTexture;
     this.thumbnailTexture = null;
     try {
       texture.destroy(true);
     } catch {
       // A renderer teardown may already have destroyed it.
+    }
+  }
+
+  private startGifRefresh(texture: Texture): void {
+    this.stopGifRefresh();
+    this.gifRefreshTimer = setInterval(() => {
+      if (this.visible && !this.destroyed && this.displayTexture === texture) {
+        texture.source.update();
+      }
+    }, 33);
+  }
+
+  private stopGifRefresh(): void {
+    if (this.gifRefreshTimer !== null) {
+      clearInterval(this.gifRefreshTimer);
+      this.gifRefreshTimer = null;
     }
   }
 

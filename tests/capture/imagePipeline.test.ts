@@ -23,6 +23,7 @@ import {
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
 const JPEG_SIGNATURE = [0xff, 0xd8, 0xff, 0xe0];
+const GIF_SIGNATURE = [...new TextEncoder().encode('GIF89a')];
 
 type DrawCall = readonly [
   image: CanvasImageSource,
@@ -185,6 +186,10 @@ function webpFile(): File {
   bytes.set(new TextEncoder().encode('RIFF'), 0);
   bytes.set(new TextEncoder().encode('WEBP'), 8);
   return new File([bytes], 'notes.webp', { type: 'image/webp' });
+}
+
+function gifFile(): File {
+  return new File([new Uint8Array(GIF_SIGNATURE)], 'animation.gif', { type: 'image/gif' });
 }
 
 function validDigest(): (blob: Blob) => Promise<string> {
@@ -374,6 +379,42 @@ describe('default derivatives', () => {
     expect(result.display).toMatchObject({ width: 1536, height: 2048 });
     expect(result.thumbnail).toMatchObject({ width: 240, height: 320 });
     expectProportional(result.original, 3000, 4000);
+  });
+});
+
+describe('animated GIF imports', () => {
+  it('keeps animated source bytes for original and display while bounding the thumbnail', async () => {
+    const file = gifFile();
+    const result = await processImage(file, {
+      decode: decoderFor(fakeDecoded(6000, 4000)),
+      createCanvas: canvasHarness().factory,
+      digest: validDigest(),
+    });
+
+    expect(result).toMatchObject({
+      mime: 'image/gif',
+      sourceWidth: 6000,
+      sourceHeight: 4000,
+      retainFullResolution: true,
+      crop: { x: 0, y: 0, width: 1, height: 1 },
+      rotation: 0,
+      original: { mime: 'image/gif', width: 6000, height: 4000 },
+      display: { mime: 'image/gif', width: 6000, height: 4000 },
+      thumbnail: { mime: 'image/png', width: 320, height: 213 },
+    });
+    expect(result.original.blob).toBe(result.display.blob);
+    expect([...new Uint8Array(await result.display.blob.arrayBuffer())]).toEqual(GIF_SIGNATURE);
+  });
+
+  it('rejects crop and rotation because re-encoding would discard animation', async () => {
+    await expect(
+      processImage(gifFile(), {
+        crop: { x: 0, y: 0, width: 0.5, height: 1 },
+        decode: decoderFor(fakeDecoded(1000, 500)),
+        createCanvas: canvasHarness().factory,
+        digest: validDigest(),
+      }),
+    ).rejects.toMatchObject({ code: 'invalid-crop' });
   });
 });
 

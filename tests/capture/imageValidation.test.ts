@@ -38,6 +38,10 @@ function webpBytes(size = 64): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
+function gifBytes(size = 64): Uint8Array<ArrayBuffer> {
+  return bytesOf(size, [...new TextEncoder().encode('GIF89a')]);
+}
+
 function svgBytes(): Uint8Array<ArrayBuffer> {
   return new TextEncoder().encode('<svg xmlns="http://www.w3.org/2000/svg"><rect /></svg>');
 }
@@ -66,17 +70,17 @@ function decoderFor(decoded: DecodedImage): ImageDecoder {
 }
 
 describe('sniffImageMime and unsupported formats', () => {
-  it('detects JPEG, PNG, and WebP from magic bytes', () => {
+  it('detects JPEG, PNG, WebP, and GIF from magic bytes', () => {
     expect(sniffImageMime(jpegBytes())).toBe('image/jpeg');
     expect(sniffImageMime(pngBytes())).toBe('image/png');
     expect(sniffImageMime(webpBytes())).toBe('image/webp');
+    expect(sniffImageMime(gifBytes())).toBe('image/gif');
     expect(sniffImageMime(new TextEncoder().encode('not an image'))).toBeNull();
   });
 
-  it('names SVG, HEIC, GIF, and PDF as unsupported containers', () => {
+  it('names SVG, HEIC, and PDF as unsupported containers', () => {
     expect(detectUnsupportedImageFormat(svgBytes())).toBe('svg');
     expect(detectUnsupportedImageFormat(heicBytes())).toBe('heic');
-    expect(detectUnsupportedImageFormat(new TextEncoder().encode('GIF89a rest'))).toBe('gif');
     expect(detectUnsupportedImageFormat(new TextEncoder().encode('%PDF-1.7'))).toBe('pdf');
     expect(detectUnsupportedImageFormat(new Uint8Array([1, 2, 3]))).toBeNull();
   });
@@ -140,7 +144,7 @@ describe('type and payload validation', () => {
     expect(decoder).not.toHaveBeenCalled();
   });
 
-  it('rejects an unsupported reported type even when the bytes are a JPEG', async () => {
+  it('rejects a reported GIF MIME when the bytes are a JPEG', async () => {
     const decoder = decoderFor(fakeDecoded());
     const result = await validateImageFile(imageFile(jpegBytes(), 'image/gif', 'renamed.gif'), {
       decoder,
@@ -148,10 +152,25 @@ describe('type and payload validation', () => {
 
     expect(result).toMatchObject({
       ok: false,
-      code: 'unsupported-type',
+      code: 'mime-mismatch',
       detectedMime: 'image/jpeg',
     });
     expect(decoder).not.toHaveBeenCalled();
+  });
+
+  it('accepts a GIF with a matching MIME and returns its decoded dimensions', async () => {
+    const decoder = decoderFor(fakeDecoded(640, 480));
+    const result = await validateImageFile(imageFile(gifBytes(), 'image/gif', 'animated.gif'), {
+      decoder,
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      mime: 'image/gif',
+      width: 640,
+      height: 480,
+    });
+    expect(decoder).toHaveBeenCalledTimes(1);
   });
 
   it('rejects an SVG before any decode', async () => {
