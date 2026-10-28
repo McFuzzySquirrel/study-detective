@@ -79,6 +79,7 @@ const IMAGE_EXTENSIONS: Record<AttachmentMime, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
+  'image/gif': 'gif',
 };
 
 /** The extension used inside the archive for a stored MIME type. */

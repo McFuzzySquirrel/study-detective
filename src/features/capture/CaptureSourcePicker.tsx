@@ -16,7 +16,7 @@ import type { ImageCardType } from './cardImport';
 
 import './capture.css';
 
-export const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
+export const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 
 export interface CaptureSourcePickerProps {
   readonly disabled?: boolean;
@@ -55,8 +55,8 @@ export default function CaptureSourcePicker({
         </h3>
         <p>
           {cardType === 'source'
-            ? 'Photograph a source or choose its image from this device. The image is cropped before it is saved and never leaves this device.'
-            : 'Photograph a page of notes or choose its image from this device. The image is cropped before it is saved and never leaves this device.'}
+            ? 'Photograph a source or choose its image from this device. Images stay on this device; animated GIFs keep their animation.'
+            : 'Photograph a page of notes or choose its image from this device. Images stay on this device; animated GIFs keep their animation.'}
         </p>
       </div>
 

@@ -2,7 +2,7 @@
  * Image intake validation for the capture path.
  *
  * A selected file crosses four gates before anything is decoded into a card:
- * the 30 MB ceiling, the accepted JPEG/PNG/WebP magic bytes, compatibility
+ * the 30 MB ceiling, the accepted JPEG/PNG/WebP/GIF magic bytes, compatibility
  * between the bytes and the browser-reported MIME type, and a real decode.
  * Every failure is a typed result so the capture UI can name what went wrong
  * while no Blob, object URL, or IndexedDB row exists yet.
@@ -10,8 +10,14 @@
 
 export const MAX_IMAGE_BYTES = 30 * 1024 * 1024;
 
-export const SUPPORTED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+export const SUPPORTED_IMAGE_MIME_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+] as const;
 export type SupportedImageMime = (typeof SUPPORTED_IMAGE_MIME_TYPES)[number];
+export type EncodedImageMime = Exclude<SupportedImageMime, 'image/gif'>;
 
 /** Enough of the file to cover every signature, EXIF wrapper, and SVG prefix. */
 const HEADER_BYTES = 64;
@@ -171,7 +177,7 @@ function unsupportedFormatFailure(format: UnsupportedImageFormat): ImageValidati
   const label = FORMAT_LABEL[format];
   return failure(
     'unsupported-format',
-    `${label} images are not supported. Choose a JPEG, PNG, or WebP photo.`,
+    `${label} images are not supported. Choose a JPEG, PNG, WebP, or GIF image.`,
     { format },
   );
 }
@@ -202,6 +208,10 @@ export function sniffImageMime(header: Uint8Array): SupportedImageMime | null {
     header[7] === 0x0a
   ) {
     return 'image/png';
+  }
+
+  if (header.length >= 6 && /^GIF8[79]a$/.test(ascii(header, 0, 6))) {
+    return 'image/gif';
   }
 
   if (header.length >= 12 && ascii(header, 0, 4) === 'RIFF' && ascii(header, 8, 4) === 'WEBP') {
@@ -297,7 +307,7 @@ export async function inspectImageFile(
   }
 
   if (reported !== '' && !isSupportedMime(reported)) {
-    return failure('unsupported-type', 'Choose a JPEG, PNG, or WebP photo.', {
+    return failure('unsupported-type', 'Choose a JPEG, PNG, WebP, or GIF image.', {
       detectedMime: detected,
     });
   }
@@ -305,7 +315,7 @@ export async function inspectImageFile(
   if (reported !== '' && reported !== detected) {
     return failure(
       'mime-mismatch',
-      'That file says it is one image type but contains another. Choose a JPEG, PNG, or WebP photo.',
+      'That file says it is one image type but contains another. Choose a JPEG, PNG, WebP, or GIF image.',
       { detectedMime: detected },
     );
   }

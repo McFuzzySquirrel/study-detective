@@ -15,6 +15,7 @@ import {
   isAbortError,
   throwIfAborted,
   type DecodedImage,
+  type EncodedImageMime,
   type ImageDecodeOptionsWithoutSignal,
   type ImageDecoder,
   type ImageDecoderOptions,
@@ -371,7 +372,7 @@ function drawCroppedAndRotated(
 
 async function encodeOnce(
   canvas: EncodableCanvas,
-  mime: SupportedImageMime,
+  mime: EncodedImageMime,
   quality: number,
 ): Promise<Blob> {
   if (typeof canvas.convertToBlob === 'function') {
@@ -416,7 +417,7 @@ async function encodeOnce(
 
 async function encodeCanvas(
   canvas: EncodableCanvas,
-  mime: SupportedImageMime,
+  mime: EncodedImageMime,
   quality: number,
 ): Promise<Blob> {
   try {
@@ -500,7 +501,7 @@ function releaseCanvas(canvas: EncodableCanvas | undefined): void {
 async function encodeDerivative(
   canvas: EncodableCanvas,
   kind: AttachmentKind,
-  sourceMime: SupportedImageMime,
+  sourceMime: EncodedImageMime,
   options: ImagePipelineOptions,
 ): Promise<ImageDerivative> {
   throwIfAborted(options.signal);
@@ -530,7 +531,7 @@ async function encodeDerivative(
 
 async function renderDerivatives(
   decoded: DecodedImage,
-  sourceMime: SupportedImageMime,
+  sourceMime: EncodedImageMime,
   options: ImagePipelineOptions,
 ): Promise<ProcessedImage> {
   const crop = normalizeCropRect(options.crop);
@@ -615,6 +616,97 @@ async function renderDerivatives(
   }
 }
 
+function gifDerivative(
+  kind: AttachmentKind,
+  blob: Blob,
+  width: number,
+  height: number,
+  sha256: string,
+): ImageDerivative {
+  return {
+    kind,
+    mime: 'image/gif',
+    width,
+    height,
+    bytes: blob.size,
+    sha256,
+    blob,
+  };
+}
+
+async function renderAnimatedGif(
+  file: Blob,
+  decoded: DecodedImage,
+  options: ImagePipelineOptions,
+): Promise<ProcessedImage> {
+  const crop = normalizeCropRect(options.crop);
+  const rotation = normalizeRotation(options.rotation ?? 0);
+  if (
+    crop.x !== 0 ||
+    crop.y !== 0 ||
+    crop.width !== 1 ||
+    crop.height !== 1 ||
+    rotation !== 0
+  ) {
+    throw new ImageProcessingError(
+      'invalid-crop',
+      'Animated GIFs must use the full image without rotation.',
+    );
+  }
+
+  const sourceBlob = new Blob([file], { type: 'image/gif' });
+  const sourceWidth = decoded.width;
+  const sourceHeight = decoded.height;
+  const thumbnailTarget = computeScaledDimensions(
+    sourceWidth,
+    sourceHeight,
+    THUMBNAIL_MAX_EDGE,
+  );
+  const factory = options.createCanvas ?? defaultCreateCanvas;
+  let canvas: EncodableCanvas | undefined;
+
+  try {
+    throwIfAborted(options.signal);
+    emit(options, 'transforming');
+    canvas = makeCanvas(factory, thumbnailTarget.width, thumbnailTarget.height);
+    drawOriginal(
+      context2d(canvas),
+      decoded.source,
+      sourceWidth,
+      sourceHeight,
+      thumbnailTarget.width,
+      thumbnailTarget.height,
+    );
+    const thumbnail = await encodeDerivative(canvas, 'thumbnail', 'image/png', options);
+    releaseCanvas(canvas);
+    canvas = undefined;
+
+    throwIfAborted(options.signal);
+    emit(options, 'encoding');
+    throwIfAborted(options.signal);
+    const digest = options.digest ?? sha256Hex;
+    const sourceSha256 = await digest(sourceBlob);
+    if (!/^[0-9a-f]{64}$/.test(sourceSha256)) {
+      throw new ImageProcessingError('digest-failed', 'The image digest was invalid.');
+    }
+    throwIfAborted(options.signal);
+
+    return {
+      mime: 'image/gif',
+      sourceWidth,
+      sourceHeight,
+      crop,
+      rotation,
+      retainFullResolution: true,
+      original: gifDerivative('original', sourceBlob, sourceWidth, sourceHeight, sourceSha256),
+      display: gifDerivative('display', sourceBlob, sourceWidth, sourceHeight, sourceSha256),
+      thumbnail,
+    };
+  } finally {
+    releaseCanvas(canvas);
+  }
+}
+
 function buildDecoderOptions(
   signal: AbortSignal | undefined,
   extra: ImageDecodeOptionsWithoutSignal | undefined,
@@ -649,7 +741,7 @@ export async function processImage(
       ok: false,
       code: 'mime-mismatch',
       message:
-        'That file says it is one image type but contains another. Choose a JPEG, PNG, or WebP photo.',
+        'That file says it is one image type but contains another. Choose a JPEG, PNG, WebP, or GIF image.',
       detectedMime: inspection.mime,
     });
   }
@@ -663,6 +755,9 @@ export async function processImage(
   try {
     decoded = await decoder(file, buildDecoderOptions(options.signal, options.decodeOptions));
     throwIfAborted(options.signal);
+    if (sourceMime === 'image/gif') {
+      return await renderAnimatedGif(file, decoded, options);
+    }
     return await renderDerivatives(decoded, sourceMime, options);
   } finally {
     decoded?.close();

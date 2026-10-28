@@ -195,7 +195,7 @@ export async function replaceCardPhoto(
     if (error instanceof ImageDecodeError) {
       return failure(
         'invalid-image',
-        'That image could not be read. Choose another JPEG, PNG, or WebP photo.',
+        'That image could not be read. Choose another JPEG, PNG, WebP, or GIF image.',
         error,
       );
     }
