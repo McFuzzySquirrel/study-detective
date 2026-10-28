@@ -164,7 +164,7 @@ describe('attachment integrity', () => {
       store.addAttachment(card.id, attachmentInput({ sha256: 'not-a-digest' })),
     ).rejects.toBeInstanceOf(DomainValidationError);
     await expect(
-      store.addAttachment(card.id, attachmentInput({ mime: 'image/gif' as never })),
+      store.addAttachment(card.id, attachmentInput({ mime: 'image/heic' as never })),
     ).rejects.toBeInstanceOf(DomainValidationError);
 
     expect(await db.attachments.count()).toBe(0);

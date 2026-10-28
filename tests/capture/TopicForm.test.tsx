@@ -27,7 +27,7 @@ describe('TopicForm', () => {
 
     expect(screen.queryByRole('textbox', { name: 'Topic title' })).toBeInTheDocument();
     const imageInput = screen.getByLabelText('Topic image');
-    expect(imageInput).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp');
+    expect(imageInput).toHaveAttribute('accept', 'image/jpeg,image/png,image/webp,image/gif');
 
     await user.tab();
     const title = screen.getByRole('textbox', { name: 'Topic title' });

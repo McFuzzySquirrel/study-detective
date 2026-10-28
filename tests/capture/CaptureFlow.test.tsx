@@ -266,7 +266,6 @@ describe('Capture route', () => {
     await waitFor(() => {
       expect(screen.getByTestId('capture-step')).toHaveFocus();
     });
-
   });
 
   it('keeps animated GIFs whole and bypasses the crop editor', async () => {
@@ -291,7 +290,9 @@ describe('Capture route', () => {
     expect(
       screen.getByText(/Animated GIFs keep their original frames and dimensions/i),
     ).toBeInTheDocument();
-    expect(screen.queryByRole('checkbox', { name: /Keep full resolution/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('checkbox', { name: /Keep full resolution/i }),
+    ).not.toBeInTheDocument();
 
     await user.type(screen.getByRole('textbox', { name: 'Title' }), 'Animated evidence');
     await user.click(screen.getByRole('button', { name: 'Save card' }));

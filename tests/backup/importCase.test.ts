@@ -406,6 +406,37 @@ afterEach(async () => {
 });
 
 describe('archive import validation', () => {
+  it('round-trips an animated GIF attachment through its archive entry', async () => {
+    const result = await repository.createCardWithAttachments(
+      {
+        caseId: caseRecord.id,
+        type: 'source',
+        title: 'Animated source',
+        position: { x: 520, y: 80 },
+      },
+      [attachment('original', 'image/gif', 'GIF89a-animation-bytes')],
+    );
+    const gifAttachment = result.attachments[0];
+    if (gifAttachment === undefined) {
+      throw new Error('Expected the GIF attachment to be stored');
+    }
+
+    const gifArchive = await buildCaseArchive({
+      caseId: caseRecord.id,
+      repository,
+      clock: fixedClock(EXPORT_INSTANT),
+    });
+    const validated = await validateCaseArchive(gifArchive.bytes);
+
+    expect(validated.manifest.attachments).toContainEqual(
+      expect.objectContaining({ id: gifAttachment.id, mime: 'image/gif' }),
+    );
+    expect(validated.images.get(gifAttachment.id)).toMatchObject({
+      type: 'image/gif',
+      size: gifAttachment.bytes,
+    });
+  });
+
   it('validates a real exported archive and exposes a preview summary', async () => {
     const validated = await validateCaseArchive(archive.bytes);
 

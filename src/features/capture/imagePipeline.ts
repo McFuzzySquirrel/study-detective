@@ -641,13 +641,7 @@ async function renderAnimatedGif(
 ): Promise<ProcessedImage> {
   const crop = normalizeCropRect(options.crop);
   const rotation = normalizeRotation(options.rotation ?? 0);
-  if (
-    crop.x !== 0 ||
-    crop.y !== 0 ||
-    crop.width !== 1 ||
-    crop.height !== 1 ||
-    rotation !== 0
-  ) {
+  if (crop.x !== 0 || crop.y !== 0 || crop.width !== 1 || crop.height !== 1 || rotation !== 0) {
     throw new ImageProcessingError(
       'invalid-crop',
       'Animated GIFs must use the full image without rotation.',
@@ -657,11 +651,7 @@ async function renderAnimatedGif(
   const sourceBlob = new Blob([file], { type: 'image/gif' });
   const sourceWidth = decoded.width;
   const sourceHeight = decoded.height;
-  const thumbnailTarget = computeScaledDimensions(
-    sourceWidth,
-    sourceHeight,
-    THUMBNAIL_MAX_EDGE,
-  );
+  const thumbnailTarget = computeScaledDimensions(sourceWidth, sourceHeight, THUMBNAIL_MAX_EDGE);
   const factory = options.createCanvas ?? defaultCreateCanvas;
   let canvas: EncodableCanvas | undefined;
 

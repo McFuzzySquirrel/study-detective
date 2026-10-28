@@ -1112,9 +1112,7 @@ export function CardDetailPage({
               ref={cropTriggerRef}
               className="card-detail__action"
               disabled={
-                replacing ||
-                originalAttachment === null ||
-                originalAttachment.mime === 'image/gif'
+                replacing || originalAttachment === null || originalAttachment.mime === 'image/gif'
               }
               onClick={handleOpenCrop}
             >
