@@ -1,260 +1,257 @@
 /*
- * Case-board page layout.
+ * Case-board route frame.
  *
- * The header keeps the case identity and the keyboard escape hatch visible
- * above a stage that fills the remaining reading area. Every colour, target,
- * and spacing value comes from tokens.css.
+ * One wide composition (identity band, leading rail, stage remainder) and one
+ * phone composition (compact line, stage, bottom bar). The page is exactly one
+ * content area tall: no surface below the stage, no in-flow banner, and no
+ * page scroll at 100 % text.
+ *
+ * Layout constants live here because this file owns the board frame. Palette,
+ * type, spacing, radius, target, and layering values come from tokens.css.
  */
 
 .case-board-page {
+  --band-height: 48px;
+  --band-gap: 8px;
+  --rail-width: 56px;
+  --rail-slot: 44px;
+  --rail-gap: 8px;
+  --rail-padding: 6px;
+  --phone-bar-height: 56px;
+  --stage-inset: 12px;
+  --detail-width: 320px;
+  --search-width: 380px;
+  --menu-width: 300px;
+  --closure-width: 370px;
+  --sheet-corridor: 176px;
+  --toast-max: 32rem;
+  --hint-max: 27rem;
+
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--space-4);
+  grid-template-rows: auto minmax(240px, 1fr) auto;
+  min-block-size: calc(100dvh - var(--shell-height, 61px));
   min-inline-size: 0;
+  max-inline-size: 100%;
+  color: var(--color-ink);
 }
 
-.case-board-page__header {
+/* ------------------------------------------------------------------------- */
+/* Identity band / compact line                                              */
+/* ------------------------------------------------------------------------- */
+
+.case-board-band {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex: none;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-3) var(--space-5);
-  padding-block-end: var(--space-3);
+  gap: var(--space-2) var(--space-3);
+  min-block-size: var(--band-height);
+  padding-inline: max(var(--space-inline), var(--safe-area-inline-start))
+    max(var(--space-inline), var(--safe-area-inline-end));
   border-block-end: var(--border-width) solid var(--color-border);
+  background-color: var(--color-canvas);
 }
 
-.case-board-page__heading {
-  display: grid;
-  gap: var(--space-2);
-  min-inline-size: 0;
-}
-
-.case-board-page__eyebrow {
+.case-board-band__title {
   margin: 0;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-heading);
+  line-height: var(--line-height-tight);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-board-band__readiness {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  max-inline-size: 100%;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background-color: var(--color-surface-sunken);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.case-board-band__readiness:hover {
+  background-color: var(--color-surface);
+}
+
+.case-board-band__readiness:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-board-band__readiness--static {
+  cursor: default;
+  border-color: transparent;
+  background-color: transparent;
+}
+
+.case-board-band__readiness--static:hover {
+  background-color: transparent;
+}
+
+.case-board-band__readiness-label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.case-board-band__chevron {
   color: var(--color-ink-muted);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-caps);
-  text-transform: uppercase;
-  overflow-wrap: anywhere;
 }
 
-.case-board-page__title {
-  margin: 0;
-  color: var(--color-heading-ink);
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-2xl);
-  line-height: var(--line-height-heading);
+.case-board-readiness-dot {
+  flex: none;
+  inline-size: 9px;
+  block-size: 9px;
+  border-radius: 50%;
 }
 
-.case-board-page__title:focus-visible {
-  outline: var(--focus-ring-width) solid var(--color-focus-ring);
-  outline-offset: var(--focus-ring-offset);
+.case-board-readiness-dot[data-tone='success'] {
+  background-color: var(--color-success);
 }
 
-.case-board-page__search {
+.case-board-readiness-dot[data-tone='warning'] {
+  background-color: var(--color-warning);
+}
+
+.case-board-readiness-dot[data-tone='neutral'] {
+  background-color: var(--color-ink-muted);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Rail + stage row                                                          */
+/* ------------------------------------------------------------------------- */
+
+.case-board-row {
+  display: flex;
+  min-block-size: 0;
   min-inline-size: 0;
+  padding-block-start: var(--band-gap);
 }
 
-.case-board-page__summary {
-  max-inline-size: var(--measure-body);
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-sm);
+.case-board-rail {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--rail-gap);
+  inline-size: var(--rail-width);
+  padding: var(--rail-padding);
 }
 
-.case-board-page__back,
-.case-board-page__text-link {
+.case-board-rail__link {
+  position: relative;
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  justify-self: start;
-  min-block-size: var(--target-min);
+  inline-size: var(--rail-slot);
+  block-size: var(--rail-slot);
   min-inline-size: var(--target-min);
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-link);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.18em;
+  min-block-size: var(--target-min);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-none);
+  color: var(--color-ink);
+  text-decoration: none;
 }
 
-.case-board-page__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+.case-board-rail__link:hover {
+  background-color: var(--color-control-surface-hover);
+  border-color: var(--color-border-strong);
 }
 
-.case-board-page__back:focus-visible,
-.case-board-page__text-link:focus-visible {
+.case-board-rail__link:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-ring-offset);
 }
 
-/* ------------------------------------------------------------------------- */
-/* First-backup reminder                                                      */
-/* ------------------------------------------------------------------------- */
-
-.backup-reminder {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3) var(--space-4);
-  padding: var(--space-4);
-  background-color: var(--color-surface);
-  border: var(--border-width) solid var(--color-border-strong);
-  border-inline-start: var(--border-width-strong) solid var(--color-warning);
-  border-radius: var(--radius-md);
+/* The quiet rail reveals its control surface on hover or focus only. */
+.case-board-rail .nd-icon-button {
+  background-color: transparent;
+  border-color: transparent;
 }
 
-.backup-reminder__copy {
-  display: grid;
-  gap: var(--space-1);
-  min-inline-size: 0;
+.case-board-rail .nd-icon-button:hover,
+.case-board-rail .nd-icon-button[aria-expanded='true'] {
+  background-color: var(--color-control-surface-hover);
+  border-color: var(--color-border-strong);
 }
 
-.backup-reminder__copy h3 {
-  margin: 0;
-  color: var(--color-heading-ink);
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-heading);
-}
-
-.backup-reminder__copy p {
-  max-inline-size: var(--measure-body);
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-sm);
-}
-
-.backup-reminder__error {
-  color: var(--color-danger-text);
-}
-
-.backup-reminder__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.case-board-page__board-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  min-inline-size: 0;
-}
-
-/* ------------------------------------------------------------------------- */
-/* Phone sheets                                                               */
-/* ------------------------------------------------------------------------- */
-
-/*
- * Below 600 px the header collapses to one Case actions trigger and the side
- * panels move into Dialog-backed bottom sheets. Every trigger keeps the 44 px
- * floor; the sheet body stacks actions full width.
- */
-.case-board-page__sheet-triggers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  min-inline-size: 0;
-}
-
-.case-board-page__sheet-trigger {
-  min-block-size: var(--target-min);
-  min-inline-size: var(--target-min);
-  flex: 1 1 10rem;
-}
-
-.case-board-page__sheet-actions {
-  display: grid;
-  gap: var(--space-2);
-  min-inline-size: 0;
-}
-
-.case-board-page__sheet-actions .nd-button {
-  inline-size: 100%;
-  min-block-size: var(--target-min);
-  min-inline-size: var(--target-min);
-}
-
-.case-board-page__sheet-legend {
-  padding-block-start: var(--space-3);
-  border-block-start: var(--border-width) solid var(--color-border);
-}
-
-.case-board-page__sheet {
-  max-block-size: min(86dvh, 44rem);
-}
-
-/*
- * The selected-thread inspector and the canvas share one workspace. On phone
- * and portrait tablet widths they stack with the inspector first, so a
- * selection is visible without scrolling past the board. From tablet
- * landscape (64 rem) the inspector becomes a compact side column.
- */
-.case-board-page__workspace {
-  display: grid;
-  gap: var(--space-3);
-  min-inline-size: 0;
-  align-items: start;
-}
-
-.case-board-page__workspace[data-has-detail='false'] {
-  grid-template-areas:
-    'closure'
-    'stage';
-}
-
-.case-board-page__workspace[data-has-detail='true'] {
-  grid-template-areas:
-    'detail'
-    'closure'
-    'stage';
-}
-
-.case-board-page__stage {
+.case-board-rail__menu,
+.case-board-bar__menu {
   position: relative;
+}
+
+/* One decorative attention dot; reasons stay in the accessible name. */
+.case-board-attention {
+  position: absolute;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-cork);
+}
+
+.case-board-attention[data-tone='warning'] {
+  background-color: var(--color-warning);
+}
+
+.case-board-attention[data-tone='danger'] {
+  background-color: var(--color-danger);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Stage                                                                     */
+/* ------------------------------------------------------------------------- */
+
+.case-board-stage {
+  position: relative;
+  flex: 1 1 auto;
   display: grid;
-  grid-area: stage;
-  min-block-size: clamp(24rem, calc(100dvh - 21rem), 52rem);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   min-inline-size: 0;
+  min-block-size: 0;
+  overflow: hidden;
+  background-color: var(--color-cork);
+  box-shadow: inset 0 0 0 var(--border-width-strong) var(--color-cork-edge);
+  isolation: isolate;
 }
 
-.case-board-page__workspace .connection-detail {
-  grid-area: detail;
+.case-board-stage > .board-canvas,
+.case-board-stage > .case-board-status,
+.case-board-stage > .case-board-error,
+.case-board-stage > .empty-board {
+  grid-area: 1 / 1;
 }
 
-.case-board-page__workspace .closure-panel {
-  grid-area: closure;
+.case-board-stage > .empty-board {
+  align-self: stretch;
+  justify-self: stretch;
+  max-block-size: 100%;
+  padding-inline: var(--space-4);
+  overflow: auto;
 }
 
-/*
- * Tablet landscape and desktop put closure on the right, where it can be read
- * beside the board. The phone layout keeps the panel above the stage in a
- * full-width sheet-like block instead of stealing horizontal space.
- */
-@media (min-width: 64rem) {
-  .case-board-page__workspace[data-has-detail='false'] {
-    grid-template-columns: minmax(0, 1fr) minmax(15rem, 19rem);
-    grid-template-areas: 'stage closure';
-  }
-
-  .case-board-page__workspace[data-has-detail='true'] {
-    grid-template-columns:
-      minmax(16rem, 20rem)
-      minmax(0, 1fr)
-      minmax(15rem, 18rem);
-    grid-template-areas: 'detail stage closure';
-  }
-}
-
-.case-board-page__status {
+.case-board-status {
   align-self: center;
   justify-self: center;
   margin: 0;
@@ -265,53 +262,269 @@
   color: var(--color-ink-muted);
 }
 
-.case-board-page__error {
+.case-board-error {
   align-self: start;
   display: grid;
   gap: var(--space-3);
-  max-inline-size: 40rem;
+  max-inline-size: min(40rem, calc(100% - var(--space-8)));
+  margin: var(--space-6) auto;
   padding: var(--space-4);
   border: var(--border-width-strong) solid var(--color-danger-border);
   border-radius: var(--radius-md);
   background-color: var(--color-surface);
 }
 
-.case-board-page__error h3 {
+.case-board-error h3 {
   margin: 0;
   color: var(--color-heading-ink);
   font-size: var(--font-size-lg);
 }
 
-.case-board-page__error p {
+.case-board-error p {
   margin: 0;
   color: var(--color-ink-muted);
 }
 
-.case-board-page__error-actions {
+.case-board-error__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
 }
 
-@media (max-width: 40rem) {
-  .case-board-page__header {
-    align-items: stretch;
+.case-board-text-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-link);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.case-board-text-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Floating Add evidence                                                     */
+/* ------------------------------------------------------------------------- */
+
+.case-board-add {
+  position: absolute;
+  inset-block-end: var(--stage-inset);
+  inset-inline-end: var(--stage-inset);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-ink);
+  background-color: var(--color-accent);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.case-board-add:hover:not([aria-disabled='true']) {
+  background-color: var(--color-accent-hover);
+}
+
+.case-board-add:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-board-add[aria-disabled='true'] {
+  color: var(--color-ink-disabled);
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-border-strong);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Wide panels                                                               */
+/* ------------------------------------------------------------------------- */
+
+.case-board-panel {
+  position: absolute;
+  max-block-size: calc(100% - (var(--stage-inset) * 2));
+}
+
+.case-board-panel--search,
+.case-board-panel--menu {
+  inset-block-start: var(--stage-inset);
+  inset-inline-start: var(--stage-inset);
+}
+
+.case-board-panel--search {
+  inline-size: min(var(--search-width), calc(100% - (var(--stage-inset) * 2)));
+}
+
+.case-board-panel--menu {
+  inline-size: min(var(--menu-width), calc(100% - (var(--stage-inset) * 2)));
+}
+
+.case-board-panel--closure {
+  inset-block-start: var(--stage-inset);
+  inset-inline-end: var(--stage-inset);
+  inline-size: min(var(--closure-width), calc(100% - (var(--stage-inset) * 2)));
+}
+
+.case-board-panel--detail {
+  inset-block: 0;
+  inset-inline-end: 0;
+  inline-size: min(var(--detail-width), 100%);
+  max-block-size: 100%;
+  border-block: 0;
+  border-inline-end: 0;
+  border-radius: 0;
+}
+
+/* The search panel already has its surface from the surrounding Panel. */
+.case-board-panel--search .search-panel--popover {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+}
+
+/* The closure content sits inside the Panel body, not a second card. */
+.case-board-panel--closure .closure-panel {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+}
+
+.case-board-panel--detail .connection-detail {
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Phone bar                                                                 */
+/* ------------------------------------------------------------------------- */
+
+.case-board-bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  gap: var(--space-1);
+  min-block-size: var(--phone-bar-height);
+  padding: var(--space-1) var(--space-2) calc(var(--space-1) + var(--safe-area-bottom));
+  border-block-start: var(--border-width) solid var(--color-border);
+  background-color: var(--color-canvas);
+}
+
+.case-board-bar .nd-icon-button {
+  inline-size: 48px;
+}
+
+.case-board-bar__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 48px;
+  block-size: var(--target-min);
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-radius: var(--radius-none);
+  color: var(--color-accent-ink);
+  background-color: var(--color-accent);
+}
+
+.case-board-bar__add:hover:not([aria-disabled='true']) {
+  background-color: var(--color-accent-hover);
+}
+
+.case-board-bar__add:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-board-bar__add[aria-disabled='true'] {
+  color: var(--color-ink-disabled);
+  background-color: var(--color-surface-sunken);
+  border-color: var(--color-border-strong);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Phone sheets                                                              */
+/* ------------------------------------------------------------------------- */
+
+.nd-dialog__panel.case-board-sheet {
+  /* The sheet is portaled to the body, so it re-declares the layout constant
+     rather than inheriting the page-scoped custom property. */
+  --sheet-corridor: 176px;
+
+  max-block-size: calc(100dvh - var(--sheet-corridor) - var(--safe-area-top));
+}
+
+/* ------------------------------------------------------------------------- */
+/* Phone layout                                                              */
+/* ------------------------------------------------------------------------- */
+
+@media (max-width: 37.4375rem) {
+  .case-board-page {
+    --band-height: 44px;
+    --band-gap: 4px;
+    --stage-inset: 8px;
   }
 
-  .backup-reminder {
-    flex-direction: column;
-    align-items: stretch;
+  .case-board-band {
+    padding-inline: var(--space-4);
   }
 
-  .case-board-page__stage {
-    min-block-size: clamp(22rem, calc(100dvh - 18rem), 44rem);
+  .case-board-band__title {
+    font-size: var(--font-size-md);
+  }
+
+  .case-board-band__readiness--static {
+    gap: var(--space-1);
+    min-block-size: 32px;
+    padding-inline: var(--space-2);
+    font-size: var(--font-size-xs);
+  }
+
+  .case-board-band__chevron {
+    display: none;
+  }
+
+  .case-board-row {
+    padding-block-start: var(--band-gap);
+  }
+
+  .case-board-panel {
+    display: none;
   }
 }
 
+/* ------------------------------------------------------------------------- */
+/* Motion                                                                    */
+/* ------------------------------------------------------------------------- */
+
 @media (prefers-reduced-motion: reduce) {
-  .case-board-page__back,
-  .case-board-page__text-link {
+  .case-board-add,
+  .case-board-text-link,
+  .case-board-band__readiness,
+  .case-board-rail__link,
+  .case-board-bar__add {
     transition: none;
   }
 }

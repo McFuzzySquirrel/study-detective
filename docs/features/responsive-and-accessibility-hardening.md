@@ -57,7 +57,7 @@
 ## 3. Functional Requirements
 
 ```forge-requirement
-{"id":"A11Y-FR-01","kind":"requirement","text":"Meet WCAG 2.2 AA on all primary screens: 4.5:1 body and control contrast, 3:1 large headings, 44x44 CSS pixel targets, visible focus, semantic landmarks, announced errors, and no keyboard traps."}
+{"id":"A11Y-FR-01","kind":"requirement","text":"Meet WCAG 2.2 AA on all primary screens: 4.5:1 body and control contrast, 3:1 large headings, 44x44 CSS pixel targets, visible focus, semantic landmarks, announced errors, and no keyboard traps. On the board route the tab order is skip link, shell, identity readiness, rail/bar, stage controls, an open panel at its trigger slot, then the phone bar; wide panels are non-modal and do not trap focus, phone sheets do, and the canvas is not a tab stop."}
 ```
 
 ```forge-requirement
@@ -65,7 +65,7 @@
 ```
 
 ```forge-requirement
-{"id":"A11Y-FR-03","kind":"requirement","text":"Provide responsive layouts for 1280x800 tablet landscape, 390x844 phone, and 1440x900 desktop, with safe-area insets, phone sheets, no page-level horizontal scrolling, and full capability preserved."}
+{"id":"A11Y-FR-03","kind":"requirement","text":"Use 390x844 phone, 1280x800 tablet landscape, and 1440x900 desktop as the canonical gate viewports. The /case/:caseId board route is full-bleed with no page-level vertical or horizontal scroll at 100 % text; phone surfaces are modal sheets that leave a 176 px top corridor; safe-area insets apply to the shell, phone bar, and sheets; no page-level horizontal scroll is allowed at any width."}
 ```
 
 ```forge-requirement
@@ -77,7 +77,7 @@
 ```
 
 ```forge-requirement
-{"id":"A11Y-FR-06","kind":"requirement","text":"Give the canvas an accessible title, description, and keyboard-operable text alternative for its contents, without claiming full spatial screen-reader parity."}
+{"id":"A11Y-FR-06","kind":"requirement","text":"Give the canvas an accessible title, description, and a visible keyboard-operable path to Open card list, without claiming full spatial screen-reader parity. The canvas is pointer-only and never a tab stop; the hidden focusable Case board heading is the programmatic landing target."}
 ```
 
 ```forge-requirement
@@ -85,7 +85,7 @@
 ```
 
 ```forge-requirement
-{"id":"A11Y-FR-08","kind":"requirement","text":"Show a non-blocking notice when required browser APIs are missing, and smoke-test the primary routes in current Chromium, Firefox, and WebKit without a crash."}
+{"id":"A11Y-FR-08","kind":"requirement","text":"Collapse missing browser APIs, offline state, and update readiness into one conditional System status chip that opens a modal System status dialog; never render a full-width status strip. Smoke-test the primary routes in current Chromium, Firefox, and WebKit without a crash."}
 ```
 
 ```forge-requirement

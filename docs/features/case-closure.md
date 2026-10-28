@@ -81,7 +81,7 @@
 
 ## 4. UI / Interaction Design
 
-- The closure panel sits at the right side of the case screen on tablet and desktop and in a sheet on phone. It shows `Ready to close` or `N loose threads`, a list of offending cards, and the Close action.
+- The closure surface is opened by the band readiness chip on wide and by the Case closure icon on phone. Wide is a non-modal persistent trailing panel; phone is a modal sheet. It shows `Ready to close` or `N loose threads`, a list of offending cards, and the Close action. There is no permanent right column.
 - Each loose thread row names the card and the missing requirement: `No source link`, `No topic connection`, or `No connections`. Selecting a row centers the card and opens detail; keyboard activation does the same.
 - Close is disabled with an explanation until the list is empty. Closing is a quiet confirmation, not a celebration: a stamped `Closed` badge and the date. No score or confetti.
 - A closed case shows `Closed` plus `Reopen`. If edits create loose threads, the badge reads `Closed · loose threads` and the panel lists them; after repair, Close appears again to re-affirm closure without changing the original story.

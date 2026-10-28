@@ -2,7 +2,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import ConnectionLegend from '../../src/features/connections/ConnectionLegend';
+import ThreadTypes from '../../src/features/connections/ThreadTypes';
 import {
   contrastRatio,
   declarationsFor,
@@ -29,11 +29,11 @@ afterEach(() => {
   cleanup();
 });
 
-describe('ConnectionLegend', () => {
+describe('ThreadTypes', () => {
   it('names both thread types and distinguishes them by pattern as well as colour', () => {
-    render(<ConnectionLegend />);
+    render(<ThreadTypes defaultOpen />);
 
-    const region = screen.getByRole('region', { name: 'Connection legend' });
+    const region = screen.getByRole('region', { name: 'Thread types' });
     expect(region).toBeInTheDocument();
 
     expect(screen.getByText(/solid red thread/i)).toBeInTheDocument();
@@ -42,19 +42,19 @@ describe('ConnectionLegend', () => {
     expect(screen.getByText(/Provenance/)).toBeInTheDocument();
     expect(screen.getByText(/Study Note to a Source/)).toBeInTheDocument();
 
-    const swatches = region.querySelectorAll<HTMLElement>('.connection-legend__swatch');
+    const swatches = region.querySelectorAll<HTMLElement>('.thread-types__swatch');
     expect(swatches).toHaveLength(2);
     expect(swatches[0]).toHaveAttribute('data-type', 'association');
     expect(swatches[0]).toHaveAttribute('aria-hidden', 'true');
     expect(swatches[1]).toHaveAttribute('data-type', 'provenance');
 
-    const associationLine = declarationsFor(connectionsCss, '.connection-legend__swatch');
+    const associationLine = declarationsFor(connectionsCss, '.thread-types__swatch');
     expect(associationLine.get('border-block-start')).toContain('solid');
     expect(associationLine.get('border-block-start')).toContain('var(--color-string-association)');
 
     const provenanceLine = declarationsFor(
       connectionsCss,
-      ".connection-legend__swatch[data-type='provenance']",
+      ".thread-types__swatch[data-type='provenance']",
     );
     expect(provenanceLine.get('border-block-start')).toContain('dashed');
     expect(provenanceLine.get('border-block-start')).toContain('var(--color-string-provenance)');
@@ -62,16 +62,16 @@ describe('ConnectionLegend', () => {
 
   it('is keyboard operable, announces expanded state, and hides the key when collapsed', async () => {
     const user = userEvent.setup();
-    render(<ConnectionLegend defaultOpen={false} />);
+    render(<ThreadTypes defaultOpen={false} />);
 
-    const toggle = screen.getByRole('button', { name: 'Connection legend' });
+    const toggle = screen.getByRole('button', { name: 'Thread types' });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(toggle).toHaveClass('nd-button');
     expectSharedButtonTarget();
 
     const panel = screen
-      .getByTestId('connection-legend')
-      .querySelector<HTMLElement>('.connection-legend__panel');
+      .getByTestId('thread-types')
+      .querySelector<HTMLElement>('.thread-types__panel');
     expect(panel).not.toBeNull();
     expect(panel).toHaveAttribute('hidden');
     expect(toggle).toHaveAttribute('aria-controls', panel?.id);
@@ -90,7 +90,7 @@ describe('ConnectionLegend', () => {
   });
 
   it('meets AA text contrast and keeps a visible focus ring', () => {
-    render(<ConnectionLegend defaultOpen />);
+    render(<ThreadTypes defaultOpen />);
 
     const bodyContrast = contrastRatio(
       resolveColor(tokens, '--color-ink-muted'),

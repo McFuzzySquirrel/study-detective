@@ -64,7 +64,7 @@
 ```
 
 ```forge-requirement
-{"id":"BACKUP-FR-05","kind":"requirement","text":"Prompt once per case after it reaches 5 cards and 1 connection, persist dismissal or completion on the case, and never show the same prompt again for that case."}
+{"id":"BACKUP-FR-05","kind":"requirement","text":"Prompt once per case after it reaches 5 cards and 1 connection through the Case menu First backup section, one attention dot, and one session toast; persist dismissal or completion on the case, and never show the same prompt again for that case."}
 ```
 
 ```forge-requirement
@@ -92,7 +92,7 @@
 - Default action is `Restore as a copy`. If an archived case ID already exists, a secondary `Replace existing case` option appears with the existing title and requires a typed confirmation.
 - Progress is stage-based: Reading archive, Checking integrity, Restoring images, Restoring cards, Done. Errors name the failed stage and keep the existing data untouched.
 - Success shows `Open case` and `Back to shelf`.
-- The backup reminder appears as a non-blocking banner on the case screen when the case first reaches 5 cards and 1 connection. `Back up now` opens export; `Not now` dismisses for that case permanently. It never blocks editing.
+- The backup reminder is the Case menu `First backup` section plus one attention dot and one toast per case per page session. `Back up now` opens export; `Not now` dismisses for that case permanently. It never adds page height or blocks editing.
 - The archive contains private notes. The UI states that the file is not encrypted and should be stored somewhere trusted.
 
 ---

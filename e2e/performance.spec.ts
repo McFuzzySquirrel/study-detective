@@ -376,11 +376,16 @@ test.describe('A11Y-FR-07 board performance at 150 cards', () => {
     expect(initialVisibleCards).toBeGreaterThan(0);
     expect(initialVisibleCards).toBeLessThan(fixture.cardCount);
 
-    // VIS-FR-04 at the 150-card threshold: a persistent warning, not a hard cap.
-    const persistentWarning = page.locator('[data-card-capacity="persistent"]');
+    // VIS-FR-04 at the 150-card threshold: the persistent warning lives in the
+    // Case menu attention section and never adds in-flow page height.
+    await page.getByRole('button', { name: /^Case menu/ }).click();
+    const menu = page.getByRole('dialog', { name: 'Case menu' });
+    const persistentWarning = menu.locator('[data-card-capacity="persistent"]');
     await expect(persistentWarning).toBeVisible();
     await expect(persistentWarning).toHaveAttribute('data-card-count', String(fixture.cardCount));
     await expect(persistentWarning).toContainText(`${fixture.cardCount} of 200 cards are pinned`);
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
     await expect(page.getByRole('link', { name: 'Add evidence' })).toBeVisible();
 
     const sample = await runScriptedPanAndZoom(page);
@@ -414,5 +419,45 @@ test.describe('A11Y-FR-07 board performance at 150 cards', () => {
 
     await expect(board).toHaveAttribute('data-board-scene-status', 'ready');
     expect(consoleErrors).toEqual([]);
+  });
+
+  test('keeps the 0.25-floor overview bounded on the new stage', async ({ page }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'phone',
+      'The 0.25-floor rendered-card budget covers the 1 384x783 and 1 224x683 stages.',
+    );
+    test.setTimeout(120_000);
+
+    const fixture = await seedLargeCase(page, {
+      cardCount: 150,
+      viewport: { x: 0, y: 0, scale: 0.25 },
+    });
+
+    await page.goto(`/#/case/${fixture.caseId}`);
+    const board = page.getByTestId('board-canvas');
+    await expect(board).toHaveAttribute('data-board-scene-status', 'ready', {
+      timeout: 30_000,
+    });
+    await expect(board).toHaveAttribute('data-board-scale', '0.2500');
+    await expect(board).toHaveAttribute('data-board-card-count', '150');
+
+    const rendered = Number(await board.getAttribute('data-board-visible-card-count'));
+
+    // The 0.25 floor is an overview, not a whole-case fit: the constant 200 px
+    // margin divides by the zoom, so the rendered window is always smaller than
+    // the 150-card fixture even when the whole case cannot fit. The research
+    // file records the maximum (130 desktop / 120 tablet) at the worst pan; this
+    // camera starts at the world origin, so its window is one row smaller.
+    expect(rendered).toBeGreaterThan(50);
+    expect(rendered).toBeLessThan(150);
+
+    const scroll = await page.evaluate(() => ({
+      height: document.scrollingElement?.scrollHeight ?? document.documentElement.scrollHeight,
+      innerHeight: window.innerHeight,
+      width: document.documentElement.scrollWidth,
+      innerWidth: window.innerWidth,
+    }));
+    expect(scroll.height).toBeLessThanOrEqual(scroll.innerHeight);
+    expect(scroll.width).toBeLessThanOrEqual(scroll.innerWidth);
   });
 });

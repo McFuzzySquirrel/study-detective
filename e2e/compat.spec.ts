@@ -135,7 +135,16 @@ test('shelf, demo case, board, search, and settings load without an unhandled er
     }
 
     // Search ---------------------------------------------------------------
-    await activePage.getByTestId('open-card-list').click();
+    const cardListLink = activePage.getByTestId('open-card-list');
+    if ((await cardListLink.count()) === 0) {
+      await activePage.getByRole('button', { name: 'Case menu' }).click();
+      await activePage
+        .getByRole('dialog', { name: 'Case menu' })
+        .getByRole('link', { name: 'Open card list' })
+        .click();
+    } else {
+      await cardListLink.click();
+    }
     await expect(activePage.getByRole('heading', { level: 2, name: 'Card list' })).toBeVisible();
 
     const searchbox = activePage.getByRole('searchbox', { name: 'Search cards' });
@@ -146,7 +155,11 @@ test('shelf, demo case, board, search, and settings load without an unhandled er
     ).toBeVisible();
 
     // Settings -------------------------------------------------------------
-    await activePage.getByRole('link', { name: 'Settings' }).click();
+    if ((activePage.viewportSize()?.width ?? 1440) < 600) {
+      await activePage.goto('/#/settings');
+    } else {
+      await activePage.getByRole('link', { name: 'Settings' }).click();
+    }
     await expect(activePage.getByRole('heading', { level: 2, name: 'Settings' })).toBeVisible();
     await expect(activePage.getByRole('heading', { level: 3, name: 'Appearance' })).toBeVisible();
 

@@ -1,0 +1,139 @@
+{
+  "name": "scale-125-tablet-landscape-1280x800",
+  "scrollYAtCapture": 0,
+  "metrics": {
+    "viewportWidth": 1280,
+    "viewportHeight": 800,
+    "documentScrollHeight": 16026,
+    "documentScrollWidth": 1280,
+    "pageScrollsVertically": true,
+    "mainPaddingBlockStart": "40px",
+    "mainPaddingBlockEnd": "40px",
+    "mainMaxInlineSize": "1280px"
+  },
+  "surfaces": {
+    "shell-topbar": {
+      "present": true,
+      "height": 61,
+      "width": 1280,
+      "top": 0
+    },
+    "shell-status": {
+      "present": false
+    },
+    "main": {
+      "present": true,
+      "height": 15964.9,
+      "width": 1280,
+      "top": 61
+    },
+    "page-header": {
+      "present": true,
+      "height": 126.6,
+      "width": 1200,
+      "top": 101
+    },
+    "header-eyebrow": {
+      "present": true,
+      "height": 19.2,
+      "width": 466.8,
+      "top": 101
+    },
+    "header-title": {
+      "present": true,
+      "height": 33.6,
+      "width": 544.5,
+      "top": 128.2
+    },
+    "header-summary": {
+      "present": true,
+      "height": 44.8,
+      "width": 544.5,
+      "top": 169.8
+    },
+    "header-actions": {
+      "present": true,
+      "height": 44,
+      "width": 512.3,
+      "top": 101
+    },
+    "header-case-actions": {
+      "present": false
+    },
+    "sheet-triggers": {
+      "present": false
+    },
+    "sheet-trigger-file": {
+      "present": false
+    },
+    "search-panel": {
+      "present": true,
+      "height": 250,
+      "width": 1200,
+      "top": 355.9
+    },
+    "scale-warning": {
+      "present": true,
+      "height": 96.4,
+      "width": 1200,
+      "top": 243.6
+    },
+    "backup-reminder": {
+      "present": false
+    },
+    "board-controls-row": {
+      "present": true,
+      "height": 110,
+      "width": 1200,
+      "top": 621.9
+    },
+    "connection-legend": {
+      "present": true,
+      "height": 110,
+      "width": 773.4,
+      "top": 621.9
+    },
+    "workspace": {
+      "present": true,
+      "height": 15238,
+      "width": 1200,
+      "top": 747.9
+    },
+    "closure-panel": {
+      "present": true,
+      "height": 15238,
+      "width": 304,
+      "top": 747.9
+    },
+    "connection-detail": {
+      "present": false
+    },
+    "stage": {
+      "present": true,
+      "height": 464,
+      "width": 884,
+      "top": 747.9
+    },
+    "canvas": {
+      "present": true,
+      "height": 464,
+      "width": 884,
+      "top": 747.9
+    },
+    "canvas-controls": {
+      "present": true,
+      "height": 54,
+      "width": 397.8,
+      "top": 1139.9
+    },
+    "minimap": {
+      "present": true,
+      "height": 207.8,
+      "width": 224,
+      "top": 761.9
+    }
+  },
+  "caseId": "24910daa-7788-42b7-b0b0-03995baedc31",
+  "cardCount": 125,
+  "hasThread": false
+}

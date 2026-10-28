@@ -4,6 +4,8 @@
  */
 
 .app-frame {
+  --shell-height: 61px;
+
   display: flex;
   flex-direction: column;
   inline-size: 100%;
@@ -11,6 +13,32 @@
   min-block-size: 100dvh;
   background: var(--color-canvas);
   color: var(--color-ink);
+}
+
+/*
+ * The board route is the page: exactly one viewport tall, no page scroll, and
+ * no width cap or inline padding around the stage. The shell's own topbar and
+ * the route's band/rail keep their insets.
+ */
+.app-frame[data-board-route='true'] {
+  /* Exactly one viewport at 100 % text; the page may grow and scroll only
+     under text zoom, where the band and bar grow and the stage keeps 240 px. */
+  min-block-size: 100vh;
+  min-block-size: 100dvh;
+}
+
+.app-frame[data-board-route='true'] .app-frame__content {
+  display: flex;
+  flex: 1 1 auto;
+  min-block-size: 0;
+  max-inline-size: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app-frame[data-board-route='true'] .app-frame__content > * {
+  flex: 1 1 auto;
+  min-block-size: 0;
 }
 
 .app-frame__skip-link {
@@ -38,12 +66,21 @@
 
 .app-frame__topbar {
   display: flex;
+  flex: none;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
+  min-block-size: var(--shell-height);
   padding: var(--space-2) var(--space-inline);
   border-block-end: var(--border-width) solid var(--color-border);
+}
+
+.app-frame__topbar-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .app-frame__title {
@@ -84,20 +121,50 @@
   text-decoration: underline;
 }
 
-.app-frame__status:empty {
-  display: none;
+/* The conditional shell notice: a text chip, never a full-width strip. */
+.app-frame__status-chip {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-control-border);
+  border-radius: var(--radius-pill);
+  color: var(--color-ink);
+  background: var(--color-control-surface);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.app-frame__status {
-  display: flex;
-  flex-wrap: wrap;
+.app-frame__status-chip:hover {
+  background: var(--color-control-surface-hover);
+}
+
+.app-frame__status-chip:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.system-status__section {
+  display: grid;
   gap: var(--space-2);
-  padding-inline: max(var(--space-inline), var(--safe-area-inline-start));
 }
 
-.app-frame__status > * {
-  flex: 1 1 100%;
-  margin-block: var(--space-2) 0;
+.system-status__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+}
+
+.system-status__copy {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
 }
 
 .app-frame__content {
@@ -266,20 +333,46 @@
 }
 
 @media (max-width: 37.4375rem) {
-  .app-frame__topbar {
+  /* The board route is the brand-only 56 px shell; its nav lives in the Case
+     menu. Every other phone route keeps the primary nav so Settings and the
+     shelf stay reachable without a board surface. */
+  .app-frame[data-board-route='true'] {
+    --shell-height: 56px;
+  }
+
+  .app-frame[data-board-route='true'] .app-frame__topbar {
+    flex-wrap: nowrap;
+    align-items: center;
+    padding-block: var(--space-1);
+    padding-inline: max(var(--space-4), var(--safe-area-inline-start));
+  }
+
+  .app-frame[data-board-route='true'] .app-frame__nav {
+    display: none;
+  }
+
+  .app-frame[data-board-route='true'] .app-frame__topbar-end {
+    flex-wrap: nowrap;
+    margin-inline-start: auto;
+  }
+
+  .app-frame:not([data-board-route='true']) .app-frame__topbar {
     align-items: flex-start;
     flex-direction: column;
     padding-inline: max(var(--space-3), var(--safe-area-inline-start));
   }
 
-  .app-frame__nav {
+  .app-frame:not([data-board-route='true']) .app-frame__nav {
     inline-size: 100%;
   }
 
-  .app-frame__nav a {
+  .app-frame:not([data-board-route='true']) .app-frame__nav a {
     flex: 1 1 auto;
     justify-content: center;
-    min-block-size: var(--target-min);
+  }
+
+  .app-frame:not([data-board-route='true']) .app-frame__topbar-end {
+    inline-size: 100%;
   }
 
   .app-frame__title {

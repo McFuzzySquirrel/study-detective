@@ -1,0 +1,88 @@
+/*
+ * Case menu contents. The page owns the Panel/Dialog surface and its anchors;
+ * this file styles only the list, sections, and 44 px menu rows.
+ */
+
+.case-menu {
+  display: grid;
+  gap: var(--space-2);
+  min-inline-size: 0;
+}
+
+.case-menu__section {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background-color: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-inline-start: var(--border-width-strong) solid var(--color-warning);
+  border-radius: var(--radius-md);
+}
+
+.case-menu__section-title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.case-menu__copy {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.case-menu__error {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: var(--font-size-sm);
+}
+
+.case-menu__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.case-menu__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  inline-size: 100%;
+  min-block-size: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  background-color: transparent;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: start;
+  text-decoration: none;
+}
+
+.case-menu__item:hover {
+  color: var(--color-ink);
+  background-color: var(--color-control-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.case-menu__item:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.case-menu__divider {
+  inline-size: 100%;
+  margin: var(--space-1) 0;
+  border: 0;
+  border-block-start: var(--border-width) solid var(--color-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-menu__item {
+    transition: none;
+  }
+}

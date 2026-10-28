@@ -95,8 +95,8 @@
 - Dropping on a valid card creates an association by default and opens a small type menu with Association and Provenance. Provenance is disabled with an explanation unless the pair is a Study Note and a Source. Dismissing the menu keeps the association.
 - Dropping on the same card, empty cork, or an existing pair cancels or selects the existing string. A short toast explains a duplicate.
 - Strings sag 12px at 100 percent zoom, scale with the board, and anchor at card edges. Association is 3px red; provenance is 2px dashed amber. Reduced motion removes the draw-in animation.
-- Tapping a string opens a small connection detail with the two card titles, type toggle, and Delete. Delete confirmation names both cards and the type.
-- The legend is a collapsible key on the board: red line = association, dashed amber = provenance. It is not a label on individual strings.
+- Selecting a string opens Connection details: a non-modal 320 px trailing panel on wide, a modal sheet on phone. It shows the two card titles, the type toggle, and Delete. Delete confirmation names both cards and the type. There is no persistent connection-detail icon.
+- `Thread types` is a collapsed disclosure inside the Case menu: red line = association, dashed amber = provenance. It is not a label on individual strings and has no board surface of its own.
 - Keyboard: from card detail or the card list, `Connect to…` opens a dialog with a searchable target list and a type radio group. Provenance filters to Sources when the current card is a Note and to Notes when it is a Source. The same dialog can change type or delete an existing connection.
 - Deleting a card already cascades its strings through BOARD-5; this feature's repository guarantees no dangling rows.
 
@@ -270,21 +270,21 @@
 {
   "id": "LINK-4",
   "title": "Build connection detail, retype, delete, undo, and legend",
-  "description": "Create ConnectionDetail with the two card titles, current type, retype control, and Delete. Mount ConnectionDetail and ConnectionLegend on CaseBoardPage. Retype validates provenance eligibility and updates the existing row. Delete asks for confirmation naming both cards and the type, then removes the connection and shows an 8-second undo toast that restores the same ID. The legend uses red association and dashed amber provenance keys, collapsible on the board. Add component tests for retype, invalid retype, delete confirmation, undo restoration, timeout, and legend accessibility. Do not add the keyboard target picker.",
+  "description": "Create ConnectionDetail with the two card titles, current type, retype control, and Delete. Mount ConnectionDetail in the board inspector surface and ThreadTypes inside the Case menu. Retype validates provenance eligibility and updates the existing row. Delete asks for confirmation naming both cards and the type, then removes the connection and shows an 8-second undo toast that restores the same ID. Thread types uses red association and dashed amber provenance keys in a collapsed disclosure. Add component tests for retype, invalid retype, delete confirmation, undo restoration, timeout, and legend accessibility. Do not add the keyboard target picker.",
   "ownerAgent": "ui-engineer",
   "dependencies": [
     "LINK-3"
   ],
   "expectedOutputs": [
     "src/features/connections/ConnectionDetail.tsx",
-    "src/features/connections/ConnectionLegend.tsx",
+    "src/features/connections/ThreadTypes.tsx",
     "src/features/connections/useUndoDeleteConnection.ts",
     "src/features/case/CaseBoardPage.tsx",
     "tests/connections/ConnectionDetail.test.tsx",
-    "tests/connections/ConnectionLegend.test.tsx"
+    "tests/connections/ThreadTypes.test.tsx"
   ],
   "validationCommands": [
-    "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx",
+    "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ThreadTypes.test.tsx",
     "npm run typecheck"
   ],
   "contract": {
@@ -297,7 +297,7 @@
     ],
     "acceptanceCriteria": [
       "Retyping a valid pair updates the rendered string without changing the connection ID",
-      "CaseBoardPage mounts ConnectionDetail on selection and ConnectionLegend in the board controls",
+      "CaseBoardPage mounts ConnectionDetail on selection and ThreadTypes inside the Case menu",
       "An invalid provenance retype is disabled and explains why",
       "Delete confirmation names both cards and the type; cancelling leaves the connection intact",
       "Undo restores the connection within 8 seconds; timeout and a second delete clear the undo slot",

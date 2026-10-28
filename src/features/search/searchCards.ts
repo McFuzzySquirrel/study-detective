@@ -46,6 +46,17 @@ export interface SearchOptions {
   readonly tags?: readonly string[] | undefined;
 }
 
+/**
+ * The committed criteria the board page keeps while a search surface is
+ * closed. Closing and reopening the same case never resets the query, type, or
+ * selected tags.
+ */
+export interface SearchCriteria {
+  readonly query: string;
+  readonly type: SearchTypeFilter;
+  readonly tags: readonly string[];
+}
+
 export interface CardSearchResult {
   readonly card: CardRecord;
   /** True when the query appears in the title. */

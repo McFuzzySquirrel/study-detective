@@ -33,6 +33,17 @@
   border-radius: 0;
 }
 
+/*
+ * Popover variant: the wide Panel already owns the surface, header, and close
+ * control. The search content is plain inside it.
+ */
+.search-panel--popover {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
 .search-panel__header {
   display: grid;
   gap: var(--space-1);
@@ -379,4 +390,18 @@
   .search-panel__result-select {
     transition: none;
   }
+}
+
+/*
+ * Board surfaces own the dialog/panel around Search. This rule outranks the
+ * phone in-flow sheet sizing above, which must not apply when Search is inside
+ * a Dialog or a wide Panel.
+ */
+.search-panel.search-panel--sheet,
+.search-panel.search-panel--popover {
+  min-block-size: 0;
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
 }

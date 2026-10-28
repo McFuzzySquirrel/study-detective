@@ -33,6 +33,17 @@ export interface HintPopoverProps {
   readonly onDismiss: (reason: HintDismissReason) => void;
   /** Explicit trigger to restore. Defaults to the element focused on open. */
   readonly returnFocusRef?: RefObject<HTMLElement | null> | undefined;
+  /**
+   * `board` lifts the layer above the phone bar or the wide view cluster. The
+   * default bottom placement remains for every other route.
+   */
+  readonly placement?: 'default' | 'board' | undefined;
+  /**
+   * Defaults to true. The board suppresses it when a hint appears as a
+   * consequence of a board action (search selection, Show on board) so the
+   * action's own landing target keeps focus.
+   */
+  readonly autoFocus?: boolean | undefined;
   readonly className?: string | undefined;
 }
 
@@ -72,6 +83,8 @@ export default function HintPopover({
   showMe,
   onDismiss,
   returnFocusRef,
+  placement = 'default',
+  autoFocus = true,
   className,
 }: HintPopoverProps) {
   const titleId = useId();
@@ -119,7 +132,9 @@ export default function HintPopover({
 
     returnTargetRef.current = returnTarget;
     skipRestoreRef.current = false;
-    panel?.focus();
+    if (autoFocus) {
+      panel?.focus();
+    }
 
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') {
@@ -148,7 +163,7 @@ export default function HintPopover({
         focusFallback();
       }
     };
-  }, [open, returnFocusRef]);
+  }, [autoFocus, open, returnFocusRef]);
 
   if (!open || typeof document === 'undefined') {
     return null;
@@ -167,7 +182,7 @@ export default function HintPopover({
   };
 
   return createPortal(
-    <div className="nd-hint-layer">
+    <div className="nd-hint-layer" data-placement={placement}>
       <div
         ref={panelRef}
         className={['nd-hint', className].filter(Boolean).join(' ')}

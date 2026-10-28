@@ -12,6 +12,7 @@
 | BOARD-FR-06 | This feature | owns |
 | BOARD-FR-07 | This feature | owns |
 | BOARD-FR-08 | This feature | owns |
+| BOARD-FR-09 | This feature | owns |
 | VIS-FR-02 | [Vision](../PRD.md) | participates |
 | VIS-FR-04 | [Vision](../PRD.md) | participates |
 | VIS-CON-15 | [Vision](../PRD.md) | participates |
@@ -55,7 +56,7 @@
 ## 3. Functional Requirements
 
 ```forge-requirement
-{"id":"BOARD-FR-01","kind":"requirement","text":"Render cards on an infinite PixiJS canvas with pointer drag pan, pinch zoom, wheel and trackpad zoom from 0.25 to 2.5, a DOM control overlay, and a lazy-loaded board chunk that keeps PixiJS out of the initial payload."}
+{"id":"BOARD-FR-01","kind":"requirement","text":"Render cards on an infinite PixiJS canvas with pointer drag pan, pinch zoom, wheel and trackpad zoom from 0.25 to 2.5 and a lazy-loaded board chunk that keeps PixiJS out of the initial payload. The /case/:caseId route is full-bleed: a 48 px identity band, a quiet 56 px leading rail (Search, Open card list, Case menu), and the canvas as the 1fr remainder; phone (<600 px) uses a 44 px compact title/readiness line and a 56 px bottom bar (Search, Add evidence, Case closure, Case menu). The view cluster, Add evidence, and collapsed minimap float over the stage. The page does not scroll at 100 % text and no surface below the stage adds page height."}
 ```
 
 ```forge-requirement
@@ -63,11 +64,11 @@
 ```
 
 ```forge-requirement
-{"id":"BOARD-FR-03","kind":"requirement","text":"Provide fit-to-view, a minimap showing the viewport and cards, viewport culling, thumbnail-first textures, and on-demand loading so a 150-card case remains navigable."}
+{"id":"BOARD-FR-03","kind":"requirement","text":"Provide fit-to-view, a minimap showing the viewport and cards, viewport culling, thumbnail-first textures, and on-demand loading so a 150-card case remains navigable. Cull the visible world rectangle plus a constant 200 px screen-space margin at every stage size; the margin is divided by the zoom and never scales with the viewport. At the 0.25 fit floor a 150-card case renders 130 cards at 1 384×783 (90 of them on screen) and 110 at 1 224×683. Fit-to-view is clamped to the 0.25 floor, so when the fitted scale would fall below 0.25 it is an overview, not a whole-case fit: a 125-card case renders 125 cards at 1 384×783 and 110 at 1 224×683, and a 150-card case 130 and 110."}
 ```
 
 ```forge-requirement
-{"id":"BOARD-FR-04","kind":"requirement","text":"Show a dismissible soft warning at 120 cards, a persistent warning at 150 or more advising a case split, and a hard stop at 200 cards with no limit below 200."}
+{"id":"BOARD-FR-04","kind":"requirement","text":"Show case capacity only inside the Case menu attention section and its single trigger dot: a session-dismissible soft notice at 120 cards, a persistent warning at 150 or more advising a case split, and a hard stop at 200 cards with no limit below 200. No in-flow banner may add page height."}
 ```
 
 ```forge-requirement
@@ -75,14 +76,18 @@
 ```
 
 ```forge-requirement
-{"id":"BOARD-FR-06","kind":"requirement","text":"Persist the last viewport per case, restore it on return, and expose a reset that fits all cards without overwriting the stored viewport until the student moves the board again."}
+{"id":"BOARD-FR-06","kind":"requirement","text":"Persist the last viewport per case, restore it on return, and expose Reset view (100 % at the world origin) and Fit all cards (fit-to-cards) without overwriting the stored viewport until the student moves the board again."}
 ```
 
 ```forge-requirement
-{"id":"BOARD-FR-07","kind":"requirement","text":"Target 60 frames per second during pan and zoom at 150 cards, treat 45 frames per second as the floor on the target tablet, and release textures for cards that stay offscreen."}
+{"id":"BOARD-FR-07","kind":"requirement","text":"Target 60 frames per second during pan and zoom at 150 cards, treat 45 frames per second as the floor on the target tablet, and release textures for cards that stay offscreen. Measure both floors against the worst rendered frame at the 0.25 zoom floor - 130 cards at 1 384×783 and 120 at 1 224×683 - not only at a detail zoom. Keep at most one display texture per rendered card and at most 200 resident textures across rendered and recently offscreen cards; association and provenance strings draw in at most two batches regardless of how many are visible."}
 ```
 
 ```forge-requirement
+```forge-requirement
+{"id":"BOARD-FR-09","kind":"requirement","text":"Fill the board route with the canvas: at 100 % text the stage is at least 75 % of the content area at 1280x800 and 1440x900 and at least 85 % at 390x844. At 100 % text the page does not scroll vertically or horizontally, and opening Search, the case menu, closure, or connection detail does not change the stage width. No interruption or status surface may add page height above or below the stage."}
+```
+
 {"id":"BOARD-FR-08","kind":"requirement","text":"Delete a card only after confirmation that names how many strings will be removed, then offer a single-level 8-second undo toast that restores the card, its attachments, and its connections; no redo stack."}
 ```
 
@@ -102,11 +107,13 @@
 
 ## 4. UI / Interaction Design
 
-- The board fills the content region below the top bar. A translucent bottom-left control cluster holds zoom out, zoom percentage, zoom in, fit, and minimap toggle; a bottom-right primary action opens capture. On phone widths the cluster collapses to a single sheet trigger.
+- The board is the page. Above 600 px a 48 px identity band carries the case title and a readiness chip, an 8 px gap separates it from a 56 px quiet rail (Search, Open card list, Case menu), and the stage is the 1fr remainder. Below 600 px a 44 px compact title/readiness line sits above the stage and a 56 px bottom bar carries Search, Add evidence, Case closure, and Case menu. The stage is full-bleed with no width cap.
+- Floating over the stage: a bottom-leading translucent view cluster (zoom out, percentage, zoom in, Fit, Reset, minimap toggle), a bottom-trailing primary Add evidence above 600 px, and a collapsed minimap at top-trailing. The Case menu is a non-modal popover on wide and a modal bottom sheet on phone; Search, Case closure, and connection detail follow the same split. Opening any of them never resizes the stage or adds a grid column.
+- Every non-board surface lives behind an icon or menu. The page has zero vertical and horizontal scroll at 100 % text and exactly one viewport of height; the card list route remains the keyboard alternative to the pointer-only canvas.
 - The cork surface is a tiled texture or procedural pattern from the theme. Cards are 240px wide at 100 percent, with a pin at the top center, a photo, and a title strip. Selection adds a lifted shadow and a thin outline, not a color change.
 - Pan is one-finger drag on the background; pinch zooms. Mouse drag pans; wheel and trackpad zoom around the pointer. Zoom is clamped to 0.25–2.5.
 - A touch card lifts after 500ms with a short scale and shadow, then follows the finger. Movement before 500ms or under 6px is a tap. Mouse drag starts immediately. Reduced motion removes lift animation but not the gesture.
-- The minimap is a small inset showing card rectangles and the viewport rectangle. Tapping or dragging it moves the viewport. It can be collapsed on phone.
+- The minimap is a small inset showing card rectangles and the viewport rectangle. Tapping or dragging it moves the viewport. It starts collapsed in every mode and remembers its open state for the tab session only.
 - The card list route `/case/:caseId/list` is a full-screen alternative to the canvas. It groups cards by type, shows title and topic status, and offers Add, Edit, Connect, and Delete. This is the keyboard path; it does not claim to place cards.
 - Empty board: a centered case-file panel with `Add note`, `Add source`, `Add topic`, and a short hint about the thread anchor. No dead canvas controls.
 - Delete card: confirmation names the card and the number of strings that will be removed. After deletion, a toast offers Undo for 8 seconds. Undo restores the exact card, attachments, connections, and positions; a second delete replaces the undo slot.
@@ -285,7 +292,7 @@
 {
   "id": "BOARD-4",
   "title": "Add fit-to-view, minimap, culling, texture release, and scale warnings",
-  "description": "Build FitToViewButton, Minimap, useCulling, ScaleWarning, texture-cache eviction, and a shared board-capacity guard. Fit calculates bounds with padding. The minimap projects cards and the viewport, supports tap and drag navigation, and collapses on phone. Culling renders only visible cards plus a 200px margin. The texture cache keeps at most 200 resident textures and releases offscreen textures after a short delay. Show a dismissible soft warning at 120 cards, a persistent warning at 150, and a hard stop at 200 with a split-case message. Apply the same 200-card guard to the capture route so a direct URL cannot bypass it. Add unit and component tests with synthetic 150-card data and a guard test at 199 and 200.",
+  "description": "Build FitToViewButton, Minimap, useCulling, CaseCapacitySection, texture-cache eviction, and a shared board-capacity guard. Fit calculates bounds with padding. The minimap projects cards and the viewport, supports tap and drag navigation, and collapses on phone. Culling renders only visible cards plus a 200px margin. The texture cache keeps at most 200 resident textures and releases offscreen textures after a short delay. Show the Case menu capacity section at 120 (session-dismissible), 150 (persistent), and 200 (hard stop), with the split-case message and attention dot. Apply the same 200-card guard to the capture route so a direct URL cannot bypass it. Add unit and component tests with synthetic 150-card data and a guard test at 199 and 200.",
   "ownerAgent": "board-engineer",
   "dependencies": [
     "BOARD-3"
@@ -294,16 +301,16 @@
     "src/board/Minimap.tsx",
     "src/board/useCulling.ts",
     "src/board/FitToViewButton.tsx",
-    "src/features/case/ScaleWarning.tsx",
+    "src/features/case/CaseCapacitySection.tsx",
     "src/features/capture/CapturePage.tsx",
     "src/board/textureCache.ts",
     "src/features/case/CaseBoardPage.tsx",
     "tests/board/Minimap.test.tsx",
     "tests/board/culling.test.ts",
-    "tests/case/ScaleWarning.test.tsx"
+    "tests/case/CaseCapacitySection.test.tsx"
   ],
   "validationCommands": [
-    "npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/ScaleWarning.test.tsx",
+    "npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/CaseCapacitySection.test.tsx",
     "npm run typecheck"
   ],
   "contract": {

@@ -84,11 +84,11 @@
 ## 4. UI / Interaction Design
 
 - `src/main.tsx` mounts `src/App.tsx` in React strict mode. `App.tsx` owns `HashRouter`, the error boundary, `AppBootstrap`, and the route table.
-- The shell is a thin case-file frame: a compact top bar with the product mark and a contextual back action, a content region, and a status strip for storage and offline state. On phone widths the top bar collapses into one row and secondary actions move into a sheet.
+- The shell is a thin case-file frame: a 61 px top bar with the product mark, Case shelf and Settings navigation, and a conditional `System status` text chip; the board route is full-bleed and exactly one viewport tall, while other routes keep the capped reading column. On phone widths the top bar is 56 px with the brand and chip only, and Case shelf, Settings, and other secondary actions move into the Case menu sheet. There is no full-width status strip.
 - The visual-direction prototype is a standalone HTML page with three clearly labeled direction tiles. Each tile shows a cork surface, three pin styles, a red association string, a dashed amber provenance string, heading/body type pairings, and one 44px control. No external fonts or images are allowed; the page must work from `file://`.
 - The prototype is a decision aid, not the app. The human review records the chosen direction, reference games, and any pin/string adjustments in `docs/reviews/style-direction.json`; only then are tokens locked.
 - Theme rules: period faces are limited to headings and case-file chrome; body text, menus, inputs, and toasts use a highly legible system UI stack. Motion is short and optional; reduced motion removes pin drops, string draw animation, and auto-pan.
-- The update prompt is a non-blocking toast with `Refresh` and `Later` actions. It must not activate while a form has unsaved changes; `Refresh` reloads only after the user confirms.
+- Offline, update-ready, and reduced-browser-support notices live inside the modal `System status` dialog opened from the shell chip. Update still needs an explicit `Refresh` and must not activate while a form has unsaved changes. A visually hidden shell live region announces state changes.
 
 ---
 

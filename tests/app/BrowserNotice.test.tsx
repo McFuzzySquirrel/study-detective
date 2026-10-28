@@ -2,12 +2,11 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { MemoryRouter } from 'react-router';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import App from '../../src/app/App';
-import AppShell from '../../src/app/AppShell';
 import BrowserNotice from '../../src/app/BrowserNotice';
 import {
   CORE_API_NOTICES,
@@ -58,9 +57,8 @@ function environmentMissing(key: CoreApiKey): CoreApiEnvironment {
 function renderShelfWithNotice(environment: CoreApiEnvironment) {
   return render(
     <MemoryRouter>
-      <AppShell storageStatus={<BrowserNotice environment={environment} />}>
-        <CaseShelfPage repository={new InMemoryCaseRepository()} />
-      </AppShell>
+      <BrowserNotice environment={environment} />
+      <CaseShelfPage repository={new InMemoryCaseRepository()} />
     </MemoryRouter>,
   );
 }
@@ -221,7 +219,7 @@ describe('BrowserNotice', () => {
 });
 
 describe('App composition', () => {
-  it('mounts the notice from the composition root while the shelf still renders', async () => {
+  it('mounts the status chip from the composition root while the shelf still renders', async () => {
     // jsdom does not implement IndexedDB, Web Workers, or service workers;
     // remove WebAssembly too so the notice must list all four capabilities.
     vi.stubGlobal('indexedDB', undefined);
@@ -236,12 +234,16 @@ describe('App composition', () => {
       />,
     );
 
-    const notice = await screen.findByTestId('browser-notice');
-    expect(notice).toBeVisible();
-    expect(within(notice).getAllByRole('listitem')).toHaveLength(4);
+    const chip = await screen.findByRole('button', { name: /^System status:/ });
+    expect(chip).toBeVisible();
+
+    fireEvent.click(chip);
+
+    const dialog = await screen.findByRole('dialog', { name: 'System status' });
+    expect(within(dialog).getAllByRole('listitem')).toHaveLength(4);
     expect(
       await screen.findByRole('heading', { level: 2, name: 'Case shelf' }, { timeout: 10_000 }),
-    ).toBeVisible();
+    ).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Notes Detective' })).toBeVisible();
   });
 });

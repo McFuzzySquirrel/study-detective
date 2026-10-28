@@ -41,8 +41,7 @@
 .shelf,
 .shelf__grid,
 .case-board-page,
-.case-board-page__workspace,
-.case-board-page__stage,
+.case-board-stage,
 .card-detail,
 .card-detail__layout,
 .recall-page,
@@ -119,25 +118,6 @@ canvas {
     padding-block-end: var(--layout-bottom-padding);
   }
 
-  .app-frame__topbar {
-    align-items: flex-start;
-    flex-direction: column;
-    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
-  }
-
-  .app-frame__nav {
-    inline-size: 100%;
-  }
-
-  .app-frame__nav a {
-    flex: 1 1 auto;
-    justify-content: center;
-  }
-
-  .app-frame__status {
-    padding-inline: max(var(--space-3), var(--safe-area-inline-start));
-  }
-
   /*
    * Dialogs become bottom sheets. The panel is anchored to the bottom edge,
    * keeps its title and close control visible, and reserves the home-indicator
@@ -172,7 +152,6 @@ canvas {
   }
 
   .shelf__header,
-  .case-board-page__header,
   .recall-page__header,
   .settings-page__header {
     align-items: stretch;
@@ -183,38 +162,13 @@ canvas {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .case-board-page__title,
   .recall-page__title,
   .settings-page__title {
     font-size: var(--font-size-xl);
   }
 
-  .case-board-page__actions,
-  .case-board-page__board-controls {
-    justify-content: flex-start;
-  }
-
-  .case-board-page__sheet-triggers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2);
-  }
-
-  .case-board-page__sheet-trigger {
-    min-block-size: var(--target-min);
-    min-inline-size: var(--target-min);
-    inline-size: 100%;
-  }
-
-  .case-board-page__stage,
   .recall-page__stage {
     min-block-size: clamp(20rem, calc(100dvh - 20rem), 40rem);
-  }
-
-  .case-board-page__workspace[data-has-detail='true'],
-  .case-board-page__workspace[data-has-detail='false'] {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'stage';
   }
 
   .card-detail__layout {
@@ -275,7 +229,6 @@ canvas {
     padding-inline: max(var(--space-4), var(--safe-area-inline-start));
   }
 
-  .case-board-page__header,
   .recall-page__header,
   .shelf__header {
     gap: var(--space-3);
@@ -290,10 +243,6 @@ canvas {
   .card-detail__layout {
     grid-template-columns: minmax(0, 1fr);
   }
-
-  .case-board-page__stage {
-    min-block-size: clamp(24rem, calc(100dvh - 18rem), 48rem);
-  }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -301,16 +250,10 @@ canvas {
 /* ------------------------------------------------------------------------- */
 
 @media (min-width: 75rem) {
-  .app-frame__content {
-    max-inline-size: 80rem;
-    padding-inline: max(var(--space-inline), var(--safe-area-inline-start));
-  }
-
   .shelf__grid {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
   }
 
-  .case-board-page__header,
   .recall-page__header,
   .shelf__header {
     align-items: flex-start;

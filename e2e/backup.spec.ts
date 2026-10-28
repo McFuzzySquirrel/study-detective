@@ -861,6 +861,13 @@ async function expectCardDetail(page: Page, caseId: string, card: StoredCard): P
   await expect(page.getByRole('heading', { level: 2, name: card.title })).toBeVisible();
   await expect(page.locator('.card-detail')).toHaveAttribute('data-card-id', card.id);
 
+  await imageIsLoaded(page);
+
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.getByRole('button', { name: 'Card actions and tags' }).click();
+    await expect(page.getByRole('dialog', { name: 'Card actions and tags' })).toBeVisible();
+  }
+
   const tags = page.getByRole('list', { name: 'Card tags' });
   if (card.tags.length === 0) {
     await expect(page.getByText('No tags yet.')).toBeVisible();
@@ -872,7 +879,9 @@ async function expectCardDetail(page: Page, caseId: string, card: StoredCard): P
     await expect(tags.getByText(tag, { exact: true })).toBeVisible();
   }
 
-  await imageIsLoaded(page);
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.keyboard.press('Escape');
+  }
 }
 
 test('exports one real .ndcase, deletes it, restores a copy with new IDs, and replaces it', async ({

@@ -6,6 +6,15 @@
  * lazily mounts the Pixi canvas, and owns the 500 ms viewport debounce. It never
  * imports PixiJS, opens Dexie directly, or writes a record itself.
  *
+ * Frame contract:
+ *
+ * - The board is the page. A 48 px identity band, an 8 px gap, a 56 px leading
+ *   rail, and the stage remainder fill the content area exactly; the phone
+ *   composition swaps the rail for a 56 px bottom bar.
+ * - Every non-board surface is a Panel (wide, non-modal) or a Dialog sheet
+ *   (phone). None of them adds a grid column or changes the stage width.
+ * - The page never renders a page-height sibling or an in-flow banner.
+ *
  * Viewport contract:
  *
  * - The stored camera is restored on load with `resetBoard`.
@@ -16,6 +25,7 @@
  */
 
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactElement } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { useStore } from 'zustand';
 
@@ -27,7 +37,7 @@ import {
   selectViewport,
   selectViewportDirty,
 } from '../../board/boardStore';
-import { canAddCard } from '../../board/boardCapacity';
+import { SPLIT_CASE_MESSAGE, boardCapacityLevel, canAddCard } from '../../board/boardCapacity';
 import type { BoardCardImage, BoardSnapshot, BoardStringConnection } from '../../board/BoardScene';
 import {
   BOARD_CARD_HEIGHT,
@@ -37,6 +47,9 @@ import {
 } from '../../board/viewport';
 import Button from '../../components/Button';
 import Dialog from '../../components/Dialog';
+import Glyph from '../../components/Glyph';
+import IconButton from '../../components/IconButton';
+import Panel from '../../components/Panel';
 import Toast from '../../components/Toast';
 import { usePhoneLayout } from '../../app/useLayoutMode';
 import { FOCUS_SEARCH_EVENT } from '../../app/focus';
@@ -46,6 +59,7 @@ import type { CaseRepositoryPort } from '../../data/caseRepository';
 import { ConnectionRepository } from '../../data/connectionRepository';
 import type { ConnectionRepositoryPort } from '../../data/connectionRepository';
 import { openNotesDetectiveDatabase } from '../../data/db';
+import { deriveCaseLifecycle } from '../../domain/caseLifecycle';
 import type {
   CardRecord,
   CaseRecord,
@@ -59,7 +73,6 @@ import { useBackupReminder } from '../backup/useBackupReminder';
 import ClosurePanel from '../closure/ClosurePanel';
 import { useCaseLifecycle } from '../closure/useCaseLifecycle';
 import ConnectionDetail from '../connections/ConnectionDetail';
-import ConnectionLegend from '../connections/ConnectionLegend';
 import ConnectionTypeMenu from '../connections/ConnectionTypeMenu';
 import type { ConnectionDropInput } from '../connections/useCreateConnection';
 import { useCreateConnection } from '../connections/useCreateConnection';
@@ -68,8 +81,10 @@ import HintPopover from '../onboarding/HintPopover';
 import { getHint, hintSeenStore, useSeenHints } from '../onboarding/hints';
 import type { HintId, HintSeenStore } from '../onboarding/hints';
 import SearchPanel from '../search/SearchPanel';
+import { hasActiveSearch } from '../search/searchCards';
+import type { SearchCriteria } from '../search/searchCards';
 
-import ScaleWarning from './ScaleWarning';
+import CaseMenu from './CaseMenu';
 import EmptyBoard from './EmptyBoard';
 import './CaseBoardPage.css';
 
@@ -84,6 +99,12 @@ export const VIEWPORT_SAVE_DEBOUNCE_MS = 500;
 export const CARD_POSITION_SAVE_DEBOUNCE_MS = 300;
 
 const EMPTY_CARD_IMAGES: Record<string, BoardCardImage> = Object.freeze({});
+
+const EMPTY_SEARCH_CRITERIA: SearchCriteria = Object.freeze({
+  query: '',
+  type: 'all',
+  tags: [],
+});
 
 export type CaseBoardRepositoryLoader = () => Promise<CaseRepositoryPort>;
 export type CaseBoardConnectionRepositoryLoader = () => Promise<ConnectionRepositoryPort>;
@@ -163,10 +184,6 @@ function connectionSnapshot(connection: ConnectionRecord): BoardStringConnection
   };
 }
 
-function cardCountLabel(count: number): string {
-  return `${count} ${count === 1 ? 'card' : 'cards'}`;
-}
-
 /**
  * The camera that puts a card's centre at the centre of the board stage. The
  * scale is kept because search selection is a navigation jump, not a zoom.
@@ -215,6 +232,13 @@ function readCoarsePointer(): boolean {
   }
 }
 
+function readinessDotTone(closed: boolean, ready: boolean): 'success' | 'warning' | 'neutral' {
+  if (closed) {
+    return ready ? 'neutral' : 'warning';
+  }
+  return ready ? 'success' : 'warning';
+}
+
 /** The routed case-board screen: repository load, canvas mount, viewport save. */
 export function CaseBoardPage({
   repository,
@@ -245,9 +269,17 @@ export function CaseBoardPage({
   const [backupOpen, setBackupOpen] = useState(false);
   const [restoredConnectionFocusToken, setRestoredConnectionFocusToken] = useState(0);
   const [coarsePointer, setCoarsePointer] = useState(readCoarsePointer);
-  const [actionsSheetOpen, setActionsSheetOpen] = useState(false);
-  const [searchSheetOpen, setSearchSheetOpen] = useState(false);
-  const [closureSheetOpen, setClosureSheetOpen] = useState(false);
+
+  // The three board surfaces. Wide allows one transient popover plus one
+  // persistent inspector; phone allows exactly one modal sheet.
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [closureOpen, setClosureOpen] = useState(false);
+  const [searchCriteria, setSearchCriteria] = useState<SearchCriteria>(EMPTY_SEARCH_CRITERIA);
+  const [capacityDismissed, setCapacityDismissed] = useState(false);
+  const [backupToastCase, setBackupToastCase] = useState<string | null>(null);
+  const [capacityToastOpen, setCapacityToastOpen] = useState(false);
+
   const phoneLayout = usePhoneLayout();
   const motion = useMotionPreference();
   // Auto-pan is a camera jump. The policy makes that explicit under reduced
@@ -261,8 +293,18 @@ export function CaseBoardPage({
   const cardSaveChainRef = useRef<Promise<void>>(Promise.resolve());
   const boardHeadingRef = useRef<HTMLHeadingElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+
+  const searchTriggerRef = useRef<HTMLButtonElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const readinessTriggerRef = useRef<HTMLButtonElement>(null);
+  const searchBarRef = useRef<HTMLButtonElement>(null);
+  const closureBarRef = useRef<HTMLButtonElement>(null);
+  const menuBarRef = useRef<HTMLButtonElement>(null);
+
   const focusHandledRef = useRef<string | null>(null);
   const restoredFocusHandledRef = useRef(0);
+  const backupToastShownRef = useRef<string | null>(null);
+  const capacityToastShownRef = useRef(false);
   /**
    * A phone sheet normally returns focus to the trigger that opened it. When an
    * action inside the sheet moves the student (selecting a search result or
@@ -298,9 +340,13 @@ export function CaseBoardPage({
     enabled: visibleStatus === 'ready',
   });
 
-  // Readiness is derived once per graph change and shared by the panel and the
-  // close badge. No loose-thread count or solved flag is written anywhere.
+  // Readiness is derived once per graph change and shared by the band and the
+  // closure surface. No loose-thread count or solved flag is written anywhere.
   const readiness = useMemo(() => deriveReadiness(cards, connections), [cards, connections]);
+  const lifecycle = useMemo(
+    () => deriveCaseLifecycle(caseRecord?.closedAt ?? null, readiness),
+    [caseRecord?.closedAt, readiness],
+  );
   const caseLifecycle = useCaseLifecycle({
     caseRecord,
     readiness,
@@ -308,16 +354,119 @@ export function CaseBoardPage({
     onCaseChanged: setCaseRecord,
   });
 
-  // The shell's `/` shortcut publishes this event. On a phone the search panel
-  // lives in a sheet, so the page opens the sheet and the Dialog primitive puts
-  // focus on the search field. Desktop and tablet panels handle it themselves.
+  const readinessText =
+    lifecycle.closed && lifecycle.badgeLabel !== null
+      ? lifecycle.badgeLabel
+      : lifecycle.readinessLabel;
+  const readinessName = lifecycle.closed
+    ? lifecycle.ready
+      ? 'Readiness: closed'
+      : 'Readiness: closed, loose threads'
+    : lifecycle.ready
+      ? 'Readiness: ready to close'
+      : `Readiness: ${lifecycle.looseThreadCount} loose thread${
+          lifecycle.looseThreadCount === 1 ? '' : 's'
+        }`;
+
+  const ready = visibleStatus === 'ready' && caseRecord !== null;
+  const hasCards = ready && cards.length > 0;
+  const cardListAvailable = caseId.length > 0 && visibleStatus !== 'missing';
+  const capacityBlocked = hasCards && !canAddCard(cards.length);
+  const capacityLevel = ready ? boardCapacityLevel(cards.length) : 'normal';
+  const searchActive = hasActiveSearch(searchCriteria);
+  const searchTriggerName = searchActive ? 'Search, filters active' : 'Search';
+
+  const attentionReasons: string[] = [];
+  if (ready && reminder.visible) {
+    attentionReasons.push('first backup recommended');
+  }
+  if (capacityLevel === 'persistent') {
+    attentionReasons.push(`${cards.length} cards, split recommended`);
+  }
+  if (capacityLevel === 'blocked') {
+    attentionReasons.push('case full');
+  }
+  const attentionTone =
+    capacityLevel === 'blocked' ? 'danger' : attentionReasons.length > 0 ? 'warning' : null;
+  const menuName =
+    attentionReasons.length === 0 ? 'Case menu' : `Case menu, ${attentionReasons.join(', ')}`;
+
+  // The first-backup toast appears once per case per page session. The dot and
+  // menu section persist independently until the case is backed up.
+  useEffect(() => {
+    if (!ready || reminder.loading || !reminder.visible) {
+      return;
+    }
+    if (backupToastShownRef.current === caseId) {
+      return;
+    }
+    backupToastShownRef.current = caseId;
+    setBackupToastCase(caseId);
+  }, [caseId, ready, reminder.loading, reminder.visible]);
+
+  // The 120-149 capacity toast is once per page session; the section keeps its
+  // own session dismissal.
+  useEffect(() => {
+    if (capacityLevel !== 'soft' || capacityDismissed || capacityToastShownRef.current) {
+      return;
+    }
+    capacityToastShownRef.current = true;
+    setCapacityToastOpen(true);
+  }, [capacityDismissed, capacityLevel]);
+
+  const openSearchSurface = useCallback((): void => {
+    if (!ready || cards.length === 0) {
+      return;
+    }
+    setMenuOpen(false);
+    if (phoneLayout) {
+      setClosureOpen(false);
+      activeStore.getState().selectConnection(null);
+      sheetReturnFocusRef.current = null;
+    }
+    setSearchOpen(true);
+  }, [activeStore, cards.length, phoneLayout, ready]);
+
+  const openMenuSurface = useCallback((): void => {
+    setSearchOpen(false);
+    if (phoneLayout) {
+      setClosureOpen(false);
+      activeStore.getState().selectConnection(null);
+      sheetReturnFocusRef.current = null;
+    }
+    setMenuOpen(true);
+  }, [activeStore, phoneLayout]);
+
+  const openClosureSurface = useCallback((): void => {
+    if (!ready) {
+      return;
+    }
+    setSearchOpen(false);
+    setMenuOpen(false);
+    activeStore.getState().selectConnection(null);
+    if (phoneLayout) {
+      sheetReturnFocusRef.current = null;
+    }
+    setClosureOpen(true);
+  }, [activeStore, phoneLayout, ready]);
+
+  const openBackup = useCallback((): void => {
+    setMenuOpen(false);
+    setBackupToastCase(null);
+    if (phoneLayout) {
+      sheetReturnFocusRef.current = null;
+    }
+    setBackupOpen(true);
+  }, [phoneLayout]);
+
+  // The shell's `/` shortcut. On phone it opens the Search sheet; on wide it
+  // opens the Search popover and the Panel focuses the first field.
   useEffect(() => {
     const handleFocusSearch = (): void => {
-      if (!phoneLayout || visibleStatus !== 'ready' || cards.length === 0) {
+      if (visibleStatus !== 'ready' || cards.length === 0) {
         return;
       }
-
-      setSearchSheetOpen(true);
+      openSearchSurface();
     };
 
     window.addEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
@@ -325,7 +474,7 @@ export function CaseBoardPage({
     return () => {
       window.removeEventListener(FOCUS_SEARCH_EVENT, handleFocusSearch);
     };
-  }, [cards.length, phoneLayout, visibleStatus]);
+  }, [cards.length, openSearchSurface, visibleStatus]);
 
   useEffect(() => {
     let cancelled = false;
@@ -334,6 +483,14 @@ export function CaseBoardPage({
       if (invalidAddress) {
         return;
       }
+
+      // A case switch starts a fresh surface slice. This runs inside the async
+      // load rather than synchronously in an effect body.
+      setSearchCriteria(EMPTY_SEARCH_CRITERIA);
+      setCapacityDismissed(false);
+      setSearchOpen(false);
+      setMenuOpen(false);
+      setClosureOpen(false);
 
       try {
         const target = await resolveRepository();
@@ -634,12 +791,25 @@ export function CaseBoardPage({
     [activeRepository],
   );
 
-  const handleConnectionCreated = useCallback((connection: ConnectionRecord): void => {
-    setConnections((current) => {
-      const without = current.filter((candidate) => candidate.id !== connection.id);
-      return [...without, connection];
-    });
-  }, []);
+  /** A selected string is an inspector: it closes closure and other phone sheets. */
+  const handleConnectionSelected = useCallback((): void => {
+    setClosureOpen(false);
+    if (phoneLayout) {
+      setSearchOpen(false);
+      setMenuOpen(false);
+    }
+  }, [phoneLayout]);
+
+  const handleConnectionCreated = useCallback(
+    (connection: ConnectionRecord): void => {
+      handleConnectionSelected();
+      setConnections((current) => {
+        const without = current.filter((candidate) => candidate.id !== connection.id);
+        return [...without, connection];
+      });
+    },
+    [handleConnectionSelected],
+  );
 
   const handleConnectionChanged = useCallback((connection: ConnectionRecord): void => {
     setConnections((current) => {
@@ -681,6 +851,7 @@ export function CaseBoardPage({
     },
     onRestored: (restored) => {
       handleConnectionChanged(restored);
+      handleConnectionSelected();
       activeStore.getState().selectConnection(restored.id);
     },
   });
@@ -696,9 +867,12 @@ export function CaseBoardPage({
         toCardId: drop.toCardId,
         point: { x: drop.point.clientX, y: drop.point.clientY },
       };
+      // Any drop can end with the inspector open (created or duplicate), so it
+      // closes closure and the other phone sheets up front.
+      handleConnectionSelected();
       void requestConnection(input);
     },
-    [requestConnection],
+    [handleConnectionSelected, requestConnection],
   );
 
   const handleConnectionRetype = useCallback(
@@ -791,8 +965,7 @@ export function CaseBoardPage({
     connection.menu !== null &&
     selectedDetail !== null &&
     connection.menu.connectionId === selectedDetail.connection.id;
-  const detailVisible =
-    visibleStatus === 'ready' && selectedDetail !== null && !menuCompetesWithDetail;
+  const detailVisible = ready && selectedDetail !== null && !menuCompetesWithDetail;
 
   /**
    * Search selection is a read-only navigation: it changes only the live
@@ -826,27 +999,27 @@ export function CaseBoardPage({
     [applySearchSelection, cards],
   );
 
-  /**
-   * Closing a phone sheet should land on whatever the action changed. For a
-   * search result or a "Show on board" jump, that is the board heading; a plain
-   * cancel leaves the ref empty so Dialog returns focus to the trigger.
-   */
-  const handleSearchSheetSelect = useCallback(
+  /** Search selection closes the surface and lands focus on the board. */
+  const handleSearchSelect = useCallback(
     (card: CardRecord): void => {
-      sheetReturnFocusRef.current = boardHeadingRef.current;
-      setSearchSheetOpen(false);
+      setSearchOpen(false);
+      if (phoneLayout) {
+        sheetReturnFocusRef.current = boardHeadingRef.current;
+      }
       applySearchSelection(card);
     },
-    [applySearchSelection],
+    [applySearchSelection, phoneLayout],
   );
 
   const handleClosureShowCard = useCallback(
     (cardId: string): void => {
-      sheetReturnFocusRef.current = boardHeadingRef.current;
-      setClosureSheetOpen(false);
+      if (phoneLayout) {
+        sheetReturnFocusRef.current = boardHeadingRef.current;
+        setClosureOpen(false);
+      }
       handleShowLooseCard(cardId);
     },
-    [handleShowLooseCard],
+    [handleShowLooseCard, phoneLayout],
   );
 
   const handleCloseConnectionDetail = useCallback((): void => {
@@ -885,16 +1058,16 @@ export function CaseBoardPage({
     applySearchSelection(card);
   }, [applySearchSelection, cards, caseId, focusCardId, visibleStatus]);
 
-  const capacityBlocked = visibleStatus === 'ready' && !canAddCard(cards.length);
-
   /**
    * Contextual hints are independent, not a tour. Only the one whose moment is
    * actually present is shown, and the shared seen store removes it for good
    * once it is dismissed. A hint never covers the board pointer surface: it
    * uses the contextual modifier that lets clicks pass through the panel body.
+   * Any open surface suppresses the hint without marking it seen.
    */
+  const surfaceOpen = searchOpen || menuOpen || closureOpen || detailVisible;
   const activeHintId: HintId | null =
-    visibleStatus !== 'ready' || caseRecord === null
+    visibleStatus !== 'ready' || caseRecord === null || surfaceOpen
       ? null
       : cards.length >= 2 && !seenHints.has('thread-anchor')
         ? 'thread-anchor'
@@ -909,6 +1082,42 @@ export function CaseBoardPage({
     setReloadToken((token) => token + 1);
   };
 
+  const addEvidence = (): ReactElement | null => {
+    if (!hasCards) {
+      return null;
+    }
+
+    const href = `/case/${caseId}/capture`;
+
+    if (capacityBlocked) {
+      return (
+        <span
+          className="case-board-add"
+          aria-disabled="true"
+          aria-describedby="case-board-add-blocked"
+          data-testid="board-add-evidence-blocked"
+        >
+          <Glyph name="add" />
+          <span>Add evidence</span>
+        </span>
+      );
+    }
+
+    return (
+      <Link className="case-board-add" to={href} aria-label="Add evidence">
+        <Glyph name="add" />
+        <span>Add evidence</span>
+      </Link>
+    );
+  };
+
+  const attentionDot =
+    attentionTone === null ? null : (
+      <span className="case-board-attention" data-tone={attentionTone} aria-hidden="true" />
+    );
+
+  const panelReturnFocus = phoneLayout ? searchBarRef : searchTriggerRef;
+
   return (
     <section
       className="case-board-page"
@@ -917,7 +1126,21 @@ export function CaseBoardPage({
       data-case-id={caseId}
       data-board-status={visibleStatus}
     >
+      {/*
+        The only page heading. It is visually hidden but focusable so a search
+        result, Show on board, and a closed inspector have one landing target.
+      */}
+      <h2
+        id="case-board-page-title"
+        ref={boardHeadingRef}
+        className="visually-hidden"
+        tabIndex={-1}
+      >
+        Case board
+      </h2>
+
       <Toast
+        placement="top"
         message={saveError}
         tone="error"
         onDismiss={() => setSaveError(null)}
@@ -925,6 +1148,7 @@ export function CaseBoardPage({
       />
 
       <Toast
+        placement="top"
         message={connection.feedback?.message ?? null}
         tone={connection.feedback?.tone ?? 'info'}
         onDismiss={connection.clearFeedback}
@@ -932,6 +1156,7 @@ export function CaseBoardPage({
       />
 
       <Toast
+        placement="top"
         message={connectionUndoMessage}
         tone="info"
         actionLabel="Undo"
@@ -943,6 +1168,7 @@ export function CaseBoardPage({
       />
 
       <Toast
+        placement="top"
         message={connectionUndoError}
         tone="error"
         onDismiss={clearConnectionUndoError}
@@ -950,202 +1176,152 @@ export function CaseBoardPage({
       />
 
       <Toast
+        placement="top"
         message={caseLifecycle.message}
         tone="success"
         onDismiss={caseLifecycle.clearMessage}
         dismissLabel="Dismiss closure message"
       />
 
-      <header className="case-board-page__header">
-        <div className="case-board-page__heading">
-          <p className="case-board-page__eyebrow">
-            {caseRecord !== null ? caseRecord.title : 'Case file'}
-          </p>
-          <h2
-            id="case-board-page-title"
-            ref={boardHeadingRef}
-            className="case-board-page__title"
-            tabIndex={-1}
-          >
-            Case board
-          </h2>
-          <p className="case-board-page__summary">
-            {visibleStatus === 'ready'
-              ? cards.length === 0
-                ? 'No cards are pinned yet. Add a note, a source, or a topic to start this case file.'
-                : `${cardCountLabel(cards.length)} pinned to the cork. Drag a card to move it, drag the background to pan, and pinch or scroll to zoom.`
-              : visibleStatus === 'loading'
-                ? 'Loading this case from local storage.'
-                : 'This case is not available in local storage.'}
-          </p>
-        </div>
+      <Toast
+        placement="top"
+        message={
+          backupToastCase === caseId && ready && reminder.visible
+            ? 'Five cards and a connection make this a good moment for a first backup.'
+            : null
+        }
+        actionLabel="Back up now"
+        onAction={openBackup}
+        onDismiss={() => setBackupToastCase(null)}
+        dismissLabel="Dismiss backup reminder"
+      />
 
-        {phoneLayout ? (
-          <Button
-            variant="secondary"
-            className="case-board-page__sheet-trigger"
-            aria-haspopup="dialog"
-            aria-expanded={actionsSheetOpen}
-            onClick={() => {
-              sheetReturnFocusRef.current = null;
-              setActionsSheetOpen(true);
-            }}
-          >
-            Case actions
-          </Button>
-        ) : (
-          <div className="case-board-page__actions">
-            <Button
-              variant="secondary"
-              onClick={() => setBackupOpen(true)}
-              disabled={visibleStatus !== 'ready' || activeRepository === null}
+      <Toast
+        placement="top"
+        message={
+          capacityToastOpen && capacityLevel === 'soft' && ready
+            ? `${cards.length} cards are pinned. A case becomes hard to scan at 150 cards, so plan a split before then.`
+            : null
+        }
+        onDismiss={() => setCapacityToastOpen(false)}
+        dismissLabel="Dismiss capacity notice"
+      />
+
+      {hasCards ? (
+        <p id="case-board-add-blocked" className="visually-hidden">
+          {SPLIT_CASE_MESSAGE}
+        </p>
+      ) : null}
+
+      <header className="case-board-band">
+        <p className="case-board-band__title" data-testid="case-board-title">
+          {ready && caseRecord !== null ? caseRecord.title : 'Case file'}
+        </p>
+
+        {ready && caseRecord !== null ? (
+          phoneLayout ? (
+            <span
+              className="case-board-band__readiness case-board-band__readiness--static"
+              data-state={lifecycle.state}
             >
-              Back up case
-            </Button>
-            {visibleStatus === 'ready' && cards.length > 0 ? (
-              <Link className="case-board-page__back" to={`/case/${caseId}/recall`}>
-                Recall
-              </Link>
-            ) : null}
-            {caseId.length > 0 ? (
-              <Link className="case-board-page__back" to={`/case/${caseId}/list`}>
-                Open card list
-              </Link>
-            ) : null}
-            <Link className="case-board-page__back" to="/">
-              Back to case shelf
-            </Link>
-          </div>
-        )}
+              <span
+                className="case-board-readiness-dot"
+                data-tone={readinessDotTone(lifecycle.closed, lifecycle.ready)}
+                aria-hidden="true"
+              />
+              {readinessText}
+            </span>
+          ) : (
+            <button
+              type="button"
+              ref={readinessTriggerRef}
+              className="case-board-band__readiness"
+              data-state={lifecycle.state}
+              aria-label={readinessName}
+              aria-haspopup="dialog"
+              aria-expanded={closureOpen}
+              aria-controls="case-board-closure-panel"
+              onClick={openClosureSurface}
+            >
+              <span
+                className="case-board-readiness-dot"
+                data-tone={readinessDotTone(lifecycle.closed, lifecycle.ready)}
+                aria-hidden="true"
+              />
+              <span className="case-board-band__readiness-label">{readinessText}</span>
+              <span className="case-board-band__chevron" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+          )
+        ) : null}
       </header>
 
-      <ScaleWarning cardCount={visibleStatus === 'ready' ? cards.length : 0} />
-
-      {phoneLayout && visibleStatus === 'ready' ? (
-        <div className="case-board-page__sheet-triggers" role="group" aria-label="Board panels">
-          {cards.length > 0 ? (
-            <Button
-              variant="secondary"
-              className="case-board-page__sheet-trigger"
-              aria-haspopup="dialog"
-              aria-expanded={searchSheetOpen}
-              onClick={() => {
-                sheetReturnFocusRef.current = null;
-                setSearchSheetOpen(true);
-              }}
-            >
-              Search and filters
-            </Button>
-          ) : null}
-          {caseRecord !== null ? (
-            <Button
-              variant="secondary"
-              className="case-board-page__sheet-trigger"
-              aria-haspopup="dialog"
-              aria-expanded={closureSheetOpen}
-              onClick={() => {
-                sheetReturnFocusRef.current = null;
-                setClosureSheetOpen(true);
-              }}
-            >
-              Case closure
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {!phoneLayout && visibleStatus === 'ready' && cards.length > 0 ? (
-        <SearchPanel
-          className="case-board-page__search"
-          cards={cards}
-          onSelectCard={applySearchSelection}
-        />
-      ) : null}
-
-      {visibleStatus === 'ready' && reminder.visible ? (
-        <aside className="backup-reminder" aria-labelledby="backup-reminder-title">
-          <p className="visually-hidden" role="status">
-            This case is ready for its first backup.
-          </p>
-          <div className="backup-reminder__copy">
-            <h3 id="backup-reminder-title">This case is worth backing up</h3>
-            <p>
-              Five cards and at least one connection is a good moment to keep a copy outside this
-              browser. Backups are a single file and are never uploaded.
-            </p>
-            {reminder.error !== null ? (
-              <p className="backup-reminder__error" role="alert">
-                {reminder.error}
-              </p>
+      <div className="case-board-row">
+        {!phoneLayout ? (
+          <nav className="case-board-rail" aria-label="Case tools">
+            {hasCards ? (
+              <IconButton
+                ref={searchTriggerRef}
+                label={searchTriggerName}
+                variant="quiet"
+                aria-haspopup="dialog"
+                aria-expanded={searchOpen}
+                aria-controls="case-board-search-panel"
+                onClick={() => (searchOpen ? setSearchOpen(false) : openSearchSurface())}
+              >
+                <Glyph name="search" />
+              </IconButton>
             ) : null}
-          </div>
-          <div className="backup-reminder__actions">
-            <Button variant="primary" onClick={() => setBackupOpen(true)}>
-              Back up now
-            </Button>
-            <Button
+
+            {cardListAvailable ? (
+              <Link
+                className="case-board-rail__link"
+                to={`/case/${caseId}/list`}
+                data-testid="open-card-list"
+              >
+                <Glyph name="card-list" />
+                <span className="visually-hidden">Open card list</span>
+              </Link>
+            ) : null}
+
+            <IconButton
+              ref={menuTriggerRef}
+              className="case-board-rail__menu"
+              label={menuName}
               variant="quiet"
-              onClick={() => void reminder.dismiss()}
-              disabled={reminder.saving}
+              aria-haspopup="dialog"
+              aria-expanded={menuOpen}
+              aria-controls="case-board-menu-panel"
+              onClick={() => (menuOpen ? setMenuOpen(false) : openMenuSurface())}
             >
-              Not now
-            </Button>
-          </div>
-        </aside>
-      ) : null}
-
-      {!phoneLayout && visibleStatus === 'ready' ? (
-        <div className="case-board-page__board-controls" role="group" aria-label="Board controls">
-          <ConnectionLegend />
-        </div>
-      ) : null}
-
-      <div
-        className="case-board-page__workspace"
-        data-has-detail={detailVisible ? 'true' : 'false'}
-      >
-        {!phoneLayout && detailVisible && selectedDetail !== null ? (
-          <ConnectionDetail
-            connection={selectedDetail.connection}
-            fromCard={selectedDetail.fromCard}
-            toCard={selectedDetail.toCard}
-            onRetype={(type) => handleConnectionRetype(selectedDetail.connection, type)}
-            onDelete={() =>
-              handleConnectionDelete(
-                selectedDetail.connection,
-                selectedDetail.fromCard.title,
-                selectedDetail.toCard.title,
-              )
-            }
-            onClose={handleCloseConnectionDetail}
-          />
+              <Glyph name="case-menu" />
+              {attentionDot}
+            </IconButton>
+          </nav>
         ) : null}
 
         <div
-          className="case-board-page__stage"
+          className="case-board-stage"
           ref={stageRef}
           data-motion={motion.reduced ? 'reduced' : 'full'}
           data-motion-auto-pan={autoPan}
         >
           {visibleStatus === 'loading' ? (
-            <p className="case-board-page__status" role="status">
+            <p className="case-board-status" role="status">
               Opening the case…
             </p>
           ) : null}
 
           {visibleStatus === 'error' ? (
-            <section
-              className="case-board-page__error"
-              role="alert"
-              aria-labelledby="board-load-error"
-            >
+            <section className="case-board-error" role="alert" aria-labelledby="board-load-error">
               <h3 id="board-load-error">Case could not open</h3>
               <p>{loadError}</p>
-              <div className="case-board-page__error-actions">
+              <div className="case-board-error__actions">
                 <Button variant="primary" onClick={retryLoad}>
                   Retry
                 </Button>
-                <Link className="case-board-page__text-link" to="/">
+                <Link className="case-board-text-link" to="/">
                   Back to case shelf
                 </Link>
               </div>
@@ -1154,7 +1330,7 @@ export function CaseBoardPage({
 
           {visibleStatus === 'missing' ? (
             <section
-              className="case-board-page__error"
+              className="case-board-error"
               role="alert"
               aria-labelledby="board-missing-title"
             >
@@ -1163,22 +1339,20 @@ export function CaseBoardPage({
                 This case is no longer in local storage. It may have been deleted, or the address
                 may be incomplete.
               </p>
-              <div className="case-board-page__error-actions">
-                <Link className="case-board-page__text-link" to="/">
+              <div className="case-board-error__actions">
+                <Link className="case-board-text-link" to="/">
                   Back to case shelf
                 </Link>
               </div>
             </section>
           ) : null}
 
-          {visibleStatus === 'ready' && caseRecord !== null && cards.length === 0 ? (
-            <EmptyBoard caseId={caseId} />
-          ) : null}
+          {ready && cards.length === 0 ? <EmptyBoard caseId={caseId} /> : null}
 
-          {visibleStatus === 'ready' && caseRecord !== null && cards.length > 0 ? (
+          {hasCards ? (
             <Suspense
               fallback={
-                <p className="case-board-page__status" role="status">
+                <p className="case-board-status" role="status">
                   Preparing the board canvas…
                 </p>
               }
@@ -1188,117 +1362,253 @@ export function CaseBoardPage({
                 store={activeStore}
                 onCardMoved={handleCardMoved}
                 onConnectionDrop={handleConnectionDrop}
-                cardLimitReached={capacityBlocked}
               />
             </Suspense>
           ) : null}
-        </div>
 
-        {!phoneLayout && visibleStatus === 'ready' && caseRecord !== null ? (
-          <ClosurePanel
-            caseRecord={caseRecord}
-            readiness={readiness}
-            busy={caseLifecycle.busy}
-            error={caseLifecycle.error}
-            onCloseCase={caseLifecycle.closeCase}
-            onReopenCase={caseLifecycle.reopenCase}
-            cardHref={(cardId) => `/case/${caseId}/card/${cardId}`}
-            onShowCard={handleShowLooseCard}
-            onClearError={caseLifecycle.clearError}
-          />
-        ) : null}
+          {!phoneLayout && addEvidence()}
+
+          {!phoneLayout && searchOpen && hasCards ? (
+            <Panel
+              open
+              id="case-board-search-panel"
+              className="case-board-panel case-board-panel--search"
+              title="Search this case"
+              description="Matches are found in titles, tags, and stored OCR text."
+              closeLabel="Close search"
+              transient
+              returnFocusRef={panelReturnFocus}
+              onClose={() => setSearchOpen(false)}
+            >
+              <SearchPanel
+                variant="popover"
+                hideTitle
+                cards={cards}
+                criteria={searchCriteria}
+                onCriteriaChange={setSearchCriteria}
+                onSelectCard={handleSearchSelect}
+                title="Search this case"
+              />
+            </Panel>
+          ) : null}
+
+          {!phoneLayout && menuOpen ? (
+            <Panel
+              open
+              id="case-board-menu-panel"
+              className="case-board-panel case-board-panel--menu"
+              title="Case menu"
+              closeLabel="Close case menu"
+              transient
+              returnFocusRef={menuTriggerRef}
+              onClose={() => setMenuOpen(false)}
+            >
+              <CaseMenu
+                caseId={caseId}
+                phone={false}
+                ready={ready}
+                cardCount={cards.length}
+                reminderVisible={ready && reminder.visible}
+                reminderSaving={reminder.saving}
+                reminderError={reminder.error}
+                capacityDismissed={capacityDismissed}
+                onBackup={openBackup}
+                onDismissReminder={() => {
+                  void reminder.dismiss();
+                }}
+                onDismissCapacity={() => {
+                  setCapacityDismissed(true);
+                  setCapacityToastOpen(false);
+                }}
+                onNavigate={() => setMenuOpen(false)}
+              />
+            </Panel>
+          ) : null}
+
+          {!phoneLayout && closureOpen && ready && caseRecord !== null ? (
+            <Panel
+              open
+              id="case-board-closure-panel"
+              className="case-board-panel case-board-panel--closure"
+              title="Case closure"
+              description="Derived readiness, loose threads, and the close or reopen action for this case."
+              closeLabel="Close case closure"
+              returnFocusRef={readinessTriggerRef}
+              onClose={() => setClosureOpen(false)}
+            >
+              <ClosurePanel
+                caseRecord={caseRecord}
+                readiness={readiness}
+                busy={caseLifecycle.busy}
+                error={caseLifecycle.error}
+                onCloseCase={caseLifecycle.closeCase}
+                onReopenCase={caseLifecycle.reopenCase}
+                cardHref={(cardId) => `/case/${caseId}/card/${cardId}`}
+                onShowCard={handleClosureShowCard}
+                onClearError={caseLifecycle.clearError}
+              />
+            </Panel>
+          ) : null}
+
+          {!phoneLayout && detailVisible && selectedDetail !== null ? (
+            <Panel
+              open
+              id="case-board-detail-panel"
+              className="case-board-panel case-board-panel--detail"
+              title="Connection details"
+              description={`“${selectedDetail.fromCard.title}” and “${selectedDetail.toCard.title}”`}
+              closeLabel="Close connection details"
+              returnFocusRef={boardHeadingRef}
+              onClose={handleCloseConnectionDetail}
+            >
+              <ConnectionDetail
+                embedded
+                connection={selectedDetail.connection}
+                fromCard={selectedDetail.fromCard}
+                toCard={selectedDetail.toCard}
+                onRetype={(type) => handleConnectionRetype(selectedDetail.connection, type)}
+                onDelete={() =>
+                  handleConnectionDelete(
+                    selectedDetail.connection,
+                    selectedDetail.fromCard.title,
+                    selectedDetail.toCard.title,
+                  )
+                }
+              />
+            </Panel>
+          ) : null}
+        </div>
       </div>
 
-      {/*
-        Phone surfaces. Each side panel keeps its tablet/desktop inline form and
-        gets one modal sheet below 600 px, so every action stays reachable and
-        focus is trapped only while the sheet is open.
-      */}
       {phoneLayout ? (
-        <Dialog
-          open={actionsSheetOpen}
-          onClose={() => setActionsSheetOpen(false)}
-          title="Case actions"
-          description="Back up, switch to recall, open the keyboard card list, or leave the case."
-          size="lg"
-          className="case-board-page__sheet case-board-page__sheet--actions"
-          returnFocusRef={sheetReturnFocusRef}
-        >
-          <div className="case-board-page__sheet-actions">
-            <Button
-              variant="primary"
-              fullWidth
-              disabled={visibleStatus !== 'ready' || activeRepository === null}
-              onClick={() => {
-                setActionsSheetOpen(false);
-                setBackupOpen(true);
-              }}
+        <nav className="case-board-bar" aria-label="Case board actions">
+          {hasCards ? (
+            <IconButton
+              ref={searchBarRef}
+              label={searchTriggerName}
+              aria-haspopup="dialog"
+              aria-expanded={searchOpen}
+              aria-controls="case-board-search-sheet"
+              onClick={() => (searchOpen ? setSearchOpen(false) : openSearchSurface())}
             >
-              Back up case
-            </Button>
+              <Glyph name="search" />
+            </IconButton>
+          ) : null}
 
-            {visibleStatus === 'ready' && cards.length > 0 ? (
-              <Link
-                className="nd-button nd-button--secondary nd-button--lg"
-                to={`/case/${caseId}/recall`}
-                onClick={() => setActionsSheetOpen(false)}
+          {hasCards &&
+            (capacityBlocked ? (
+              <span
+                className="case-board-bar__add"
+                aria-disabled="true"
+                aria-label="Add evidence"
+                aria-describedby="case-board-add-blocked"
+                data-testid="board-add-evidence-blocked"
               >
-                Recall
-              </Link>
-            ) : null}
-
-            {caseId.length > 0 ? (
+                <Glyph name="add" />
+              </span>
+            ) : (
               <Link
-                className="nd-button nd-button--secondary nd-button--lg"
-                to={`/case/${caseId}/list`}
-                onClick={() => setActionsSheetOpen(false)}
+                className="case-board-bar__add"
+                to={`/case/${caseId}/capture`}
+                aria-label="Add evidence"
               >
-                Open card list
+                <Glyph name="add" />
               </Link>
-            ) : null}
+            ))}
 
-            <Link
-              className="nd-button nd-button--quiet nd-button--lg"
-              to="/"
-              onClick={() => setActionsSheetOpen(false)}
+          {ready && caseRecord !== null ? (
+            <IconButton
+              ref={closureBarRef}
+              label="Case closure"
+              aria-haspopup="dialog"
+              aria-expanded={closureOpen}
+              aria-controls="case-board-closure-sheet"
+              onClick={() => (closureOpen ? setClosureOpen(false) : openClosureSurface())}
             >
-              Back to case shelf
-            </Link>
-          </div>
+              <Glyph name="closure" />
+            </IconButton>
+          ) : null}
 
-          <div className="case-board-page__sheet-legend">
-            <ConnectionLegend defaultOpen={false} />
-          </div>
-        </Dialog>
+          <IconButton
+            ref={menuBarRef}
+            className="case-board-bar__menu"
+            label={menuName}
+            aria-haspopup="dialog"
+            aria-expanded={menuOpen}
+            aria-controls="case-board-menu-sheet"
+            onClick={() => (menuOpen ? setMenuOpen(false) : openMenuSurface())}
+          >
+            <Glyph name="case-menu" />
+            {attentionDot}
+          </IconButton>
+        </nav>
       ) : null}
 
       {phoneLayout ? (
         <Dialog
-          open={searchSheetOpen}
-          onClose={() => setSearchSheetOpen(false)}
-          title="Search and filters"
-          description="Search titles, tags, and stored OCR text, then choose a result to centre it on the board."
+          open={searchOpen && hasCards}
+          onClose={() => setSearchOpen(false)}
+          id="case-board-search-sheet"
+          title="Search this case"
+          description="Matches are found in titles, tags, and stored OCR text. Choose a result to centre it on the board."
           size="lg"
-          className="case-board-page__sheet case-board-page__sheet--search"
+          className="case-board-sheet case-board-sheet--search"
           returnFocusRef={sheetReturnFocusRef}
         >
           <SearchPanel
             variant="sheet"
+            hideTitle
             cards={cards}
-            onSelectCard={handleSearchSheetSelect}
+            criteria={searchCriteria}
+            onCriteriaChange={setSearchCriteria}
+            onSelectCard={handleSearchSelect}
             title="Search this case"
           />
         </Dialog>
       ) : null}
 
-      {phoneLayout && caseRecord !== null ? (
+      {phoneLayout ? (
         <Dialog
-          open={closureSheetOpen}
-          onClose={() => setClosureSheetOpen(false)}
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          id="case-board-menu-sheet"
+          title="Case menu"
+          description="Backup, case capacity, recall, and case destinations."
+          size="lg"
+          className="case-board-sheet case-board-sheet--menu"
+          returnFocusRef={sheetReturnFocusRef}
+        >
+          <CaseMenu
+            caseId={caseId}
+            phone
+            ready={ready}
+            cardCount={cards.length}
+            reminderVisible={ready && reminder.visible}
+            reminderSaving={reminder.saving}
+            reminderError={reminder.error}
+            capacityDismissed={capacityDismissed}
+            onBackup={openBackup}
+            onDismissReminder={() => {
+              void reminder.dismiss();
+            }}
+            onDismissCapacity={() => {
+              setCapacityDismissed(true);
+              setCapacityToastOpen(false);
+            }}
+            onNavigate={() => setMenuOpen(false)}
+          />
+        </Dialog>
+      ) : null}
+
+      {phoneLayout && ready && caseRecord !== null ? (
+        <Dialog
+          open={closureOpen}
+          onClose={() => setClosureOpen(false)}
+          id="case-board-closure-sheet"
           title="Case closure"
           description="Derived readiness, loose threads, and the close or reopen action for this case."
           size="lg"
-          className="case-board-page__sheet case-board-page__sheet--closure"
+          className="case-board-sheet case-board-sheet--closure"
           returnFocusRef={sheetReturnFocusRef}
         >
           <ClosurePanel
@@ -1321,10 +1631,11 @@ export function CaseBoardPage({
           onClose={handleCloseConnectionDetail}
           title="Connection details"
           description={`“${selectedDetail.fromCard.title}” and “${selectedDetail.toCard.title}”`}
-          className="case-board-page__sheet case-board-page__sheet--connection"
+          className="case-board-sheet case-board-sheet--connection"
           returnFocusRef={sheetReturnFocusRef}
         >
           <ConnectionDetail
+            embedded
             connection={selectedDetail.connection}
             fromCard={selectedDetail.fromCard}
             toCard={selectedDetail.toCard}
@@ -1363,6 +1674,8 @@ export function CaseBoardPage({
           title={activeHint.title}
           description={activeHint.description}
           className="nd-hint--contextual"
+          placement="board"
+          autoFocus={false}
           returnFocusRef={boardHeadingRef}
           onDismiss={() => undefined}
         />

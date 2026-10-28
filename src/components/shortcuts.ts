@@ -28,8 +28,7 @@ export const KEYBOARD_SHORTCUTS: readonly KeyboardShortcutDefinition[] = Object.
     id: 'search',
     keys: '/',
     title: 'Search',
-    description:
-      'Move focus to the case search field. On a phone board it opens the Search and filters sheet.',
+    description: 'Move focus to the case search field. On a phone board it opens the Search sheet.',
   },
   {
     id: 'previous-card',

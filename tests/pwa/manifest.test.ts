@@ -140,9 +140,9 @@ describe('PWA registration wiring', () => {
     expect(mainSource).toContain('registerPwa()');
   });
 
-  it('mounts the update prompt from the app root', () => {
-    const appSource = readSource('src/app/App.tsx');
-    expect(appSource).toContain("import UpdatePrompt from './UpdatePrompt'");
-    expect(appSource).toContain('<UpdatePrompt />');
+  it('mounts the update prompt inside the shell System status dialog', () => {
+    const statusSource = readSource('src/app/SystemStatus.tsx');
+    expect(statusSource).toContain("import UpdatePrompt from './UpdatePrompt'");
+    expect(statusSource).toContain('<UpdatePrompt variant="inline" />');
   });
 });

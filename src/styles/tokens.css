@@ -142,6 +142,8 @@
   --motion-toast-offset: 12px;
 
   /* ---- Layering, targets, measure ------------------------------------- */
+  --z-hint: 250;
+  --z-panel: 300;
   --z-dialog: 400;
   --z-toast: 500;
   --z-skip-link: 600;

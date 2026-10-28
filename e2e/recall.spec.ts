@@ -281,7 +281,11 @@ async function addTopic(
 }
 
 async function enterRecall(page: Page): Promise<void> {
-  await page.getByRole('link', { name: 'Recall', exact: true }).click();
+  await page.getByRole('button', { name: 'Case menu' }).click();
+  await page
+    .getByRole('dialog', { name: 'Case menu' })
+    .getByRole('link', { name: 'Recall' })
+    .click();
   await expect(page.getByRole('heading', { level: 2, name: 'Recall' })).toBeVisible();
   await expect(page.getByTestId('board-canvas')).toHaveAttribute('data-board-mode', 'recall', {
     timeout: 30_000,

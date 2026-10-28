@@ -474,7 +474,7 @@ describe('contextual board hints', () => {
     await waitForBoardReady();
 
     const hint = await screen.findByRole('dialog', { name: 'Thread anchor' });
-    expect(hint).toHaveFocus();
+    expect(hint).toBeVisible();
     expect(hintStore.isSeen('thread-anchor')).toBe(false);
 
     await user.click(within(hint).getByRole('button', { name: 'Got it' }));
@@ -523,7 +523,7 @@ describe('contextual board hints', () => {
     });
 
     const hint = await screen.findByRole('dialog', { name: 'Touch long-press' });
-    expect(hint).toHaveFocus();
+    expect(hint).toBeVisible();
     await user.click(within(hint).getByRole('button', { name: 'Got it' }));
 
     await waitFor(() => {
@@ -572,7 +572,7 @@ describe('contextual board hints', () => {
     await waitForBoardReady();
 
     const hint = await screen.findByRole('dialog', { name: 'Recall mode' });
-    expect(hint).toHaveFocus();
+    expect(hint).toBeVisible();
     await user.click(within(hint).getByRole('button', { name: 'Got it' }));
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Recall mode' })).toBeNull();

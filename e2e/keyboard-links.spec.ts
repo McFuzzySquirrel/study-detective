@@ -318,6 +318,9 @@ test('creates, retypes, and deletes links from the card list with no canvas inte
   // 6. The same picker is reachable from card detail, with the same focus return.
   await page.goto(`/#/case/${caseId}/card/${NOTE_ID}`);
   await expect(page.getByRole('heading', { level: 2, name: NOTE_TITLE })).toBeVisible();
+  if ((page.viewportSize()?.width ?? 1440) < 600) {
+    await page.getByRole('button', { name: 'Card actions and tags' }).click();
+  }
   await expect(page.getByRole('button', { name: 'Attach source' })).toBeVisible();
 
   await pressButton(page, page, 'Connect to…');
