@@ -101,7 +101,6 @@
   max-block-size: min(62dvh, 32rem);
   object-fit: contain;
   background-color: var(--color-canvas-deep);
-  border: var(--border-width-strong) solid var(--color-border-strong);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-panel);
 }
