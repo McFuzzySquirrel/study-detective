@@ -1,0 +1,159 @@
+/*
+ * Welcome screen styles.
+ *
+ * The illustration keeps its own traced palette inside a case-file frame; no
+ * filter or tint is applied. Copy, spacing, and motion values come from
+ * tokens.css so the screen stays inside the locked Midnight Archive theme.
+ */
+
+.welcome {
+  display: grid;
+  gap: var(--space-6);
+  align-items: center;
+  min-inline-size: 0;
+  padding-block: var(--space-4) var(--space-8);
+}
+
+.welcome__copy {
+  display: grid;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.welcome__eyebrow {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+.welcome__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-display);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+/*
+ * The heading receives programmatic focus on arrival so screen readers announce
+ * the new screen. It is not an interactive control, so the focus ring is
+ * suppressed; the next Tab lands on Enter, which keeps its visible ring.
+ */
+.welcome__title:focus,
+.welcome__title:focus-visible {
+  outline: none;
+}
+
+.welcome__intro {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-body);
+  max-inline-size: var(--measure-narrow);
+}
+
+.welcome__beats {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.welcome__beats li::marker {
+  color: var(--color-accent-border);
+}
+
+.welcome__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.welcome__note {
+  margin: 0;
+  padding-block-start: var(--space-3);
+  border-block-start: var(--border-width) solid var(--color-border);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  max-inline-size: var(--measure-narrow);
+}
+
+.welcome__figure {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.welcome__image {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  max-block-size: min(62dvh, 32rem);
+  object-fit: contain;
+  background-color: var(--color-canvas-deep);
+  border: var(--border-width-strong) solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.welcome__caption {
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+/*
+ * Tablet landscape and desktop: the copy and illustration share the width.
+ * The document order stays copy-first for screen readers.
+ */
+@media (min-width: 60rem) {
+  .welcome {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: var(--space-10);
+  }
+}
+
+@media (max-width: 37.4375rem) {
+  .welcome {
+    gap: var(--space-4);
+    padding-block: var(--space-2) var(--space-6);
+  }
+
+  /* The hero leads visually on phones; focusable content stays in the copy. */
+  .welcome__figure {
+    order: -1;
+  }
+
+  .welcome__image {
+    max-block-size: 38dvh;
+  }
+
+  .welcome__title {
+    font-size: var(--font-size-2xl);
+  }
+
+  .welcome__intro {
+    font-size: var(--font-size-md);
+  }
+
+  .welcome__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .welcome__actions .nd-button {
+    inline-size: 100%;
+  }
+}

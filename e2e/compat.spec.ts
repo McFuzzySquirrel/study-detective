@@ -10,10 +10,11 @@ import type { BrowserContext, Page, TestInfo } from '@playwright/test';
  *
  * Runs in the three Chromium viewport projects and in the Firefox and WebKit
  * projects, which are limited to this spec by `testMatch` in
- * playwright.config.ts. Every project starts from a genuinely empty install so
- * the production first-run seeder writes the demo case through the real
- * IndexedDB path. The journey then opens the shelf, the demo case, the board,
- * the card list search, and settings without using a fixture-injected route.
+ * playwright.config.ts. Every project starts from a fresh install so the
+ * production first-run seeder writes the demo case through the real IndexedDB
+ * path; the welcome flag is the only pre-set key. The journey then opens the
+ * shelf, the demo case, the board, the card list search, and settings without
+ * using a fixture-injected route.
  *
  * WebKit note: Playwright's WebKit embedder uses an ephemeral session for the
  * default non-persistent context, and WebKit's ephemeral sessions cannot write
@@ -22,7 +23,9 @@ import type { BrowserContext, Page, TestInfo } from '@playwright/test';
  * four real image attachments, so the WebKit project runs this journey in a
  * persistent profile instead. That is the same production seed and IndexedDB
  * code path; only the browser session type changes. Chromium and Firefox keep
- * the normal context.
+ * the normal context. The persistent profile cannot inherit Playwright's
+ * storage state, so the journey accepts the welcome screen and presses Enter
+ * there.
  *
  * Failure evidence is the browser's own `pageerror` and console-error stream,
  * not a screenshot-only check.
@@ -32,9 +35,10 @@ const DEMO_TITLE = 'Demo Case: The Missing Lecture';
 const NOTE_TITLE = 'Photosynthesis lecture notes';
 const DEMO_CARD_COUNT = 6;
 
-// A truly fresh install so the production first-run seeder writes the demo.
-// The persistent WebKit profile is also created empty for the same reason.
-test.use({ storageState: { cookies: [], origins: [] } });
+// A fresh install with only the welcome flag pre-set, so the production
+// first-run seeder writes the demo and this journey starts on the shelf. The
+// persistent WebKit profile is also created empty for the same reason.
+test.use({ storageState: './e2e/fixtures/welcome-seen-storage.json' });
 
 interface BrowserErrorLog {
   readonly pageErrors: string[];
@@ -55,6 +59,27 @@ function trackBrowserErrors(page: Page): BrowserErrorLog {
   });
 
   return { pageErrors, consoleErrors };
+}
+
+/**
+ * The default context inherits the welcome-seen fixture. WebKit's persistent
+ * profile is created empty, so this helper also accepts the welcome screen and
+ * presses Enter. Either way the demo still seeds from a fresh install.
+ */
+async function ensureWelcomePassed(page: Page): Promise<void> {
+  const enter = page.getByRole('button', { name: 'Enter the case files' });
+  const shelf = page.getByRole('heading', { level: 2, name: 'Case shelf' });
+
+  await Promise.race([
+    enter.waitFor({ state: 'visible', timeout: 30_000 }),
+    shelf.waitFor({ state: 'visible', timeout: 30_000 }),
+  ]);
+
+  if (await enter.isVisible()) {
+    await enter.click();
+  }
+
+  await expect(shelf).toBeVisible({ timeout: 30_000 });
 }
 
 async function openWebkitPersistentPage(
@@ -99,11 +124,11 @@ test('shelf, demo case, board, search, and settings load without an unhandled er
 
     // Shelf ----------------------------------------------------------------
     await activePage.goto('/');
+    await ensureWelcomePassed(activePage);
 
     await expect(
       activePage.getByRole('heading', { level: 1, name: 'Notes Detective' }),
     ).toBeVisible();
-    await expect(activePage.getByRole('heading', { level: 2, name: 'Case shelf' })).toBeVisible();
     await expect(activePage.getByRole('link', { name: DEMO_TITLE })).toBeVisible({
       timeout: 30_000,
     });

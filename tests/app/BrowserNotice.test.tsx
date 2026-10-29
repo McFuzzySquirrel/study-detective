@@ -16,6 +16,7 @@ import {
 import type { CoreApiEnvironment, CoreApiKey } from '../../src/app/browserSupport';
 import { InMemoryCaseRepository } from '../../src/data/caseRepository';
 import { CaseShelfPage } from '../../src/features/shelf/CaseShelfPage';
+import { WELCOME_SEEN_STORAGE_KEY } from '../../src/features/welcome/welcomeSeen';
 
 /**
  * A11Y-FR-08 component evidence.
@@ -102,6 +103,7 @@ const missingCases: ReadonlyArray<{
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  window.localStorage.clear();
 });
 
 describe('supportsCoreApis', () => {
@@ -220,6 +222,9 @@ describe('BrowserNotice', () => {
 
 describe('App composition', () => {
   it('mounts the status chip from the composition root while the shelf still renders', async () => {
+    // This composition test is about the shelf, not the first-run welcome.
+    window.localStorage.setItem(WELCOME_SEEN_STORAGE_KEY, '1');
+
     // jsdom does not implement IndexedDB, Web Workers, or service workers;
     // remove WebAssembly too so the notice must list all four capabilities.
     vi.stubGlobal('indexedDB', undefined);

@@ -1,0 +1,101 @@
+/*
+ * Help dialog.
+ *
+ * The dialog body is a stack of short reference sections. It is long enough to
+ * scroll on a phone, so section spacing stays inside the existing Dialog
+ * panel rather than introducing a second nested scroll region.
+ */
+
+.help-dialog .nd-dialog__body {
+  gap: var(--space-6);
+}
+
+.help-section {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+
+/*
+ * The help opens with focus on the first section so the panel starts at the
+ * top rather than scrolling to the action buttons. The section is not an
+ * interactive control, so its programmatic focus ring is suppressed.
+ */
+.help-section--start:focus,
+.help-section--start:focus-visible {
+  outline: none;
+}
+
+.help-section__title {
+  margin: 0;
+  color: var(--color-heading-ink);
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-heading);
+}
+
+.help-flow {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.help-flow__step {
+  padding-inline-start: var(--space-1);
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.help-flow__step::marker {
+  color: var(--color-accent-border);
+  font-weight: var(--font-weight-bold);
+}
+
+.help-flow__step-title {
+  display: block;
+  color: var(--color-ink);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.help-flow__step-copy {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.help-gestures {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.help-gestures__row {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.help-gestures__row dt {
+  color: var(--color-ink);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.help-gestures__row dd {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}
+
+.help-note {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-ink-muted);
+  background-color: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-body);
+}

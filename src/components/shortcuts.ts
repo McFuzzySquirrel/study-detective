@@ -21,8 +21,8 @@ export const KEYBOARD_SHORTCUTS: readonly KeyboardShortcutDefinition[] = Object.
   {
     id: 'help',
     keys: '?',
-    title: 'Shortcut help',
-    description: 'Open this list of keyboard shortcuts.',
+    title: 'Help',
+    description: 'Open the typical flow, board gestures, and keyboard shortcuts.',
   },
   {
     id: 'search',

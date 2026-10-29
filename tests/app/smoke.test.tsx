@@ -1,12 +1,19 @@
 import { StrictMode } from 'react';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import App from '../../src/App';
+import { WELCOME_SEEN_STORAGE_KEY } from '../../src/features/welcome/welcomeSeen';
+
+beforeEach(() => {
+  // This is the shelf smoke test; the first-run welcome has its own coverage.
+  window.localStorage.setItem(WELCOME_SEEN_STORAGE_KEY, '1');
+});
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  window.localStorage.clear();
   window.location.hash = '';
 });
 

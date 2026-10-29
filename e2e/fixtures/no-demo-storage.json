@@ -5,6 +5,10 @@
       "origin": "http://127.0.0.1:4173",
       "localStorage": [
         {
+          "name": "notes-detective.welcome.seen",
+          "value": "1"
+        },
+        {
           "name": "notes-detective.demo.seeded",
           "value": "1"
         },

@@ -1,13 +1,17 @@
 import { HashRouter } from 'react-router';
 
+import type { WelcomeSeenStore } from '../features/welcome/welcomeSeen';
 import AppBootstrap from './AppBootstrap';
 import type { FirstRunSeed } from './AppBootstrap';
 import AppShell from './AppShell';
+import WelcomeGate from './WelcomeGate';
 import AppRoutes from './routes';
 
 export interface AppProps {
   /** Injected first-run seed for tests; production uses the real demo seeder. */
   readonly seedFirstRun?: FirstRunSeed | undefined;
+  /** Injected welcome flag store for tests; production uses localStorage. */
+  readonly welcomeSeenStore?: WelcomeSeenStore | undefined;
 }
 
 /**
@@ -17,17 +21,23 @@ export interface AppProps {
  * read already includes the demo, while the shell and its navigation stay
  * usable throughout.
  *
+ * An unseen first visit is redirected to the welcome screen before the shell
+ * mounts. The demo seed then runs behind the welcome, so Enter opens an
+ * already-prepared shelf.
+ *
  * Offline, update, and browser-support notices are owned by the shell's
  * `System status` chip, so the root renders no floating status surfaces.
  */
-export default function App({ seedFirstRun }: AppProps = {}) {
+export default function App({ seedFirstRun, welcomeSeenStore }: AppProps = {}) {
   return (
     <HashRouter>
-      <AppShell>
-        <AppBootstrap {...(seedFirstRun !== undefined ? { seedFirstRun } : {})}>
-          <AppRoutes />
-        </AppBootstrap>
-      </AppShell>
+      <WelcomeGate {...(welcomeSeenStore !== undefined ? { seenStore: welcomeSeenStore } : {})}>
+        <AppShell>
+          <AppBootstrap {...(seedFirstRun !== undefined ? { seedFirstRun } : {})}>
+            <AppRoutes {...(welcomeSeenStore !== undefined ? { welcomeSeenStore } : {})} />
+          </AppBootstrap>
+        </AppShell>
+      </WelcomeGate>
     </HashRouter>
   );
 }

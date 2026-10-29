@@ -18,6 +18,7 @@ function renderAt(path: string) {
 
 const namedRoutes = [
   ['/', 'Case shelf'],
+  ['/welcome', 'Welcome to Notes Detective'],
   ['/case/alpha', 'Case board'],
   ['/case/alpha/capture', 'Capture evidence'],
   ['/case/alpha/recall', 'Recall'],

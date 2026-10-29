@@ -1,18 +1,19 @@
 /**
- * App-wide keyboard shortcuts and the shortcut reference shown from Settings
- * and from the `?` key.
+ * App-wide keyboard shortcuts.
  *
- * The listener is mounted by `AppShell`, so it is active on every route. It
- * never edits a record: every shortcut either moves focus to a real control or
- * asks the current screen to open its own search surface. Spatial placement,
- * canvas panning, and scratch drawing remain pointer-only and have no shortcut.
+ * The listener is mounted inside the app shell, so it is active on every
+ * route. It never edits a record: every shortcut either moves focus to a real
+ * control or asks the current screen to open its own search surface. Spatial
+ * placement, canvas panning, and scratch drawing remain pointer-only and have
+ * no shortcut.
+ *
+ * The `?` key opens the shared help dialog from `HelpProvider`; this module
+ * owns only the key handling so the top-bar Help button, the welcome screen,
+ * and the keyboard all teach the same model.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-
-import Dialog from '../components/Dialog';
-import ShortcutList from '../components/ShortcutList';
 
 import {
   DISMISS_EVENT,
@@ -24,6 +25,7 @@ import {
   isEditableElement,
   moveCardListFocus,
 } from './focus';
+import { useHelp } from './helpContext';
 
 export interface KeyboardShortcutsProps {
   /** Disable the global listener, for a route that supplies its own mode. */
@@ -31,11 +33,11 @@ export interface KeyboardShortcutsProps {
 }
 
 /**
- * Mount once in `AppShell`. It renders no visible chrome until help is opened.
+ * Mount once in `AppShell`. It renders no visible chrome; the help dialog is
+ * rendered by `HelpProvider`.
  */
 export default function KeyboardShortcuts({ enabled = true }: KeyboardShortcutsProps) {
-  const [helpOpen, setHelpOpen] = useState(false);
-  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const { openHelp } = useHelp();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -73,8 +75,7 @@ export default function KeyboardShortcuts({ enabled = true }: KeyboardShortcutsP
 
       if (event.key === '?') {
         event.preventDefault();
-        returnFocusRef.current = activeFocusElement();
-        setHelpOpen(true);
+        openHelp(activeFocusElement());
         return;
       }
 
@@ -123,48 +124,7 @@ export default function KeyboardShortcuts({ enabled = true }: KeyboardShortcutsP
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [enabled, location.pathname, navigate]);
+  }, [enabled, location.pathname, navigate, openHelp]);
 
-  return (
-    <Dialog
-      open={helpOpen}
-      onClose={() => setHelpOpen(false)}
-      title="Keyboard shortcuts"
-      description="These shortcuts work on every route. Spatial placement, canvas panning, and scratch drawing stay pointer-only."
-      size="md"
-      returnFocusRef={returnFocusRef}
-    >
-      <ShortcutList />
-
-      <section className="board-gestures" aria-labelledby="board-gestures-title">
-        <h3 id="board-gestures-title" className="board-gestures__title">
-          Board gestures
-        </h3>
-        <dl className="board-gestures__list">
-          <div className="board-gestures__row">
-            <dt>Pan</dt>
-            <dd>Drag the empty cork, or swipe with one finger.</dd>
-          </div>
-          <div className="board-gestures__row">
-            <dt>Zoom</dt>
-            <dd>Pinch, scroll, or use the view cluster.</dd>
-          </div>
-          <div className="board-gestures__row">
-            <dt>Move a card</dt>
-            <dd>Drag it with a mouse, or long-press for 500 ms on touch.</dd>
-          </div>
-          <div className="board-gestures__row">
-            <dt>Draw a thread</dt>
-            <dd>Select a card, then drag its pin anchor to another card.</dd>
-          </div>
-        </dl>
-      </section>
-
-      <p className="shortcut-list__note">
-        Every non-spatial action also has a visible button or link in the card list, card detail,
-        search panel, or recall toolbar. Letter, bracket, and slash shortcuts stay inert while you
-        type; Escape still closes an overlay or clears search.
-      </p>
-    </Dialog>
-  );
+  return null;
 }

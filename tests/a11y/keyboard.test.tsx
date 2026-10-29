@@ -106,7 +106,7 @@ function LocationProbe() {
 }
 
 describe('KeyboardShortcuts mounted by AppShell', () => {
-  it('opens the shortcut help with ?, lists every shortcut, and restores focus on Escape', async () => {
+  it('opens the shared help with ?, lists every shortcut, and restores focus on Escape', async () => {
     const user = userEvent.setup();
     renderShell();
 
@@ -116,7 +116,7 @@ describe('KeyboardShortcuts mounted by AppShell', () => {
 
     await user.keyboard('?');
 
-    const dialog = await screen.findByRole('dialog', { name: 'Keyboard shortcuts' });
+    const dialog = await screen.findByRole('dialog', { name: 'How Notes Detective works' });
     expect(dialog).toBeInTheDocument();
 
     for (const shortcut of KEYBOARD_SHORTCUTS) {
