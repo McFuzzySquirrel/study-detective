@@ -1,0 +1,66 @@
+{
+  "type": "work.data-4",
+  "category": "work",
+  "taskId": "DATA-4",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented persistent-storage requests, usage/quota warnings, and cross-tab case invalidation; required tests, typecheck, full suite, lint, formatting, coverage, and build pass.",
+  "inputs": [
+    "work-data-3-001",
+    "work-data-1-001",
+    "work-data-2-001"
+  ],
+  "filesChanged": [
+    "src/data/persistence.ts",
+    "src/data/storageEstimate.ts",
+    "src/data/useBroadcastSync.ts",
+    "src/features/shelf/StorageStatus.tsx",
+    "src/features/shelf/CaseFormDialog.tsx",
+    "src/features/shelf/CaseShelf.tsx",
+    "tests/data/persistence.test.ts",
+    "tests/data/storageEstimate.test.ts",
+    "tests/data/useBroadcastSync.test.tsx",
+    "tests/shelf/StorageStatus.test.tsx",
+    "src/features/shelf/CaseShelfPage.tsx",
+    "src/features/shelf/shelf.css",
+    "src/features/shelf/useBroadcastSync.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented persistent-storage requests, usage/quota warnings, and cross-tab case invalidation; required tests, typecheck, full suite, lint, formatting, coverage, and build pass.",
+    "decisions": [
+      "The pure BroadcastChannel/event layer stays in src/data/useBroadcastSync.ts to preserve the data-layer no-React boundary; the React hook lives in src/features/shelf/useBroadcastSync.ts.",
+      "Persistence is requested only after the first successful case creation and cached once per PersistenceClient.",
+      "Remote mutations trigger an authoritative repository re-read; dialog state is untouched so unsaved drafts survive, and local writes invalidate stale in-flight remote refreshes.",
+      "StorageStatus exposes a backupAction slot but does not implement backup export/import, which remains out of scope."
+    ],
+    "interfaces": [
+      "PersistenceClient.read()/request()/snapshot(); readPersistenceState(), requestPersistentStorage(), PersistenceResult.",
+      "readStorageEstimate(), summarizeStorageEstimate(), formatStorageBytes(), StorageEstimateSnapshot.",
+      "useBroadcastSync({ onMutation, channelName?, createChannel? }) from src/features/shelf/useBroadcastSync returns { broadcastMutation(caseId, mutation) }.",
+      "StorageStatus({ persistence, estimate, backupAction? })."
+    ],
+    "tests": [
+      "npm test -- tests/data/persistence.test.ts tests/data/storageEstimate.test.ts tests/data/useBroadcastSync.test.tsx tests/shelf/StorageStatus.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/data/persistence.test.ts tests/data/storageEstimate.test.ts tests/data/useBroadcastSync.test.tsx tests/shelf/StorageStatus.test.tsx: exit 0 (26 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (262 tests)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0",
+      "npm run test:coverage: exit 0; src/data 94.56% lines, src/domain 97.95% lines"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.",
+      "Storage and BroadcastChannel tests use injected structural fakes in jsdom; real browser eviction/BroadcastChannel behavior is not exercised here."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Implement persistence helpers that call navigator.storage.persist() on first case creation, report persistent or best-effort, and read navigator.storage.estimate(). Add a StorageStatus component to the shelf showing state, usage, quota, and an 80 percent warning. Add a BroadcastChannel-based useBroadcastSync hook that broadcasts case mutation events and invalidates shelf and case reads in other tabs without replacing an open unsaved form. Handle unsupported APIs with a clear best-effort state. Do not add backup export or import."
+  },
+  "nextActions": [],
+  "artifactId": "work-data-4-001",
+  "createdAt": "2026-10-25T20:37:11.065Z"
+}

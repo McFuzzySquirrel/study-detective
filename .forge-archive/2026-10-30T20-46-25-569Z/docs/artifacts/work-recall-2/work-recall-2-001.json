@@ -1,0 +1,71 @@
+{
+  "type": "work.recall-2",
+  "category": "work",
+  "taskId": "RECALL-2",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "Implemented RECALL-2: lazy recall route, hidden truth strings, neutral in-memory scratch layer, thread-anchor scratch drawing, individual removal, reset, confirmed exit, route-change/reload discard, keyboard controls, component tests, and a real-browser recall journey. Required tests, typecheck, lint, full unit suite, and build all pass.",
+  "inputs": [
+    "work-recall-1-001",
+    "work-link-4-001"
+  ],
+  "filesChanged": [
+    "src/features/recall/RecallPage.tsx",
+    "src/features/recall/RecallToolbar.tsx",
+    "src/features/recall/useScratchConnections.ts",
+    "src/features/recall/recall.css",
+    "src/board/BoardCanvas.tsx",
+    "src/app/routes.tsx",
+    "tests/recall/RecallPage.test.tsx",
+    "e2e/recall.spec.ts",
+    "src/board/BoardScene.ts",
+    "src/board/StringLayer.ts",
+    "src/features/case/CaseBoardPage.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented RECALL-2: lazy recall route, hidden truth strings, neutral in-memory scratch layer, thread-anchor scratch drawing, individual removal, reset, confirmed exit, route-change/reload discard, keyboard controls, component tests, and a real-browser recall journey. Required tests, typecheck, lint, full unit suite, and build all pass.",
+    "decisions": [
+      "RecallPage never passes truth connections to the canvas; it keeps them in page state only for the Check comparison.",
+      "BoardScene owns a separate neutral StringLayer for scratch pairs so truth association/provenance colors cannot leak.",
+      "Recall entry hydrates the stored viewport then applies a temporary fit, never scheduling a viewport write.",
+      "Scratch additions/removals and Check only touch the in-memory store and pure comparison; no repository or storage import exists on that path.",
+      "Exit uses an in-app Dialog only for non-empty scratch; browser back, route change, and reload discard silently.",
+      "Individual scratch removal is a keyboard-reachable DOM list in RecallToolbar, while drawing remains pointer-only."
+    ],
+    "interfaces": [
+      "BoardCanvasProps: snapshot, store?, mode?: 'browse'|'recall', scratchConnections?, onScratchDrop?, onCardMoved?, onCardTap?, onConnectionDrop?, cardLimitReached?",
+      "BoardSnapshot: { caseId, caseTitle, cards, connections?, scratchConnections? }",
+      "BoardScratchDrop: { fromCardId: string; toCardId: string | null }",
+      "RecallPageProps: repository?, loadRepository?, store?, scratchStore?",
+      "useScratchConnections: scratchConnections, count, hasScratch, addScratch, addScratchPair, removeScratch, removeScratchPair, resetScratch, resetOnExit",
+      "RecallToolbar props: scratchConnections, cards, checked, onCheck, onReset, onExit, onRemove"
+    ],
+    "tests": [
+      "npm test -- tests/recall/RecallPage.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/recall.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/recall/RecallPage.test.tsx: 3 passed",
+      "npm run test:e2e -- e2e/recall.spec.ts: 2 passed, 1 phone project skipped",
+      "npm run typecheck: passed",
+      "npm run lint: passed",
+      "npm test: 69 files, 894 tests passed",
+      "npm run build (via test:e2e): passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Broader board/connection e2e specs still fail in this environment independently of RECALL-2 (board pan and duplicate-link selector; connections second-thread menu); they were not modified and are outside the required validation.",
+      "The phone e2e project is skipped for the pointer path; keyboard entry/reset/exit are covered by component tests, not a phone browser journey.",
+      "The Check action currently exposes counts through data attributes and a status message only; the RECALL-3 accessible results panel remains intentionally unimplemented."
+    ],
+    "validationLimitations": [
+      "45 FPS at 150 cards on the target tablet was not measured; board-feel and FPS still require human review.",
+      "Culling and texture-cap behavior were not re-measured because these layers were not changed; existing board tests remain green.",
+      "A component test with a mocked Pixi boundary is supplemented by the real-browser recall journey for scratch drawing and route teardown."
+    ],
+    "taskDescription": "Create RecallPage, RecallToolbar, and useScratchConnections. Extend BoardCanvas with a recall mode that hides truth strings, keeps titles and images, fits the case to view in memory, and renders neutral scratch strings. Reuse the thread-anchor gesture to add scratch pairs without calling ConnectionRepository; support removing an individual scratch string. Add Reset scratch and Exit recall with an in-app confirmation when scratch is non-empty. Route /case/:caseId/recall and wire entry from the case. Add component tests and a Playwright journey that enters recall, draws reversed pairs, checks, resets, and exits. Do not add the results panel."
+  },
+  "nextActions": [],
+  "artifactId": "work-recall-2-001",
+  "createdAt": "2026-10-26T17:32:14.867Z"
+}

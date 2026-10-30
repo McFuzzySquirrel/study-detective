@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T18:53:52.677Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "FND-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "vite.config.ts",
+      "src/pwaManifest.ts",
+      "src/pwa.ts",
+      "src/main.tsx",
+      "src/App.tsx",
+      "src/app/UpdatePrompt.tsx",
+      "src/app/UpdatePrompt.css",
+      "public/icons/icon.svg",
+      "public/icons/icon-192.png",
+      "public/icons/icon-512.png",
+      "public/icons/maskable-512.png",
+      "scripts/generate-icons.mjs",
+      "tests/pwa/manifest.test.ts",
+      "tests/pwa/UpdatePrompt.test.tsx",
+      "src/vite-env.d.ts",
+      "vitest.config.ts",
+      "tests/stubs/pwa-register.ts"
+    ],
+    "stdout": "I'll start by reading the execution file.\nImplementation complete. Summary of verification:\n\n| Command | Result |\n|---|---|\n| `node scripts/generate-icons.mjs` | exit 0 — produced 192, 512, and maskable 512 PNGs |\n| `npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx` | exit 0 — 14 tests |\n| `npm run build` | exit 0 — manifest, `sw.js`, 9 precache entries, prompt registration |\n| `npm test` | exit 0 — 15 tests |\n| `npm run typecheck` | exit 0 |\n| `npm run lint` | exit 0 |\n| `npm run format:check` | exit 0 |\n| `npm run test:e2e -- e2e/smoke.spec.ts` | exit 0 — desktop, tablet, phone |\n\nEvidence recorded: manifest fields and icon dimensions are asserted against files on disk; the built manifest contains only relative same-origin assets; the built worker registers `./sw.js` with scope `./`; no activation occurs before clicking Refresh; Refresh is disabled and `confirmUpdate()` returns `false` while an edit is unsaved; Later dismisses without activating; `skipWaiting` and `clientsClaim` are `false`.\n\nFiles created:\n- `public/icons/icon.svg`\n- `public/icons/icon-192.png`\n- `public/icons/icon-512.png`\n- `public/icons/maskable-512.png`\n- `scripts/generate-icons.mjs`\n- `src/pwaManifest.ts`\n- `src/pwa.ts`\n- `src/app/UpdatePrompt.tsx`\n- `src/app/UpdatePrompt.css`\n- `tests/pwa/manifest.test.ts`\n- `tests/pwa/UpdatePrompt.test.tsx`\n- `tests/stubs/pwa-register.ts`\n\nFiles changed:\n- `vite.config.ts`\n- `vitest.config.ts`\n- `src/main.tsx`\n- `src/App.tsx`\n- `src/vite-env.d.ts`\n\n```forge-result\n{\"summary\":\"FND-2 complete: installable PWA manifest with generated 192/512/maskable icons, prompt-mode service worker registration, app-shell precache, and an explicit Refresh/Later update prompt gated by unsaved edits. All required validation commands pass, including the production build and full unit suite.\",\"unresolved\":[],\"decisions\":[\"Kept relative Vite base and relative manifest start_url/scope for GitHub Pages portability.\",\"Used prompt mode with injectRegister disabled so src/pwa.ts owns registration and activation requires explicit confirmation.\",\"Added a small unsaved-changes registry in src/pwa.ts for feature forms to gate activation.\",\"Aliased virtual:pwa-register to a test stub in vitest.config.ts so component tests can drive waiting-worker behavior.\",\"Set includeManifestIcons false to avoid duplicate precache entries while glob patterns cache the icons once.\",\"Manifest theme colors are provisional literals; ui-engineer owns final locked tokens in FND-5.\"],\"interfaces\":[\"pwaManifest and pwaOptions from src/pwaManifest.ts\",\"registerPwa, setUnsavedChanges, confirmUpdate, dismissUpdate, subscribeToUpdatePrompt, getUpdatePromptState from src/pwa.ts\",\"UpdatePrompt mounted by src/App.tsx\"],\"tests\":[\"node scripts/generate-icons.mjs: exit 0\",\"npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx: exit 0 (14 tests)\",\"npm run build: exit 0\",\"npm test: exit 0 (15 tests)\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm run format:check: exit 0\",\"npm run test:e2e -- e2e/smoke.spec.ts: exit 0 (3 viewports)\"],\"warnings\":[\"Offline reload/install verification is intentionally not claimed in FND-2; that belongs to the later release PWA journey.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 255023
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "node scripts/generate-icons.mjs: exit 0 (engine-verified)",
+        "npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx: exit 0 (engine-verified)",
+        "npm run build: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "FND-2 complete: installable PWA manifest with generated 192/512/maskable icons, prompt-mode service worker registration, app-shell precache, and an explicit Refresh/Later update prompt gated by unsaved edits. All required validation commands pass, including the production build and full unit suite.",
+    "unresolved": [],
+    "decisions": [
+      "Kept relative Vite base and relative manifest start_url/scope for GitHub Pages portability.",
+      "Used prompt mode with injectRegister disabled so src/pwa.ts owns registration and activation requires explicit confirmation.",
+      "Added a small unsaved-changes registry in src/pwa.ts for feature forms to gate activation.",
+      "Aliased virtual:pwa-register to a test stub in vitest.config.ts so component tests can drive waiting-worker behavior.",
+      "Set includeManifestIcons false to avoid duplicate precache entries while glob patterns cache the icons once.",
+      "Manifest theme colors are provisional literals; ui-engineer owns final locked tokens in FND-5."
+    ],
+    "interfaces": [
+      "pwaManifest and pwaOptions from src/pwaManifest.ts",
+      "registerPwa, setUnsavedChanges, confirmUpdate, dismissUpdate, subscribeToUpdatePrompt, getUpdatePromptState from src/pwa.ts",
+      "UpdatePrompt mounted by src/App.tsx"
+    ],
+    "tests": [
+      "node scripts/generate-icons.mjs: exit 0",
+      "npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx: exit 0 (14 tests)",
+      "npm run build: exit 0",
+      "npm test: exit 0 (15 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run test:e2e -- e2e/smoke.spec.ts: exit 0 (3 viewports)"
+    ],
+    "warnings": [
+      "Offline reload/install verification is intentionally not claimed in FND-2; that belongs to the later release PWA journey."
+    ]
+  }
+}

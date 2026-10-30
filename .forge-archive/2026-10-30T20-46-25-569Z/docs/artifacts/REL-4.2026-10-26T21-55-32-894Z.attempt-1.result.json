@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T21:55:32.894Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "REL-4",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "README.md",
+      "docs/RELEASE.md",
+      "scripts/check-release-docs.mjs",
+      "tests/release/releaseDocs.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and the referenced documentation.\nNow I have the full picture. I'll write the docs checker first, then the documents it validates, then its tests.\nThe required REL-4 checks pass. A full E2E run surfaced pre-existing failures unrelated to documentation, so I'm correcting the release checklist to avoid claiming a green suite.\nI'll add direct evidence for the base-path deep link by loading it in Chromium against the production preview.\n## REL-4 report\n\n### Files created or changed\n\n| File | Change |\n| --- | --- |\n| `README.md` | Replaced with the product summary, requirements, install/dev/test/preview flows, script table, quality gates, Pages deployment, privacy model, backup/restore, browser/device support, known limitations, and documentation links. |\n| `docs/RELEASE.md` | Created with version/date, split automated/human checklist, CI gates, human gates, hard success signal, post-v1 pilot, changelog, and open release risks. |\n| `scripts/check-release-docs.mjs` | Created the release-docs checker: headings by level, local links and anchors, required commands, package-script/script-file drift, placeholders, and forbidden claims. |\n| `tests/release/releaseDocs.test.ts` | Created 15 tests covering the real documents and every required failure mode. |\n\nNo product code, execution file, or `docs/artifacts/` file was changed.\n\n### Required validation commands\n\n| Command | Result |\n| --- | --- |\n| `node scripts/check-release-docs.mjs` | **Exit 0** — README has 16 headings, 11 local links, 16 required commands; RELEASE has 13 headings, 3 local links, 11 required commands. |\n| `npm test -- tests/release/releaseDocs.test.ts` | **Exit 0** — 15/15 tests pass. |\n\nThe tests prove the checker fails on missing headings, broken local links, missing required links, bad heading anchors, missing commands, `TODO`/`TBD`/`example.com` placeholders, missing npm scripts, missing script files, and claims of end-to-end encryption, cloud sync, or screen-reader canvas parity.\n\n### Additional release evidence\n\n| Check | Result |\n| --- | --- |\n| `VITE_BASE_PATH=/notes-detective/ npm run build` | Exit 0 |\n| `node scripts/check-pages-build.mjs --base /notes-detective/` | Pass — base `/notes-detective/`, all assets prefixed, manifest `start_url \"./\"`, `scope \"./\"`, 192/512/maskable icons resolve |\n| Direct deep link against preview | `http://127.0.0.1:4174/notes-detective/#/settings` returned HTTP 200, rendered H2 “Settings”, manifest URL `http://127.0.0.1:4174/notes-detective/manifest.webmanifest` |\n| `node scripts/perf-budget.mjs` | Pass — **88.1 KiB** initial JavaScript ≤ 300 KiB |\n| `node scripts/check-bundle-budget.mjs` | Pass — **10.90 MiB** precache ≤ 25 MiB (67 entries) |\n| `node scripts/validate-workflows.mjs` | Pass |\n| `npm run lint` | Exit 0 — 0 errors, 3 pre-existing `RecallSummary.tsx` fast-refresh warnings |\n| `npm run typecheck` | Exit 0 |\n| `npm run test:coverage` | Exit 0 — 90 test files pass; domain/data thresholds hold |\n| `npm run test:e2e` | **Exit 1** — 69 passed, 19 failed, 13 skipped; the PWA install/offline/update spec passed at all three Chromium viewports |\n\n### Release gate status\n\n- **Human gate remains open.** No `docs/reviews/final-acceptance.json` was created or approved; the tablet/phone/desktop journey and the “would you choose this over re-reading your notes” answer require a human reviewer.\n- **Deployment is not verified.** No GitHub Pages deployment was run in this task, so there is no deployed URL or production build identity to report. The release checklist leaves the CI/deployment items unchecked.\n- **Full E2E is not green and is recorded as a release blocker in `docs/RELEASE.md`.** Failures clustered in board drag/pan, capture, connection drawing, several phone layouts, and one search keyboard path; they are unrelated to the documentation changes but must be resolved or proven environmental before release.\n- The git remote is `study-detective` while the task examples use `/notes-detective/`; the deploy workflow derives the base path from the repository name, so the actual deployed path must be verified after deployment.\n\n```forge-result\n{\n  \"summary\": \"REL-4 complete: README.md and docs/RELEASE.md now cover setup, scripts, preview, Pages deployment, privacy, backup/restore, browser/device support, limitations, release gates, the hard success signal, post-v1 pilot, and changelog. scripts/check-release-docs.mjs enforces headings, local links and anchors, documented commands against package.json and script files, placeholders, and forbidden claims; tests/release/releaseDocs.test.ts passes 15/15. Both required validation commands exit 0. The Pages base-path build/check passes, budgets pass (88.1 KiB initial JS, 10.90 MiB precache), and /notes-detective/#/settings loads with HTTP 200. Full E2E is not green (69 passed, 19 failed, 13 skipped) and is recorded as an open release blocker, alongside the pending human gate and unverified deployment.\",\n  \"unresolved\": [],\n  \"decisions\": [\n    \"Require H1/H2 headings by level and verify local link targets and heading anchors rather than only checking that sections exist.\",\n    \"Verify every documented npm script against package.json and every documented scripts/*.mjs command against a real file, so the docs cannot drift from the repository.\",\n    \"Treat placeholder text and capability claims as failures, not warnings.\",\n    \"Keep the release checklist honestly unchecked where full E2E, CI, deployment, and the human journey are not verified.\"\n  ],\n  \"interfaces\": [\n    \"CLI: node scripts/check-release-docs.mjs [--root <path>] [--json] [--help]\",\n    \"Exports: REQUIRED_HEADINGS, REQUIRED_COMMANDS, REQUIRED_LINKS, PLACEHOLDER_PATTERNS, FORBIDDEN_CLAIM_PATTERNS, checkReleaseDocs, checkLinks, checkDocumentedCommands, extractHeadings, extractLinks, slugifyHeading, main.\"\n  ],\n  \"tests\": [\n    \"node scripts/check-release-docs.mjs: exit 0 (real README and docs/RELEASE.md)\",\n    \"npm test -- tests/release/releaseDocs.test.ts: exit 0 (15/15)\",\n    \"VITE_BASE_PATH=/notes-detective/ npm run build && node scripts/check-pages-build.mjs --base /notes-detective/: exit 0\",\n    \"node scripts/perf-budget.mjs: exit 0 (88.1 KiB <= 300 KiB)\",\n    \"node scripts/check-bundle-budget.mjs: exit 0 (10.90 MiB <= 25 MiB)\",\n    \"npm run test:e2e: exit 1 (69 passed, 19 failed, 13 skipped; PWA spec passed)\"\n  ],\n  \"warnings\": [\n    \"Full Playwright suite is not green: 19 board/capture/connections/phone/search failures. docs/RELEASE.md records this as a release blocker; do not treat the release as accepted.\",\n    \"Human acceptance is not recorded and docs/reviews/final-acceptance.json does not exist; only a human reviewer can complete REL-HR-1.\",\n    \"No GitHub Pages deployment or deployed URL was verified in this task.\",\n    \"The git remote is study-detective while docs examples use /notes-detective/; the workflow derives the base path from the repository name, so verify the deployed path.\",\n    \"Lint reports three pre-existing fast-refresh warnings in src/features/recall/RecallSummary.tsx; there are no lint errors.\",\n    \"The docs checker validates documentation only and does not execute the documented commands; command evidence is reported separately above.\"\n  ],\n  \"validationLimitations\": [\n    \"No real tablet, phone, iOS Safari, or production GitHub Pages network-panel review was performed.\",\n    \"Firefox and WebKit coverage remains the existing compatibility smoke path; full journeys are Chromium-only in automation.\"\n  ]\n}\n```\n",
+    "stderr": "",
+    "durationMs": 1236770
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "node scripts/check-release-docs.mjs: exit 0 (engine-verified)",
+        "npm test -- tests/release/releaseDocs.test.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "REL-4 complete: README.md and docs/RELEASE.md now cover setup, scripts, preview, Pages deployment, privacy, backup/restore, browser/device support, limitations, release gates, the hard success signal, post-v1 pilot, and changelog. scripts/check-release-docs.mjs enforces headings, local links and anchors, documented commands against package.json and script files, placeholders, and forbidden claims; tests/release/releaseDocs.test.ts passes 15/15. Both required validation commands exit 0. The Pages base-path build/check passes, budgets pass (88.1 KiB initial JS, 10.90 MiB precache), and /notes-detective/#/settings loads with HTTP 200. Full E2E is not green (69 passed, 19 failed, 13 skipped) and is recorded as an open release blocker, alongside the pending human gate and unverified deployment.",
+    "unresolved": [],
+    "decisions": [
+      "Require H1/H2 headings by level and verify local link targets and heading anchors rather than only checking that sections exist.",
+      "Verify every documented npm script against package.json and every documented scripts/*.mjs command against a real file, so the docs cannot drift from the repository.",
+      "Treat placeholder text and capability claims as failures, not warnings.",
+      "Keep the release checklist honestly unchecked where full E2E, CI, deployment, and the human journey are not verified."
+    ],
+    "interfaces": [
+      "CLI: node scripts/check-release-docs.mjs [--root <path>] [--json] [--help]",
+      "Exports: REQUIRED_HEADINGS, REQUIRED_COMMANDS, REQUIRED_LINKS, PLACEHOLDER_PATTERNS, FORBIDDEN_CLAIM_PATTERNS, checkReleaseDocs, checkLinks, checkDocumentedCommands, extractHeadings, extractLinks, slugifyHeading, main."
+    ],
+    "tests": [
+      "node scripts/check-release-docs.mjs: exit 0 (real README and docs/RELEASE.md)",
+      "npm test -- tests/release/releaseDocs.test.ts: exit 0 (15/15)",
+      "VITE_BASE_PATH=/notes-detective/ npm run build && node scripts/check-pages-build.mjs --base /notes-detective/: exit 0",
+      "node scripts/perf-budget.mjs: exit 0 (88.1 KiB <= 300 KiB)",
+      "node scripts/check-bundle-budget.mjs: exit 0 (10.90 MiB <= 25 MiB)",
+      "npm run test:e2e: exit 1 (69 passed, 19 failed, 13 skipped; PWA spec passed)"
+    ],
+    "warnings": [
+      "Full Playwright suite is not green: 19 board/capture/connections/phone/search failures. docs/RELEASE.md records this as a release blocker; do not treat the release as accepted.",
+      "Human acceptance is not recorded and docs/reviews/final-acceptance.json does not exist; only a human reviewer can complete REL-HR-1.",
+      "No GitHub Pages deployment or deployed URL was verified in this task.",
+      "The git remote is study-detective while docs examples use /notes-detective/; the workflow derives the base path from the repository name, so verify the deployed path.",
+      "Lint reports three pre-existing fast-refresh warnings in src/features/recall/RecallSummary.tsx; there are no lint errors.",
+      "The docs checker validates documentation only and does not execute the documented commands; command evidence is reported separately above."
+    ],
+    "validationLimitations": [
+      "No real tablet, phone, iOS Safari, or production GitHub Pages network-panel review was performed.",
+      "Firefox and WebKit coverage remains the existing compatibility smoke path; full journeys are Chromium-only in automation."
+    ]
+  }
+}

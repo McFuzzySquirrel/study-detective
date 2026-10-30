@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T18:49:31.630Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "FND-1",
+  "attempt": 2,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "package.json",
+      "package-lock.json",
+      ".nvmrc",
+      "index.html",
+      "vite.config.ts",
+      "tsconfig.json",
+      "tsconfig.app.json",
+      "tsconfig.node.json",
+      "eslint.config.js",
+      "vitest.config.ts",
+      "playwright.config.ts",
+      "src/main.tsx",
+      "src/App.tsx",
+      "src/vite-env.d.ts",
+      "src/styles/base.css",
+      "tests/setup.ts",
+      "tests/app/smoke.test.tsx",
+      ".gitignore",
+      ".prettierignore",
+      "e2e/smoke.spec.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the project structure.\n## FND-1 Complete\n\nScaffolded the Vite 8 + React 19 + TypeScript 6 PWA toolchain with strict TypeScript project references, ESLint 10/typescript-eslint 8, Prettier, Vitest 5/jsdom, and Playwright 1.64 projects. No feature screens, board, PWA registration, Dexie schemas, or CI workflows were added.\n\n### Files created\n\n- `package.json`\n- `package-lock.json`\n- `.nvmrc`\n- `.prettierignore`\n- `index.html`\n- `vite.config.ts`\n- `tsconfig.json`\n- `tsconfig.app.json`\n- `tsconfig.node.json`\n- `eslint.config.js`\n- `vitest.config.ts`\n- `playwright.config.ts`\n- `src/main.tsx`\n- `src/App.tsx`\n- `src/vite-env.d.ts`\n- `src/styles/base.css`\n- `tests/setup.ts`\n- `tests/app/smoke.test.tsx`\n- `e2e/smoke.spec.ts`\n\n### Files changed\n\n- `.gitignore` — added `dist/`, `coverage/`, Playwright reports, `*.local`, and `.DS_Store`.\n\n### Validation evidence\n\n| Command | Result |\n|---|---|\n| `npm ci` | Pass — clean install from lockfile |\n| `npm test -- tests/app/smoke.test.tsx` | Pass — 1 test, accessible heading/main text, no `console.error` |\n| `npm run typecheck` | Pass — `tsc -b --pretty false` |\n| `npm run lint` | Pass — zero errors |\n| `npm run build` | Pass — static `dist/` emitted; 219.77 kB JS, 68.71 kB gzip |\n| `npm run test:e2e` | Pass — 3/3 Playwright projects: desktop, tablet-landscape, phone |\n| `npm run test:coverage` | Pass — 100% of included `src` file |\n| `npx prettier --check .` | Pass |\n| `npm test -- tests/app/does-not-exist.test.tsx` | Expected failure — `No test files found`, exit 1 |\n| `npx playwright test --list` | 3 tests across the three required viewport projects |\n| `grep -Ri pixi dist` | No matches; no PixiJS or lazy feature chunks in the app-shell bundle |\n\n### Notes / handoff\n\n- Pinned the full PRD 6.1 dependency set, including future-use PixiJS, React Router, Dexie, OCR, PWA, ZIP, validation, and test packages. Only React and the app shell are imported today, so the initial bundle contains no PixiJS.\n- `vite.config.ts` uses a relative base (`./`) for GitHub Pages portability; hash routing remains for FND-3.\n- Added a minimal Playwright smoke journey so `test:e2e` is runnable now and validates the built static app at all three viewports.\n- npm reported a non-blocking tesseract.js `opencollective-postinstall` notice and a deprecated transitive `glob@11.1.0`; neither affects install, lint, typecheck, build, or browser tests.\n- Handoff: FND-2 can add the manifest/service worker/icons; FND-3 can replace the minimal `App` with `HashRouter`, the shell, and route placeholders.\n\n```forge-result\n{\"summary\":\"FND-1 complete: Vite 8/React 19/TypeScript 6 scaffold with pinned PRD 6.1 dependencies, strict configs, smoke test, Playwright viewport projects, and passing test/typecheck/lint/build/e2e validation.\",\"unresolved\":[],\"decisions\":[\"Used relative Vite base './' for GitHub Pages portability.\",\"Pinned the full PRD 6.1 dependency set while importing only the app shell.\",\"Added a minimal e2e smoke journey to make test:e2e runnable.\"],\"warnings\":[\"npm reported a non-blocking tesseract.js postinstall notice and a deprecated transitive glob@11.1.0; no validation impact.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 280412
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/app/smoke.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)",
+        "npm run lint: exit 0 (engine-verified)",
+        "npm run build: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "FND-1 complete: Vite 8/React 19/TypeScript 6 scaffold with pinned PRD 6.1 dependencies, strict configs, smoke test, Playwright viewport projects, and passing test/typecheck/lint/build/e2e validation.",
+    "unresolved": [],
+    "decisions": [
+      "Used relative Vite base './' for GitHub Pages portability.",
+      "Pinned the full PRD 6.1 dependency set while importing only the app shell.",
+      "Added a minimal e2e smoke journey to make test:e2e runnable."
+    ],
+    "warnings": [
+      "npm reported a non-blocking tesseract.js postinstall notice and a deprecated transitive glob@11.1.0; no validation impact."
+    ],
+    "interfaces": [],
+    "tests": []
+  }
+}

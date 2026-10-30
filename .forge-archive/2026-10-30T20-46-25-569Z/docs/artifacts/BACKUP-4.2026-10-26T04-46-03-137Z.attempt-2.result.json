@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T04:46:03.137Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BACKUP-4",
+  "attempt": 2,
+  "outcome": "failed",
+  "reason": "forge-result.unresolved must be a string array; use [] when no blocking requirements remain.",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "e2e/backup.spec.ts"
+    ],
+    "stdout": "I'll start by reading the execution file.\nNow let me strengthen a few assertions in the spec so each acceptance criterion has a decisive failure mode.\nNow the required failure-mode check: temporarily drop tag preservation in the restore path and confirm the journey fails for that reason.\nAll checks pass. Here is the verification report.\n\n## Verification report — BACKUP-4\n\n**Task:** Verify export, delete, copy restore, and replace in a browser\n**Deliverable:** `e2e/backup.spec.ts` (new, 1,078 lines, untracked; no product code changed)\n\n### Command and result\n\n```\nnpm run test:e2e -- e2e/backup.spec.ts\n```\nReal exit status **0** — build succeeded, **3 passed** (Chromium):\n\n| Project | Viewport | Result |\n|---|---|---|\n| desktop | 1440×900 | passed (~11.4 s) |\n| tablet-landscape | 1280×800 | passed (~10.8 s) |\n| phone | 390×844 | passed (~11.8 s) |\n\nAlso run: `npm run lint` (0 errors), `npm run typecheck` (exit 0), `npx prettier --check e2e/backup.spec.ts` (clean).\n\n### Behavior exercised (one real journey, no mocks)\n\n1. **Setup:** two real cases, with a decoy case proving single-case export. Two real PNGs imported through the native capture input (`setInputFiles`), plus a topic card. Tags, two strings (one `association`, one `provenance`), a non-default viewport, `closedAt`, and OCR text are written in the app's exact IndexedDB row shapes (no UI exists yet for them); the production exporter/importer consumes them.\n2. **Export:** File System Access APIs are removed via `addInitScript` so the documented fallback runs; export is driven through the shelf dialog and the real `download` event. Bytes are read with `readFile(download.path())`, asserted non-empty with ZIP magic, unzipped with fflate, and checked: `notes-detective-case`/v1 manifest, `dbSchemaVersion`, dated `.ndcase` filename, exactly `manifest.json` + attachment entries, per-image SHA-256 and byte length, decoy absent, case viewport/closure/tags/positions/OCR/strings present.\n3. **Delete:** real delete confirmation; counts (3 cards / 2 strings / 2 images) shown, case and all child rows removed.\n4. **Copy restore:** the same downloaded bytes through the real hidden file input; summary shows 3/2/2; copy is default and Replace is absent; success offers Open case; restored case has a new ID, fresh card/connection/attachment IDs, identical tags, positions, strings (with types and canonical pairKeys), closure, viewport, OCR, and images whose stored Blob digests match metadata and the archive.\n5. **Replace:** the restored case is re-exported through the same real path, then imported with Replace selected and the title typed. Wrong/empty confirmation writes nothing (snapshot equality); the correct title replaces transactionally. Exactly one case with the target title remains, same case ID as the copy, fresh child IDs, identical data, decoy untouched, no orphan rows.\n6. **UI proof:** both shared-in images render (`naturalWidth > 0`, `complete`) and every tag is visible on card detail after copy and after replace.\n7. **Privacy (CON-01):** zero non-same-origin requests, zero non-GET/HEAD/OPTIONS requests, zero console errors.\n\n### Failure-mode check (not hollow)\n\nTemporarily set `tags: []` in the restore card mapping (`importCase.ts`): the journey **failed** at `expectSameCaseData` with `tags: []` vs `[\"exam\",\"reading\"]`. File restored from a backup copy; `git diff` confirms no product-code change; final run above was executed after the revert.\n\n### Defects\n\nNo defect found.\n\n### Gates\n\n- Automated and passing: export/download, delete, copy restore, replace, ID remapping, data preservation, no-network.\n- Requires a human: native File System Access picker behavior, storing the archive and reopening it on a tablet, final field acceptance. Firefox/WebKit smoke belongs to A11Y-6.\n\n### Residual risk\n\n- Replace cannot use the *first* archive against the copy: copy restore intentionally assigns a new case ID and FR-03 replaces by existing ID, so the original archive no longer names a current case. The spec re-exports the restored case and replaces with that real archive instead; this is documented in the spec and exercises the full typed-confirmation replace path.\n- Tags/strings/viewport/closure/OCR are seeded through the app schema (no tag/connection UI yet), not through UI gestures; the archive path itself is real.\n\n### Files created or changed\n\n- **Created:** `e2e/backup.spec.ts`\n- No other files changed; `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already modified before this task and were left untouched.\n\n```forge-result\n{\"summary\":\"Added e2e/backup.spec.ts: a real Chromium journey (desktop 1440x900, tablet 1280x800, phone 390x844) that captures two real PNGs plus a topic, seeds tags/two typed strings/OCR/viewport/closure, exports a decoy-plus-target library through the fallback download, validates the downloaded .ndcase bytes and checksums with fflate, deletes the case, restores the same bytes as a copy with fresh IDs, then re-exports and replaces with typed confirmation, proving exactly one matching case and identical cards, strings, tags, positions, closure, viewport, OCR, and images. npm run test:e2e -- e2e/backup.spec.ts: 3 passed; lint and typecheck clean. A temporary tag-drop mutation failed the journey as required and was reverted.\",\"decisions\":[\"Replace is exercised with a second real archive generated from the restored copy because copy restore assigns a new case ID and BACKUP-FR-03 replaces by existing ID, so the first archive can no longer name a live case; the typed-confirmation replace path and single-case outcome are unchanged.\",\"File System Access APIs are forced off in the browser so the required download and hidden file-input fallback are exercised with real bytes; native pickers are not automatable.\",\"Tags, two typed strings, OCR, viewport, and closure are seeded through the app's exact IndexedDB row shapes because no UI exists for them yet; the production exporter and importer consume them.\"],\"tests\":[\"npm run test:e2e -- e2e/backup.spec.ts: exit 0, 3 passed (desktop, tablet-landscape, phone)\",\"npm run lint: exit 0\",\"npm run typecheck: exit 0\",\"Mutation check: tags dropped in importCase made the journey fail at expectSameCaseData; reverted and re-run green\"],\"warnings\":[\"Firefox and WebKit smoke paths are owned by A11Y-6, not this task.\",\"Native File System Access picker behavior and opening the archive on a tablet remain human field checks.\"],\"validationLimitations\":[\"Replace targets a re-exported archive rather than the original bytes because the case ID is remapped on copy restore.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 362169
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "failed",
+      "reason": "forge-result.unresolved must be a string array; use [] when no blocking requirements remain."
+    },
+    {
+      "gate": "requirements",
+      "status": "skipped",
+      "reason": "Not reached"
+    },
+    {
+      "gate": "validation",
+      "status": "skipped",
+      "reason": "Not reached"
+    }
+  ]
+}

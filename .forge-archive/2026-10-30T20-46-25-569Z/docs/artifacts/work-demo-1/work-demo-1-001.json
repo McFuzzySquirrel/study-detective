@@ -1,0 +1,73 @@
+{
+  "type": "work.demo-1",
+  "category": "work",
+  "taskId": "DEMO-1",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented DEMO-1: locally canvas-generated demo pages, a close-ready six-card demo graph with five legal strings, atomic one-time seeding and demo-only removal, and isDemo preservation through real .ndcase export/import. The exact validation commands pass (17 demo tests; typecheck exit 0); full suite is 945 passing tests.",
+  "inputs": [
+    "work-backup-2-001",
+    "work-link-1-001",
+    "work-close-1-001",
+    "work-board-4-001",
+    "work-board-5-001",
+    "work-link-5-001",
+    "work-link-hr-1-001",
+    "work-close-2-001",
+    "work-close-3-001",
+    "work-backup-3-001",
+    "work-backup-4-001"
+  ],
+  "filesChanged": [
+    "src/features/demo/demoImages.ts",
+    "src/features/demo/demoCase.ts",
+    "src/features/demo/seedDemoCase.ts",
+    "tests/demo/seedDemoCase.test.ts",
+    "tests/demo/demoCase.test.ts",
+    "tests/demo/demoBackup.test.ts",
+    "tests/demo/demoFixtures.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented DEMO-1: locally canvas-generated demo pages, a close-ready six-card demo graph with five legal strings, atomic one-time seeding and demo-only removal, and isDemo preservation through real .ndcase export/import. The exact validation commands pass (17 demo tests; typecheck exit 0); full suite is 945 passing tests.",
+    "decisions": [
+      "Install flag is notes-detective.demo.seeded in localStorage behind an injectable store; the flag is set when seeding succeeds and when it is skipped for existing cases.",
+      "Seed image generation happens only after the flag and zero-case checks; a failed generation or transaction leaves the flag unset so a later clean boot can retry.",
+      "The case, six cards, five strings, and twelve attachments commit in one read-write Dexie transaction, with attachments last so a failed Blob write rolls back the whole graph.",
+      "removeDemoCase rejects non-demo cases with DomainValidationError and re-marks the flag after a successful delete; generic confirmed delete remains safe because the seed flag is already durable.",
+      "The demo is left ready-to-close rather than closed; the five specified strings derive topic 1 as solved (2 notes) and topic 2 as developing (1 note)."
+    ],
+    "interfaces": [
+      "generateDemoImages(options?: DemoImageGenerationOptions): Promise<DemoImageSet[]>",
+      "buildDemoGraph(options: { images: readonly DemoImageSet[]; clock?: Clock; idFactory?: IdFactory }): DemoGraph",
+      "seedDemoCase(options: { db: NotesDetectiveDatabase; clock?: Clock; idFactory?: IdFactory; flagStore?: DemoSeedFlagStore; createCanvas?: DemoCanvasFactory; digest?: DemoBlobDigest }): Promise<SeedDemoCaseResult>",
+      "createDemoSeedFlagStore(storage?: DemoFlagStorage | null): DemoSeedFlagStore",
+      "removeDemoCase(options: { repository: Pick<CaseRepositoryPort, 'getCase' | 'deleteCase'>; caseId: string; flagStore?: DemoSeedFlagStore }): Promise<boolean>",
+      "DEMO_SEED_FLAG_KEY, DEMO_CASE_TITLE, DEMO_CASE_SUBJECT, DEMO_CARD_SPECS, DEMO_CONNECTION_SPECS, DEMO_PAGES, DemoImageError"
+    ],
+    "tests": [
+      "npm test -- tests/demo/seedDemoCase.test.ts tests/demo/demoCase.test.ts tests/demo/demoBackup.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/demo/seedDemoCase.test.ts tests/demo/demoCase.test.ts tests/demo/demoBackup.test.ts: 17 passed",
+      "npm run typecheck: exit 0",
+      "npm test: 945 passed across 75 files",
+      "npm run lint: 0 errors, 3 pre-existing RecallSummary fast-refresh warnings",
+      "npx prettier --check src/features/demo tests/demo: clean",
+      "Coverage: src/features/demo 88.3% lines; src/domain 98.43% lines; src/data 90.79% lines"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "jsdom has no 2D canvas context. DEMO-3 component tests should inject createCanvas; real browser canvas drawing is exercised by the future first-run Playwright journey.",
+      "Demo display derivatives keep 1200x800 dimensions because the source is below the existing DISPLAY_MAX_EDGE of 2048; original, display, and thumbnail are still separate validated attachments.",
+      "The localStorage flag has an in-memory fallback only when storage is blocked; durable install-level persistence relies on browser localStorage availability."
+    ],
+    "validationLimitations": [
+      "No real browser canvas raster output or Playwright seed/remove journey was run in DEMO-1; those belong to DEMO-3 and browser acceptance. Image generation was validated through an injected canvas contract plus real Blob byte counts and SHA-256 digests."
+    ],
+    "taskDescription": "Create demoImages.ts to draw two note pages and two source pages locally on canvas at 1200x800, producing original, display, and thumbnail Blobs with no external assets. Create demoCase.ts with two notes, two sources, two topics, and five connections: note 1 to source 1 and note 2 to source 2 as provenance; note 1 to topic 1, note 2 to topic 1, and note 1 to topic 2 as associations. This must be close-ready with topic 1 solved and topic 2 developing. Create seedDemoCase.ts to write the case and attachments atomically only when no cases exist and the install-level demo flag is unset; set the flag even if seeding is skipped. Use the existing isDemo field on the case model. Add tests for the graph shape, readiness, image generation, one-time behavior, removal without reseed, and isDemo surviving an export/import round-trip. Do not add UI."
+  },
+  "nextActions": [],
+  "artifactId": "work-demo-1-001",
+  "createdAt": "2026-10-26T17:57:01.135Z"
+}

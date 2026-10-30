@@ -1,0 +1,61 @@
+{
+  "type": "work.a11y-4",
+  "category": "work",
+  "taskId": "A11Y-4",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "Added the shared axe configuration and A11Y-FR-05 Playwright spec. 40 scans across six screens at desktop and tablet, 12 dialogs/hints per project, and 4 phone sheets found zero serious/critical violations. The one real defect found (search-result Label in Name) was fixed by ui-engineer and independently re-verified. Required e2e command, full unit suite, typecheck, lint, and formatting pass.",
+  "inputs": [
+    "work-a11y-3-001",
+    "work-a11y-1-001",
+    "work-a11y-2-001"
+  ],
+  "filesChanged": [
+    "tests/a11y/axeConfig.ts",
+    "e2e/a11y.spec.ts",
+    "e2e/search.spec.ts",
+    "src/features/search/SearchPanel.tsx",
+    "tests/search/SearchPanel.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Added the shared axe configuration and A11Y-FR-05 Playwright spec. 40 scans across six screens at desktop and tablet, 12 dialogs/hints per project, and 4 phone sheets found zero serious/critical violations. The one real defect found (search-result Label in Name) was fixed by ui-engineer and independently re-verified. Required e2e command, full unit suite, typecheck, lint, and formatting pass.",
+    "decisions": [
+      "Seeded each test from a truly empty storage state through the real first-run demo seeder instead of injecting fixture rows, and read the case/card IDs back from real IndexedDB.",
+      "Ran the six-screen and overlay matrices in the desktop and tablet-landscape projects; the phone sheet journey sets 390x844 explicitly. The four test.skip entries are project scoping, not skipped required journeys.",
+      "Settled finite CSS animations before scanning so axe measures resting contrast rather than a dialog mid fade-in.",
+      "Blocking threshold is serious/critical; moderate findings and incomplete checks are attached as sanitized evidence and reported as residual risk.",
+      "No DOM selectors are excluded; only non-DOM limits (canvas pixels and browser-native chrome) are documented, with the canvas semantics and app-owned controls left in scope."
+    ],
+    "interfaces": [
+      "tests/a11y/axeConfig.ts exports AXE_PRIMARY_SCREENS, AXE_OVERLAY_SURFACES, AXE_BLOCKING_IMPACTS, AXE_EXCLUDED_SELECTORS, AXE_DELIBERATE_EXCLUSIONS, AXE_RUN_OPTIONS, summarizeAxeResults, isBlockingImpact, and formatAxeFailure.",
+      "e2e/a11y.spec.ts attaches axe-<surface> evidence JSON and an axe-evidence viewport/surface summary per test."
+    ],
+    "tests": [
+      "npm run test:e2e -- e2e/a11y.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm run test:e2e -- e2e/a11y.spec.ts: exit 0, 5 passed, 4 project-scoped skips",
+      "npm test: 84 files, 1117 tests passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0, 0 errors, 3 pre-existing warnings",
+      "npx prettier --check tests/a11y/axeConfig.ts e2e/a11y.spec.ts: pass",
+      "npx playwright test e2e/search.spec.ts e2e/keyboard-journey.spec.ts: 5 passed; phone search test fails on a pre-existing Tab-to-searchbox assumption confirmed at HEAD"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Four moderate landmark-unique findings remain: the board page and canvas region share the name Case board. Not an AA blocker, but a semantics defect for ui/board ownership.",
+      "54 serious incomplete axe checks remain (contrast overlap over the scrim/body gradient, and label-in-name on glyph-only close/remove controls). Incomplete is not a violation; manual resting contrast ratios pass (7.14:1, 8.76:1, 11.01:1) and human review is still required.",
+      "e2e/search.spec.ts still fails in the phone project because it tabs to a searchbox now mounted inside a sheet; reproduced with the HEAD spec, so it predates this task and needs a separate search/QA follow-up.",
+      "The tablet project is 1280x800, above the 1200 px desktop breakpoint; tablet-portrait 768x1024 is covered for overflow by A11Y-1 but is not an axe viewport in this task."
+    ],
+    "validationLimitations": [
+      "Automated axe scans do not replace the human keyboard and screen-reader spot check.",
+      "Canvas spatial screen-reader parity and visual focus-ring/target appearance remain human review items.",
+      "No performance checks were added, per task exclusion."
+    ],
+    "taskDescription": "Create a shared axe configuration and a Playwright spec that seeds a demo case and scans the shelf, board, card detail, recall, search, and settings screens at desktop and tablet viewports. Fail on any serious or critical violation. Document deliberate exclusions such as canvas pixel content, not surrounding controls. The scan must include open dialogs and sheets, not only the base page. Do not add performance checks."
+  },
+  "nextActions": [],
+  "artifactId": "work-a11y-4-001",
+  "createdAt": "2026-10-26T19:55:03.842Z"
+}

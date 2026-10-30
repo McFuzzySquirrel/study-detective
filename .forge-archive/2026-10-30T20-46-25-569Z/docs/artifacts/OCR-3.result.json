@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T07:47:17.917Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "OCR-3",
+  "attempt": 2,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/search/searchCards.ts",
+      "src/features/backup/archiveFormat.ts",
+      "src/features/backup/exportCase.ts",
+      "src/features/backup/importCase.ts",
+      "tests/search/ocrSearch.test.ts",
+      "tests/backup/ocrRoundTrip.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and related documentation.\nLet me inspect the current state and the previous attempt evidence.\nThe work appears complete from attempt 1; the rejection was a result-format issue. Let me verify the actual changes and run the required checks.\nImplementation from attempt 1 is present. Let me verify the manifest schema wiring and run the required validation.\nWork from attempt 1 is intact; only the report's `unresolved` field was malformed. Let me re-run the mandated checks to verify current state.\nBoth required checks pass. Let me verify the broader suite and coverage evidence.\n## OCR-3 Result Report\n\n**Task:** OCR-3 — Include OCR text in search and case archives (dependencies OCR-2, BACKUP-2).\n**Outcome:** Attempt-1 implementation was intact; the engine rejection was a report-format defect (`unresolved` missing / not a string array). I preserved the completed work, re-verified every required check, and corrected the report shape.\n\n### Files created or changed\n\nChanged:\n- `src/features/search/searchCards.ts`\n- `src/features/backup/archiveFormat.ts`\n- `src/features/backup/exportCase.ts`\n- `src/features/backup/importCase.ts`\n\nCreated:\n- `tests/search/ocrSearch.test.ts` (130 lines, 6 tests)\n- `tests/backup/ocrRoundTrip.test.ts` (437 lines, 9 tests)\n\nNo schema module, Dexie version, migration, UI, OCR worker, or `docs/artifacts/` file was changed.\n\n### What changed\n\n**Search (`searchCards.ts`)**\n- Query and OCR text are whitespace-collapsed before matching, so OCR split across newlines/tabs/repeated spaces is findable with a single-space query.\n- `ocrSnippet` is a bounded excerpt: `OCR_SNIPPET_RADIUS = 48` context each side, hard body cap `OCR_SNIPPET_MAX_LENGTH = 160` (plus at most two `…`).\n- Missing/blank OCR is skipped, never an error; title/tag matching still works for OCR-less cards.\n- Only title, tags, and OCR text are searched — confidence, engine version, timestamp, ID, type, position are not (SEARCH-CON-03).\n\n**Archive (`archiveFormat.ts`, `exportCase.ts`, `importCase.ts`)**\n- `ARCHIVE_CARD_OCR_FIELDS = ['ocrText','ocrConfidence','ocrEngineVersion','ocrUpdatedAt']` plus types `ArchiveCardOcrField`, `ArchiveCardOcr`.\n- `readArchiveCardOcr(card)` copies only present OCR fields (absent stays absent, no `undefined` keys/empty strings).\n- `archiveCardOcrEquals` / `assertArchiveCardOcrPreserved` compare the four fields explicitly; export fails with `DomainValidationError` before packaging if any field would be dropped.\n- Import reapplies `readArchiveCardOcr` when building restored cards and re-checks equality, throwing `ArchiveImportError('structure','invalid-manifest')` before the write transaction.\n- No archive format-version bump; OCR fields remain optional on the existing v1 card schema, so no DB migration.\n\n### Invariants / failure modes tested\n\n- OCR phrase matches case-insensitively; snippet contains the phrase and is ≤ `OCR_SNIPPET_MAX_LENGTH + 2`; a 300-char query still yields a bounded snippet.\n- Multi-line/tab/multi-space OCR matches a normal single-space query and the snippet has no newline.\n- OCR-less card does not throw; blank query returns it with `ocrSnippet: null`; OCR-only query does not match it.\n- OCR metadata values (`92.5`, `tesseract`, OCR timestamp, card ID) are not searchable.\n- Search is write-free: structured-clone of cards, tag arrays, and types unchanged; no tags/connections/types invented.\n- Manifest contains all four OCR fields for the OCR card and none for cards without OCR.\n- Copy restore preserves exact OCR text/metadata and remaps case/card/connection/attachment IDs; tag arrays, types, and both connection `pairKey`s remain consistent.\n- Replace restore (target pre-poisoned with stale OCR) overwrites OCR metadata, remaps child IDs, keeps the confirmed case ID, and leaves the source case untouched.\n- OCR-less case round-trips without invented fields and stays search-safe.\n- Import rejects `ocrConfidence: 101`, `ocrText: ''`, and unknown `ocrLanguage` as `invalid-manifest`; table counts are identical before/after each rejection (pre-write rejection).\n- Restored search creates no rows: case/card/connection/attachment counts and card data unchanged.\n\n### API changes for other owners\n\nAdditive only; no breaking signatures:\n```ts\n// src/features/search/searchCards.ts\nexport const OCR_SNIPPET_MAX_LENGTH = 160;\n// searchCards() now whitespace-normalizes query + OCR text; ocrSnippet remains string | null\n\n// src/features/backup/archiveFormat.ts\nexport const ARCHIVE_CARD_OCR_FIELDS = ['ocrText','ocrConfidence','ocrEngineVersion','ocrUpdatedAt'] as const;\nexport type ArchiveCardOcrField = (typeof ARCHIVE_CARD_OCR_FIELDS)[number];\nexport type ArchiveCardOcr = Partial<Pick<CardRecord, ArchiveCardOcrField>>;\nexport function readArchiveCardOcr(card: CardRecord): ArchiveCardOcr;\nexport function archiveCardOcrEquals(expected: CardRecord, actual: CardRecord): boolean;\nexport function assertArchiveCardOcrPreserved(expected: CardRecord, actual: CardRecord): void;\n```\n`buildCaseArchive`, `importCase`, `restoreValidatedCaseArchive`, and `CaseArchiveManifest` are unchanged.\n\n**Shared-file preservation:** keep `searchCards` pure and whitelist-only; add any future OCR field to `ARCHIVE_CARD_OCR_FIELDS`; keep import's single-transaction restore semantics — the new guards run before packaging/writing and open no extra transaction.\n\n### Validation evidence (all run this attempt)\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts` | exit 0 — 2 files, 15 tests passed |\n| `npm run typecheck` | exit 0 |\n| `npm test` (full suite) | exit 0 — 63 files, 811 tests passed |\n| `npm run test:coverage` | exit 0 |\n| `npm run lint` | exit 0 |\n| `npx prettier --check` (changed files) | exit 0 |\n\nCoverage (full suite): `src/domain` 97.81% lines / 97.89% statements; `src/data` 90.98% lines / 91.2% statements. Changed features: `searchCards.ts` 94.79% lines, `archiveFormat.ts` 87.37%, `exportCase.ts` 87.96%, `importCase.ts` 89.14%. Both required areas exceed the 85% floor.\n\n### Risks for human decision\n\n- `ARCHIVE_FORMAT_VERSION` stays `1`; OCR fields are explicitly guarded but an older build whose strict card schema predates OCR would reject new archives containing them. This is a release-notes/backward-compatibility call, not a task blocker.\n- Snippets are deliberately capped at 160 characters; full OCR text lives on the card record and must not be reconstructed from `ocrSnippet`.\n- `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already modified by the engine and were left untouched; no `docs/artifacts/` file was edited or committed by me.\n\n```forge-result\n{\"summary\":\"Implemented OCR-3: OCR text is a bounded, whitespace-normalized search target alongside title and tags, and OCR text/confidence/engineVersion/updatedAt are explicitly preserved through .ndcase manifest export and copy/replace import, with pre-write rejection of invalid or unknown OCR metadata. Verified with 15 focused real-fflate/fake-indexeddb tests, the full 811-test suite, typecheck, lint, formatting, and coverage above the 85% floor for src/domain and src/data.\",\"unresolved\":[],\"decisions\":[\"OCR fields remain optional members of the existing v1 card schema; no database migration or archive format-version bump was introduced.\",\"Search collapses whitespace in query and OCR text before matching and caps the snippet body at 160 characters.\",\"Export and import compare the four OCR fields explicitly and fail rather than silently dropping them; import rejects invalid OCR metadata before opening the write transaction.\"],\"interfaces\":[\"searchCards exports OCR_SNIPPET_MAX_LENGTH and normalizes whitespace in queries and OCR text; ocrSnippet stays string | null.\",\"archiveFormat exports ARCHIVE_CARD_OCR_FIELDS, ArchiveCardOcrField, ArchiveCardOcr, readArchiveCardOcr, archiveCardOcrEquals, and assertArchiveCardOcrPreserved.\",\"buildCaseArchive, importCase, restoreValidatedCaseArchive, and CaseArchiveManifest are unchanged.\"],\"tests\":[\"npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts: exit 0, 15 tests passed\",\"npm run typecheck: exit 0\",\"npm test: exit 0, 63 files / 811 tests passed\",\"npm run test:coverage: exit 0; src/domain 97.81% lines, src/data 90.98% lines\",\"npm run lint and npx prettier --check: exit 0\"],\"warnings\":[\"Archive formatVersion remains 1; an older build whose card schema predates OCR would reject archives containing OCR fields. Release documentation should record this compatibility decision.\",\"When a future OCR field is added, ARCHIVE_CARD_OCR_FIELDS must be updated or the new field will not be guarded by export/import comparisons.\"],\"validationLimitations\":[\"No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 121979
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented OCR-3: OCR text is a bounded, whitespace-normalized search target alongside title and tags, and OCR text/confidence/engineVersion/updatedAt are explicitly preserved through .ndcase manifest export and copy/replace import, with pre-write rejection of invalid or unknown OCR metadata. Verified with 15 focused real-fflate/fake-indexeddb tests, the full 811-test suite, typecheck, lint, formatting, and coverage above the 85% floor for src/domain and src/data.",
+    "unresolved": [],
+    "decisions": [
+      "OCR fields remain optional members of the existing v1 card schema; no database migration or archive format-version bump was introduced.",
+      "Search collapses whitespace in query and OCR text before matching and caps the snippet body at 160 characters.",
+      "Export and import compare the four OCR fields explicitly and fail rather than silently dropping them; import rejects invalid OCR metadata before opening the write transaction."
+    ],
+    "interfaces": [
+      "searchCards exports OCR_SNIPPET_MAX_LENGTH and normalizes whitespace in queries and OCR text; ocrSnippet stays string | null.",
+      "archiveFormat exports ARCHIVE_CARD_OCR_FIELDS, ArchiveCardOcrField, ArchiveCardOcr, readArchiveCardOcr, archiveCardOcrEquals, and assertArchiveCardOcrPreserved.",
+      "buildCaseArchive, importCase, restoreValidatedCaseArchive, and CaseArchiveManifest are unchanged."
+    ],
+    "tests": [
+      "npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts: exit 0, 15 tests passed",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0, 63 files / 811 tests passed",
+      "npm run test:coverage: exit 0; src/domain 97.81% lines, src/data 90.98% lines",
+      "npm run lint and npx prettier --check: exit 0"
+    ],
+    "warnings": [
+      "Archive formatVersion remains 1; an older build whose card schema predates OCR would reject archives containing OCR fields. Release documentation should record this compatibility decision.",
+      "When a future OCR field is added, ARCHIVE_CARD_OCR_FIELDS must be updated or the new field will not be guarded by export/import comparisons."
+    ],
+    "validationLimitations": [
+      "No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow."
+    ]
+  }
+}

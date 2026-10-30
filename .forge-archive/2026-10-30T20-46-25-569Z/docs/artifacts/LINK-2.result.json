@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T05:43:12.408Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "LINK-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/board/stringGeometry.ts",
+      "src/board/StringLayer.ts",
+      "src/board/BoardScene.ts",
+      "tests/board/stringGeometry.test.ts",
+      "tests/board/stringGeometry.performance.test.ts",
+      "src/board/BoardCanvas.tsx",
+      "src/board/usePixiApp.ts",
+      "src/features/case/CaseBoardPage.tsx",
+      "tests/board/BoardCanvas.test.tsx"
+    ],
+    "stdout": "I'll start by reading the execution file and the referenced documentation.\nNow I have the full picture. Let me implement the pure string geometry module first.\nImplemented LINK-2: sagging association/provenance string geometry, a PixiJS string layer, scene wiring, and connection loading into the plain board snapshot.\n\n## Files created\n\n- `src/board/stringGeometry.ts`\n- `src/board/StringLayer.ts`\n- `tests/board/stringGeometry.test.ts`\n- `tests/board/stringGeometry.performance.test.ts`\n\n## Files changed\n\n- `src/board/BoardScene.ts` — mounts `StringLayer` under the cards, forwards card moves/viewport/reduced-motion/context-loss, exposes `stringAt`\n- `src/board/usePixiApp.ts` — forwards the live reduced-motion preference to the scene\n- `src/board/BoardCanvas.tsx` — passes reduced motion and exposes `data-board-connection-count`\n- `src/features/case/CaseBoardPage.tsx` — loads case connections and adds them to `BoardSnapshot`\n- `tests/board/BoardCanvas.test.tsx` — asserts the connection-count attribute\n\n## Behavior exercised\n\n- **Anchors:** right, left, below, above, and offset-diagonal cases anchor on the nearest card edge; edge midpoints are clamped to the facing edge span.\n- **Sag:** 12 px at 100%, 6 px at 50%, 30 px at 250%; clamped to `0.4 × edge gap` (20 px gap → 8 px, 10 px gap → 4 px, zero gap → 0). Curve midpoint is exactly `sag` from the chord midpoint.\n- **Styles:** association 3 px solid red, provenance 2 px dashed amber at 100%; scaled with zoom and floored at 1 px. No text, labels, arrows, scores, or custom colors.\n- **Hit band:** 22 px radius (44 px band) tested with on-curve, near, and far points.\n- **Dashes:** arc-length dash placement along the quadratic curve; association returns no dashes.\n- **Layer lifecycle:** redraws on card move, pan, zoom, and resize; culls offscreen strings with the shared 200 px margin; one stroke per type (association/provenance), so 300 strings batch into two graphics.\n- **Reduced motion:** the layer is static; `isAnimating` is always false and the final geometry is drawn immediately.\n- **Teardown:** `StringLayer.destroy()` destroys both child `Graphics` and is idempotent; `BoardScene` removes/destroys the layer. Browser board drag/context-recovery journey passes with no console errors.\n- **Browser verification (temporary Playwright journey, not committed):** real red pixels `#cf3d2f` appeared at the sagging midpoint (63 pixels), then at the new midpoint after a card drag (71) and after a pan (71); viewport changed to `(-120, 40)` and the string followed.\n- **Performance:** 300-string geometry plus provenance dashing measured **1.77 ms** best of five (limit 16 ms).\n\n## Validation\n\n- `npm test -- tests/board/stringGeometry.test.ts tests/board/stringGeometry.performance.test.ts` — **24 tests passed, exit 0**\n- `npm run typecheck` — **exit 0**\n- Full `npm test` — **51 files / 700 tests passed**\n- `npm run lint` — **exit 0**\n- `npm run build` — **exit 0**\n- `npx playwright test e2e/board-drag.spec.ts --project=desktop` — **2 passed**\n\n## Bundle boundary\n\n- Initial `index-zGyCPK2d.js`: **84.2 KB gzip**, `pixi` occurrences **0**\n- `CaseBoardPage-BflAsAI7.js`: **5.6 KB gzip**, `pixi` occurrences **0**\n- Lazy `BoardCanvas-B7C6oaIr.js`: **99.3 KB gzip**, `pixi` occurrences **3**\n\n## Consumed contract\n\n```ts\nBoardSnapshot = {\n  caseId: string;\n  caseTitle: string;\n  cards: readonly BoardCardSnapshot[];\n  connections?: readonly BoardStringConnection[];\n}\n\nBoardStringConnection = {\n  id: string;\n  fromCardId: string;\n  toCardId: string;\n  type: 'association' | 'provenance';\n}\n```\n\n`CaseBoardPage` builds this from `CaseRepository.listConnections()`; the board only reads the snapshot and emits no storage writes. `BoardScene.stringAt(point)` is available for LINK-4 connection detail hit-testing. LINK-3/LINK-4 must preserve the optional `connections` field and refresh it after creation/retype/delete.\n\n## Warnings / limitations\n\n- Tablet 45 FPS at 150 cards/300 strings was not measured; the geometry batch is 1.77 ms, but full screen-space redraw cost on a real tablet still needs human verification.\n- The temporary pixel-level string browser journey was not committed; LINK-3 owns the permanent connection browser journey.\n- The unit test emits jsdom’s non-failing “HTMLCanvasElement getContext not implemented” warning when Pixi is imported; all tests pass and the real browser journey produced no console errors.\n- Browser evidence is Chromium-only; human board-feel review of string sag remains pending.\n\n```forge-result\n{\"summary\":\"Implemented LINK-2 sagging association/provenance string geometry, the PixiJS StringLayer mounted below the cards, scene move/viewport redraw wiring, connection snapshot loading, and geometry/performance tests; required tests, typecheck, lint, full suite, build, and browser board-drag journey pass.\",\"unresolved\":[],\"decisions\":[\"Geometry is screen-space so pan/zoom redraws, 44 px touch hit bands, and dash patterns stay in pointer pixels.\",\"Anchors use the nearest card edge with clamped edge points; sag is min(12*zoom, 0.4*gap) so it scales with zoom and stays inside close card gaps.\",\"Association and provenance are each batched into one Graphics stroke; the layer is static, so reduced motion has no animation state to cancel.\",\"CaseBoardPage loads connections via CaseRepository.listConnections and passes them through the plain BoardSnapshot; the board never opens storage.\"],\"interfaces\":[\"BoardSnapshot gains optional connections: readonly BoardStringConnection[]\",\"BoardStringConnection { id, fromCardId, toCardId, type }\",\"computeStringGeometry, resolveStringAnchors, computeStringDashes, hitTestStringGeometry, computeStringHitBand, pointOnString, sampleStringCurve, distanceToString, stringStrokeStyle\",\"StringLayer.setCards/setConnections/setViewport/moveCard/setReducedMotion/stringAt/rebuildAfterContextLoss/destroy, drawnStringCount, totalStringCount, isAnimating\",\"BoardScene.setReducedMotion and BoardScene.stringAt\"],\"tests\":[\"npm test -- tests/board/stringGeometry.test.ts tests/board/stringGeometry.performance.test.ts: 24 passed, exit 0\",\"npm run typecheck: exit 0\",\"npm test: 700 passed across 51 files\",\"npm run lint: exit 0\",\"npm run build: exit 0\",\"npx playwright test e2e/board-drag.spec.ts --project=desktop: 2 passed\"],\"warnings\":[\"Tablet 45 FPS at 150 cards/300 strings remains unmeasured; geometry batch is 1.77 ms but screen-space redraw cost needs human tablet verification.\",\"Browser string pixel verification used a temporary Playwright journey that was not committed; LINK-3 owns the permanent connection browser journey.\",\"Unit tests emit jsdom's non-failing HTMLCanvasElement getContext warning when Pixi is imported.\",\"Browser evidence covers Chromium only.\"],\"validationLimitations\":[\"No permanent BoardScene unit test; scene integration was verified by the temporary real-browser pixel journey and the committed board-drag Playwright journey.\",\"Human board-feel review of string sag still needs a real tablet/desktop pass.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 1093907
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/board/stringGeometry.test.ts tests/board/stringGeometry.performance.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented LINK-2 sagging association/provenance string geometry, the PixiJS StringLayer mounted below the cards, scene move/viewport redraw wiring, connection snapshot loading, and geometry/performance tests; required tests, typecheck, lint, full suite, build, and browser board-drag journey pass.",
+    "unresolved": [],
+    "decisions": [
+      "Geometry is screen-space so pan/zoom redraws, 44 px touch hit bands, and dash patterns stay in pointer pixels.",
+      "Anchors use the nearest card edge with clamped edge points; sag is min(12*zoom, 0.4*gap) so it scales with zoom and stays inside close card gaps.",
+      "Association and provenance are each batched into one Graphics stroke; the layer is static, so reduced motion has no animation state to cancel.",
+      "CaseBoardPage loads connections via CaseRepository.listConnections and passes them through the plain BoardSnapshot; the board never opens storage."
+    ],
+    "interfaces": [
+      "BoardSnapshot gains optional connections: readonly BoardStringConnection[]",
+      "BoardStringConnection { id, fromCardId, toCardId, type }",
+      "computeStringGeometry, resolveStringAnchors, computeStringDashes, hitTestStringGeometry, computeStringHitBand, pointOnString, sampleStringCurve, distanceToString, stringStrokeStyle",
+      "StringLayer.setCards/setConnections/setViewport/moveCard/setReducedMotion/stringAt/rebuildAfterContextLoss/destroy, drawnStringCount, totalStringCount, isAnimating",
+      "BoardScene.setReducedMotion and BoardScene.stringAt"
+    ],
+    "tests": [
+      "npm test -- tests/board/stringGeometry.test.ts tests/board/stringGeometry.performance.test.ts: 24 passed, exit 0",
+      "npm run typecheck: exit 0",
+      "npm test: 700 passed across 51 files",
+      "npm run lint: exit 0",
+      "npm run build: exit 0",
+      "npx playwright test e2e/board-drag.spec.ts --project=desktop: 2 passed"
+    ],
+    "warnings": [
+      "Tablet 45 FPS at 150 cards/300 strings remains unmeasured; geometry batch is 1.77 ms but screen-space redraw cost needs human tablet verification.",
+      "Browser string pixel verification used a temporary Playwright journey that was not committed; LINK-3 owns the permanent connection browser journey.",
+      "Unit tests emit jsdom's non-failing HTMLCanvasElement getContext warning when Pixi is imported.",
+      "Browser evidence covers Chromium only."
+    ],
+    "validationLimitations": [
+      "No permanent BoardScene unit test; scene integration was verified by the temporary real-browser pixel journey and the committed board-drag Playwright journey.",
+      "Human board-feel review of string sag still needs a real tablet/desktop pass."
+    ]
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:08:18.223Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "DATA-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/domain/model.ts",
+      "src/domain/validation.ts",
+      "src/domain/ids.ts",
+      "tests/domain/model.test.ts",
+      "tests/domain/validation.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task.\nNow I have the context I need. Let me implement the domain model, validation, and ID helpers.\n## DATA-1 — Validated Case Domain Records\n\n### Files created\n\n| File | Purpose |\n|---|---|\n| `src/domain/model.ts` | Zod schemas, inferred TypeScript types, constants, canonical `buildPairKey`, default viewport |\n| `src/domain/validation.ts` | Parse/validate boundaries, `DomainValidationError`, graph rules, tag normalization, format guards |\n| `src/domain/ids.ts` | `crypto.randomUUID` IDs, injectable clocks, deterministic test ID factory |\n| `tests/domain/model.test.ts` | Schema boundary tests for all six record shapes |\n| `tests/domain/validation.test.ts` | Cross-field, pair-key, eligibility, endpoint, tag, ID, and clock tests |\n\nNo existing source files were changed. `docs/artifacts/` was not modified or committed.\n\n### Invariants and failure modes covered\n\n- **CaseRecord:** title 1–80 after trim, 80 accepted / 81 rejected; empty and whitespace-only rejected. Subject trimmed, non-empty, max 80. Exam date is a real ISO calendar date (`2026-02-30` and datetime strings rejected). Timestamps require an ISO 8601 timezone and `Date` objects are rejected. `updatedAt` before `createdAt` rejected. `isDemo` defaults to `false`; `backupPromptedAt` and `closedAt` are nullable and round-trip. Unknown fields rejected at case and nested viewport levels.\n- **CardRecord:** `note` / `source` / `topic` only; title boundaries; nonnegative finite positions; 10-tag maximum, 24-character maximum, empty and case-insensitive duplicate tags rejected; unknown fields and malformed nested positions rejected. Optional OCR metadata validates when present, and a card without OCR validates.\n- **ConnectionRecord:** `association` / `provenance` only; `A::B === B::A`; reversed endpoints with the same canonical key parse; mismatched keys, self-links, malformed keys, and unknown fields rejected.\n- **AttachmentRecord:** original/display/thumbnail kinds; JPEG/PNG/WebP MIME only; positive integer dimensions; lowercase 64-char SHA-256; Blob required; `bytes` must equal `blob.size`; unknown fields rejected.\n- **Viewport:** inclusive `0.25`–`2.5` scale, negative pan offsets allowed, NaN/Infinity rejected.\n- **CaseSummary:** nonnegative integer card and connection counts, required counts, defaults, malformed metadata rejected.\n- **Graph rules:** provenance is eligible only between one note and one source in either orientation; association requires two distinct cards; endpoints must exist in the connection's case; dangling, cross-case, self-link, and stale-pair-key candidates are rejected before any write.\n- **Tags:** trim, case-insensitive dedupe preserving first display casing and order, empty/overlong/eleventh tag rejected.\n- **IDs/time:** generated IDs validate as UUIDs; fixed and system clocks produce ISO timestamp strings; invalid fixed clocks and exhausted sequences throw.\n\n### Interfaces handed to other owners\n\n```ts\ncaseRecordSchema, cardRecordSchema, connectionRecordSchema,\nattachmentRecordSchema, viewportSchema, caseSummarySchema\n\ntype CaseRecord, CardRecord, ConnectionRecord, AttachmentRecord,\n     Viewport, CaseSummary, CardType, ConnectionType,\n     AttachmentKind, AttachmentMime, CardPosition\ntype CaseRecordInput, CardRecordInput, ConnectionRecordInput,\n     AttachmentRecordInput, CaseSummaryInput\n\nparseCaseRecord, parseCardRecord, parseConnectionRecord,\nparseAttachmentRecord, parseViewport, parseCaseSummary\nvalidateCaseRecord, validateCardRecord, validateConnectionRecord,\nvalidateAttachmentRecord, validateViewport, validateCaseSummary\n\nclass DomainValidationError { message; issues: readonly ZodIssue[] }\nbuildPairKey(a, b): string\nassertCanonicalPairKey(pairKey, a, b): void\nassertConnectionEligible(candidate, fromType, toType): void\nassertConnectionInCase(connection, cards): void\nisProvenanceEligible, isAssociationEligible, normalizeTag, normalizeTags,\nisUuid, isIsoTimestamp, isIsoDate\n\ncreateId(): string\nsystemClock, fixedClock(instant), nowIso(clock), sequenceIdFactory(ids)\nDEFAULT_VIEWPORT\n```\n\n### Validation evidence\n\n- `npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts` → **exit 0, 78 tests passed**\n- `npm run typecheck` → **exit 0**\n- `npm run lint` → **exit 0**\n- Full suite `npm test` → **176 tests passed**\n- Targeted coverage: **97.95% lines**, 98% statements, 97.22% branches. `model.ts` 100%, `validation.ts` 97.53% lines, `ids.ts` 94.11% lines.\n\n### Notes for next owners\n\n- DATA-2 must catch `DomainValidationError` on reads and surface a recoverable storage error; never return partial rows.\n- Optional flat OCR fields (`ocrText`, `ocrConfidence`, `ocrEngineVersion`, `ocrUpdatedAt`) already exist so DATA-2 mappers can preserve them; OCR-1 extends behavior rather than redefining the shape.\n- No shared files were changed. `docs/EXECUTION-AUDIT.jsonl` was already modified by the engine before this task.\n\n```forge-result\n{\"summary\":\"Implemented DATA-1 validated domain records: strict Zod schemas and types for case, card, connection, attachment, viewport, and case summary; canonical unordered pair keys; connection eligibility and endpoint rules; tag normalization; UUID and injectable-clock helpers. Added 78 boundary tests; required tests, typecheck, lint, and the full suite pass.\",\"unresolved\":[],\"decisions\":[\"Schemas live in src/domain/model.ts with strict unknown-field rejection; parse/validate wrappers and cross-record graph rules live in src/domain/validation.ts.\",\"Exam dates are date-only ISO strings while createdAt, updatedAt, closedAt, backupPromptedAt, and OCR timestamps are full ISO 8601 datetimes.\",\"Tags reject case-insensitive duplicates in the schema, while normalizeTags trims and dedupes preserving the first display casing for UI input.\",\"Added optional flat OCR metadata fields so DATA-2 can preserve them while keeping cards without OCR valid.\"],\"interfaces\":[\"Schemas: caseRecordSchema, cardRecordSchema, connectionRecordSchema, attachmentRecordSchema, viewportSchema, caseSummarySchema.\",\"Types: CaseRecord, CardRecord, ConnectionRecord, AttachmentRecord, Viewport, CaseSummary, CardType, ConnectionType, AttachmentKind, AttachmentMime, plus input type aliases.\",\"Boundary helpers: parseCaseRecord, parseCardRecord, parseConnectionRecord, parseAttachmentRecord, parseViewport, parseCaseSummary and matching validateX functions returning ValidationResult.\",\"Graph helpers: buildPairKey, assertCanonicalPairKey, assertConnectionEligible, assertConnectionInCase, isProvenanceEligible, isAssociationEligible.\",\"Identity/time helpers: createId, systemClock, fixedClock, nowIso, sequenceIdFactory, DEFAULT_VIEWPORT.\"],\"tests\":[\"npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts: exit 0, 78 tests passed\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm test: exit 0, 176 tests passed\",\"Targeted domain coverage: 97.95% lines, 98% statements, 97.22% branches\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author.\",\"DATA-2 must catch DomainValidationError on read and surface a recoverable storage error rather than returning partial data.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 340674
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented DATA-1 validated domain records: strict Zod schemas and types for case, card, connection, attachment, viewport, and case summary; canonical unordered pair keys; connection eligibility and endpoint rules; tag normalization; UUID and injectable-clock helpers. Added 78 boundary tests; required tests, typecheck, lint, and the full suite pass.",
+    "unresolved": [],
+    "decisions": [
+      "Schemas live in src/domain/model.ts with strict unknown-field rejection; parse/validate wrappers and cross-record graph rules live in src/domain/validation.ts.",
+      "Exam dates are date-only ISO strings while createdAt, updatedAt, closedAt, backupPromptedAt, and OCR timestamps are full ISO 8601 datetimes.",
+      "Tags reject case-insensitive duplicates in the schema, while normalizeTags trims and dedupes preserving the first display casing for UI input.",
+      "Added optional flat OCR metadata fields so DATA-2 can preserve them while keeping cards without OCR valid."
+    ],
+    "interfaces": [
+      "Schemas: caseRecordSchema, cardRecordSchema, connectionRecordSchema, attachmentRecordSchema, viewportSchema, caseSummarySchema.",
+      "Types: CaseRecord, CardRecord, ConnectionRecord, AttachmentRecord, Viewport, CaseSummary, CardType, ConnectionType, AttachmentKind, AttachmentMime, plus input type aliases.",
+      "Boundary helpers: parseCaseRecord, parseCardRecord, parseConnectionRecord, parseAttachmentRecord, parseViewport, parseCaseSummary and matching validateX functions returning ValidationResult.",
+      "Graph helpers: buildPairKey, assertCanonicalPairKey, assertConnectionEligible, assertConnectionInCase, isProvenanceEligible, isAssociationEligible.",
+      "Identity/time helpers: createId, systemClock, fixedClock, nowIso, sequenceIdFactory, DEFAULT_VIEWPORT."
+    ],
+    "tests": [
+      "npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts: exit 0, 78 tests passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0, 176 tests passed",
+      "Targeted domain coverage: 97.95% lines, 98% statements, 97.22% branches"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author.",
+      "DATA-2 must catch DomainValidationError on read and surface a recoverable storage error rather than returning partial data."
+    ]
+  }
+}

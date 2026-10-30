@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T18:06:33.091Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "DEMO-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/onboarding/hints.ts",
+      "src/features/onboarding/HintPopover.tsx",
+      "src/features/onboarding/hints.css",
+      "src/features/settings/SettingsPage.tsx",
+      "src/app/routes.tsx",
+      "tests/onboarding/hints.test.ts",
+      "tests/onboarding/HintPopover.test.tsx",
+      "tests/settings/SettingsPage.test.tsx"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the project context.\nNow I'll implement the hint state, popover, settings page, and route wiring.\n## DEMO-2 — Persistent hints, popover, and replay settings\n\n### Outcome\n\nImplemented all three independent hints (`thread-anchor`, `long-press`, `recall`) with install-local persistence, a non-modal hint popover, and the replacement Settings route with replay/reset controls.\n\n### Acceptance criteria\n\n| Criterion | Evidence | Result |\n|---|---|---|\n| Each hint is seen once per install and persists across reload | Store test reconstructs the store over the same injected storage and reads the persisted key; second independent storage stays unseen; malformed/foreign values are ignored | Pass |\n| Dismissing or pressing Escape marks the hint seen and returns focus to the trigger | `HintPopover` tests for Got it and Escape assert `store.isSeen(...)` and trigger focus | Pass |\n| Settings can replay each hint and reset all seen state | Settings test replays all three, verifies focus and descriptions, then resets every hint and checks status text + live announcement | Pass |\n| Reduced motion removes popover animation | CSS contract test confirms `.nd-hint` has the entrance animation and the reduced-motion block sets `animation: none` / `transition: none` | Pass |\n| No scripted tour, modal carousel, or auto-advancing step | No timers or sequence state exist; tests advance 30s and confirm no auto-open/advance; only one non-modal dialog can be open; no Next/Previous/Skip-tour controls | Pass |\n| VIS-CON-08 targets/reduced motion/typography | `.nd-hint__action`, `.hint-settings__replay`, and shared `.nd-button` all resolve to ≥44×44; only headings use the period face | Pass |\n\n### Validation\n\n- `npm test -- tests/onboarding/hints.test.ts tests/onboarding/HintPopover.test.tsx tests/settings/SettingsPage.test.tsx` → **3 files, 30 tests passed**\n- `npm run typecheck` → **exit 0**\n- Full suite `npm test` → **78 files, 975 tests passed**\n- `npm run lint` → **0 errors**; 3 pre-existing `RecallSummary.tsx` warnings only\n- `npm run build` → success; `SettingsPage-*.js` chunk emitted\n- Route exercised: `/settings` via the existing lazy-route/routing suite (passed).\n- Input methods exercised: keyboard (`Tab`, `Enter`, `Escape`) and pointer (`user-event` click) in jsdom.\n- Viewport: component tests run at jsdom’s default 1024×768. No Playwright viewport matrix was required by this task; DEMO-3 owns the browser first-run journey.\n\n### Accessibility evidence\n\n- Opening moves focus to the popover (`role=\"dialog\"`, labelled heading, associated sentence); no focus trap, no `inert`, and Tab proceeds through actions.\n- Got it and Escape restore focus to the logical trigger; Show me focuses the caller’s target and deliberately skips returning focus to the trigger.\n- Reset-all while a hint is open closes the hint and leaves focus on the Reset control; the live `role=\"status\"` region announces the reset.\n- Show-me optionality is covered; Settings omits it because there is no board control to reveal on that route.\n- Contrast relies on existing token pairs already covered by `tests/styles/tokens.test.ts`; `hints.css` contains no raw hex/RGB/HSL values.\n- Malicious title/description strings render as inert text (no `<img>`/`<script>` elements).\n\n### Shared file handoff\n\n- `src/app/routes.tsx`: the `/settings` lazy chunk now points at `../features/settings/SettingsPage`. Preserve the `/settings` path, lazy loading, and the level-2 `Settings` heading expected by routing tests.\n- `src/app/placeholders.tsx` is untouched; `SettingsPlaceholder` is now unused and may be removed by a later owner if desired.\n\n### Known gaps / limitations\n\n- The popover currently presents as a fixed bottom hint rather than anchored to a board control. Anchoring and contextual trigger placement belong to DEMO-3; this may merit a DEMO-3 visual pass but does not require the human style-direction gate.\n- Blocked `localStorage` falls back to an in-memory seen set for the page session; cross-reload persistence requires available browser storage.\n- No real-browser reload test was run for DEMO-2; persistence is proven against an injected storage implementation across a simulated reload.\n\n### Files created or changed\n\n- `src/features/onboarding/hints.ts` *(new)*\n- `src/features/onboarding/HintPopover.tsx` *(new)*\n- `src/features/onboarding/hints.css` *(new)*\n- `src/features/settings/SettingsPage.tsx` *(new)*\n- `src/app/routes.tsx` *(changed)*\n- `tests/onboarding/hints.test.ts` *(new)*\n- `tests/onboarding/HintPopover.test.tsx` *(new)*\n- `tests/settings/SettingsPage.test.tsx` *(new)*\n\n```forge-result\n{\"summary\":\"Implemented DEMO-2: localStorage-backed independent hint state with isSeen/markSeen/resetHint/resetAll, a non-modal focus-moving HintPopover with Got it/optional Show me/Escape and reduced-motion CSS, and a Settings Replay hints page with reset plus lazy route wiring. Required tests (30), typecheck, full suite (975), lint (0 errors), and build pass.\",\"unresolved\":[],\"decisions\":[\"Hints are independent definitions with no sequence/next/auto-advance metadata; Settings lists them only for replay.\",\"Seen state is a JSON id array at notes-detective.hints.seen with a store that re-reads storage on every access, so a reset is visible to later stores and simulated reloads.\",\"HintPopover is rendered non-modally without a focus trap; focus moves to the panel, Got it/Escape restore the trigger, and Show me leaves focus on the caller-revealed control.\",\"Dismissing through HintPopover marks the hint seen only when hintId is supplied; Settings also keys the popover by hint so switching replays moves focus to the new hint.\",\"Settings reset while a hint is open retargets focus restoration to the Reset control rather than the earlier Replay button.\"],\"interfaces\":[\"HINT_IDS, HintId, HINT_DEFINITIONS, HINTS, getHint, HINT_SEEN_STORAGE_KEY\",\"HintSeenStore: isSeen, markSeen, resetHint, resetAll, getSeenHints, subscribe\",\"createHintSeenStore(storage?: HintStorage | null), hintSeenStore, isSeen(id), markSeen(id), resetHint(id), resetAll(), useSeenHints(store?)\",\"HintPopover: open, title, description, hintId?, store?, showMe?, onDismiss(reason), returnFocusRef?, className?; reasons got-it | escape | show-me\",\"SettingsPage: hintStore?\"],\"tests\":[\"npm test -- tests/onboarding/hints.test.ts tests/onboarding/HintPopover.test.tsx tests/settings/SettingsPage.test.tsx: exit 0, 30 tests\",\"npm run typecheck: exit 0\",\"npm test: exit 0, 78 files / 975 tests\",\"npm run lint: 0 errors (3 pre-existing RecallSummary warnings)\",\"npm run build: exit 0\"],\"warnings\":[\"HintPopover is fixed to the bottom of the viewport rather than anchored to a specific board control; DEMO-3 should position it near the contextual trigger during integration.\",\"Show me is supported by HintPopover but not rendered on Settings because the Settings route has no corresponding board control to reveal.\",\"Blocked localStorage falls back to in-memory seen state for the page session only.\"],\"validationLimitations\":[\"No Playwright/browser reload or viewport matrix was run for DEMO-2 because the task's required validation is unit/component plus typecheck; the browser first-run journey belongs to DEMO-3. Persistence across reload is covered by reconstructing the store over the same injected storage.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 559098
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/onboarding/hints.test.ts tests/onboarding/HintPopover.test.tsx tests/settings/SettingsPage.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented DEMO-2: localStorage-backed independent hint state with isSeen/markSeen/resetHint/resetAll, a non-modal focus-moving HintPopover with Got it/optional Show me/Escape and reduced-motion CSS, and a Settings Replay hints page with reset plus lazy route wiring. Required tests (30), typecheck, full suite (975), lint (0 errors), and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "Hints are independent definitions with no sequence/next/auto-advance metadata; Settings lists them only for replay.",
+      "Seen state is a JSON id array at notes-detective.hints.seen with a store that re-reads storage on every access, so a reset is visible to later stores and simulated reloads.",
+      "HintPopover is rendered non-modally without a focus trap; focus moves to the panel, Got it/Escape restore the trigger, and Show me leaves focus on the caller-revealed control.",
+      "Dismissing through HintPopover marks the hint seen only when hintId is supplied; Settings also keys the popover by hint so switching replays moves focus to the new hint.",
+      "Settings reset while a hint is open retargets focus restoration to the Reset control rather than the earlier Replay button."
+    ],
+    "interfaces": [
+      "HINT_IDS, HintId, HINT_DEFINITIONS, HINTS, getHint, HINT_SEEN_STORAGE_KEY",
+      "HintSeenStore: isSeen, markSeen, resetHint, resetAll, getSeenHints, subscribe",
+      "createHintSeenStore(storage?: HintStorage | null), hintSeenStore, isSeen(id), markSeen(id), resetHint(id), resetAll(), useSeenHints(store?)",
+      "HintPopover: open, title, description, hintId?, store?, showMe?, onDismiss(reason), returnFocusRef?, className?; reasons got-it | escape | show-me",
+      "SettingsPage: hintStore?"
+    ],
+    "tests": [
+      "npm test -- tests/onboarding/hints.test.ts tests/onboarding/HintPopover.test.tsx tests/settings/SettingsPage.test.tsx: exit 0, 30 tests",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0, 78 files / 975 tests",
+      "npm run lint: 0 errors (3 pre-existing RecallSummary warnings)",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "HintPopover is fixed to the bottom of the viewport rather than anchored to a specific board control; DEMO-3 should position it near the contextual trigger during integration.",
+      "Show me is supported by HintPopover but not rendered on Settings because the Settings route has no corresponding board control to reveal.",
+      "Blocked localStorage falls back to in-memory seen state for the page session only."
+    ],
+    "validationLimitations": [
+      "No Playwright/browser reload or viewport matrix was run for DEMO-2 because the task's required validation is unit/component plus typecheck; the browser first-run journey belongs to DEMO-3. Persistence across reload is covered by reconstructing the store over the same injected storage."
+    ]
+  }
+}

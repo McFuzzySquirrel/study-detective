@@ -1,0 +1,67 @@
+{
+  "type": "work.rel-2",
+  "category": "work",
+  "taskId": "REL-2",
+  "producedBy": "release-engineer",
+  "status": "complete",
+  "summary": "REL-2 complete: main-only GitHub Pages deploy workflow with Pages/OIDC permissions, environment, artifact upload and deploy-pages; single VITE_BASE_PATH input in vite.config.ts; a 641-line Pages build checker with 20 parser/workflow tests; and deployment docs covering URL pattern, base behavior, permissions, exact production preview, troubleshooting and hosting limits. All three required validation commands pass, the Pages build references only /notes-detective/ assets with relative manifest scope and matching icons, and a direct #/settings route loaded from the production preview with HTTP 200.",
+  "inputs": [
+    "work-rel-1-001",
+    "work-a11y-4-001",
+    "work-a11y-5-001",
+    "work-a11y-6-001"
+  ],
+  "filesChanged": [
+    ".github/workflows/deploy-pages.yml",
+    "vite.config.ts",
+    "scripts/check-pages-build.mjs",
+    "docs/DEPLOYMENT.md",
+    "tests/release/pagesConfig.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "REL-2 complete: main-only GitHub Pages deploy workflow with Pages/OIDC permissions, environment, artifact upload and deploy-pages; single VITE_BASE_PATH input in vite.config.ts; a 641-line Pages build checker with 20 parser/workflow tests; and deployment docs covering URL pattern, base behavior, permissions, exact production preview, troubleshooting and hosting limits. All three required validation commands pass, the Pages build references only /notes-detective/ assets with relative manifest scope and matching icons, and a direct #/settings route loaded from the production preview with HTTP 200.",
+    "decisions": [
+      "Deploy only on push to main; pull requests run CI and never deploy.",
+      "Derive the base path from github.event.repository.name in the workflow and normalize a single VITE_BASE_PATH input in vite.config.ts; keep './' as the local default.",
+      "Infer the checker's base from index.html when --base is absent so local and Pages builds share one command, while the deploy workflow supplies an explicit base via VITE_BASE_PATH.",
+      "Run the Pages build check before artifact upload so a wrong-base build cannot deploy."
+    ],
+    "interfaces": [
+      "scripts/check-pages-build.mjs: checkPagesBuild({distDirectory, basePath}), inferBasePath, parseAssetReferences, normalizeBasePath, parseArguments, main.",
+      "vite.config.ts: normalizeBasePath(input) and DEFAULT_BASE_PATH='./'; reads process.env.VITE_BASE_PATH.",
+      "Tests parse .github/workflows/deploy-pages.yml directly and spawn the checker against temporary build fixtures."
+    ],
+    "tests": [
+      "node scripts/validate-workflows.mjs: exit 0 (engine-verified)",
+      "VITE_BASE_PATH=/notes-detective/ npm run build && node scripts/check-pages-build.mjs: exit 0 (engine-verified)",
+      "npm test -- tests/release/pagesConfig.test.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "node scripts/validate-workflows.mjs: exit 0",
+      "VITE_BASE_PATH=/notes-detective/ npm run build && node scripts/check-pages-build.mjs: exit 0",
+      "npm test -- tests/release/pagesConfig.test.ts: 20 passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 (3 pre-existing warnings)",
+      "actionlint .github/workflows/ci.yml .github/workflows/deploy-pages.yml: exit 0",
+      "npm test: 1165 passed",
+      "node scripts/perf-budget.mjs: 88.1 KiB gzip vs 300 KiB"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "No GitHub-hosted deployment or workflow run occurred in this environment; the workflow is validated by tests and actionlint only.",
+      "Repository settings must set Pages source to GitHub Actions and allow main in the github-pages environment.",
+      "Branch protection must require the Quality gate (Node 24) because the deploy workflow builds independently on main.",
+      "REL-3 owns runtime same-origin request, offline reload, precache, and update-prompt verification; REL-2 did not run them.",
+      "Three pre-existing react-refresh warnings remain in src/features/recall/RecallSummary.tsx."
+    ],
+    "validationLimitations": [
+      "The deployed URL, install prompt, and offline behavior were not observed on real hardware; those remain human acceptance evidence.",
+      "The runtime network-panel audit was not run; only static index/manifest origin scanning and the Pages build check were performed.",
+      "No tablet, phone, or desktop field journey was performed, and docs/reviews/final-acceptance.json was not created."
+    ],
+    "taskDescription": "Add .github/workflows/deploy-pages.yml for main with pages:write and id-token:write permissions, an environment, a VITE_BASE_PATH of the repository name, build, artifact upload, and deploy-pages. Update vite.config.ts to read the base path, keep hash routing, and emit relative manifest start_url and scope. Add scripts/check-pages-build.mjs to assert the built index references prefixed assets, the manifest and icons exist, start_url and scope are relative, and no absolute /assets path leaks. Add docs/DEPLOYMENT.md with the Pages URL pattern, base path behavior, permissions, local production preview commands, and troubleshooting. Add tests/release/pagesConfig.test.ts to exercise the check script. Do not add offline E2E."
+  },
+  "nextActions": [],
+  "artifactId": "work-rel-2-001",
+  "createdAt": "2026-10-26T21:19:52.864Z"
+}

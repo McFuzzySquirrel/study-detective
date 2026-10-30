@@ -1,0 +1,70 @@
+{
+  "type": "work.board-5",
+  "category": "work",
+  "taskId": "BOARD-5",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented CardListPage, grouped CardListPanel, EmptyBoard, deleteCard snapshot/restore, useUndoDelete, routes, board empty-state wiring, and the keyboard Playwright journey; required unit and browser checks pass.",
+  "inputs": [
+    "work-board-4-001",
+    "work-board-1-001",
+    "work-board-2-001",
+    "work-board-3-002"
+  ],
+  "filesChanged": [
+    "src/features/case/CardListPage.tsx",
+    "src/features/case/CardListPanel.tsx",
+    "src/features/case/EmptyBoard.tsx",
+    "src/features/case/useUndoDelete.ts",
+    "src/data/deleteCard.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/app/routes.tsx",
+    "tests/case/CardListPanel.test.tsx",
+    "tests/case/useUndoDelete.test.tsx",
+    "e2e/keyboard-cards.spec.ts",
+    "src/data/caseRepository.ts",
+    "src/features/capture/CapturePage.tsx",
+    "src/features/case/CardListPage.css",
+    "src/features/case/CardListPanel.css",
+    "src/features/case/EmptyBoard.css"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented CardListPage, grouped CardListPanel, EmptyBoard, deleteCard snapshot/restore, useUndoDelete, routes, board empty-state wiring, and the keyboard Playwright journey; required unit and browser checks pass.",
+    "decisions": [
+      "Undo snapshots are memory-only and single-level; timeout, dismiss, and a second delete clear the slot with no redo stack.",
+      "Restore writes the card, strings, and Blob rows in one repository transaction using original IDs; a missing other endpoint aborts atomically rather than creating a dangling string.",
+      "The empty case board replaces the canvas with EmptyBoard so no dead pan, zoom, or fit controls remain.",
+      "Capture accepts ?kind=note|source|topic so list and empty-board create actions start the intended path."
+    ],
+    "interfaces": [
+      "CardDeletionSnapshot, CardDeletionPreview, readCardDeletionPreview, deleteCard, restoreDeletedCard in src/data/deleteCard.ts",
+      "CaseRepositoryPort.restoreCardDeletion(snapshot)",
+      "useUndoDelete({ repository, onDeleted, onRestored }) -> pending, message, deleteWithUndo, undo, dismiss",
+      "CardListPage({ repository?, loadRepository? }), CardListPanel({ cards, connections?, onEdit, onDelete }), EmptyBoard({ caseId })",
+      "AppRoutes gains cardListRepository/loadCardListRepository and /case/:caseId/list"
+    ],
+    "tests": [
+      "npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/keyboard-cards.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/keyboard-cards.spec.ts: 3/3 Chromium viewports passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: 610 tests, 45 files passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Browser evidence covers Chromium desktop, tablet, and phone only.",
+      "The keyboard journey restores a seeded connection and attachment through real IndexedDB; the seed uses a browser-evaluate fixture, not pointer input."
+    ],
+    "validationLimitations": [
+      "Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design."
+    ],
+    "taskDescription": "Create CardListPage at /case/:caseId/list and CardListPanel with grouped cards, title, type, and topic-status slot. Add Add, Edit, Open detail, and Delete actions. Replace the case placeholder's empty state with EmptyBoard offering note, source, and topic capture. Implement deleteCard and a useUndoDelete hook: confirmation names the affected string count, deletion removes the card, connections, and attachments immediately, and an 8-second toast can restore the snapshot including attachments. Clear the snapshot on timeout or a second delete; no redo. Wire routes and links from the board. Do not add connection creation here."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-5-001",
+  "createdAt": "2026-10-26T05:06:07.559Z"
+}

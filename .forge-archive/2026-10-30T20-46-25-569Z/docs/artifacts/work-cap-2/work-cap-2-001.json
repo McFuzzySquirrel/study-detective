@@ -1,0 +1,61 @@
+{
+  "type": "work.cap-2",
+  "category": "work",
+  "taskId": "CAP-2",
+  "producedBy": "capture-engineer",
+  "status": "complete",
+  "summary": "Implemented pure crop/rotation math and an accessible react-easy-crop editor with rotation-aware aspect, keyboard nudges, reset, cancel, and normalized save; 49 targeted tests, full suite 379, typecheck, lint, formatting, and production build pass.",
+  "inputs": [
+    "work-cap-1-001",
+    "work-fnd-5-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001"
+  ],
+  "filesChanged": [
+    "src/features/capture/cropMath.ts",
+    "src/features/capture/CropRotateEditor.tsx",
+    "src/features/capture/crop.css",
+    "tests/capture/cropMath.test.ts",
+    "tests/capture/CropRotateEditor.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented pure crop/rotation math and an accessible react-easy-crop editor with rotation-aware aspect, keyboard nudges, reset, cancel, and normalized save; 49 targeted tests, full suite 379, typecheck, lint, formatting, and production build pass.",
+    "decisions": [
+      "Reset restores the crop and rotation the editor opened with: full/upright at import, stored crop on card detail.",
+      "The default frame aspect follows the initial crop and swaps for 90/270 turns unless the caller pins an aspect such as square.",
+      "clampCropRect preserves aspect ratio for arbitrary rectangles; normalizeCropRect mirrors the image pipeline's edge-clamping semantics.",
+      "The editor owns no persistence, object URL, pipeline, network, or storage side effects."
+    ],
+    "interfaces": [
+      "CropRotateEditor({ imageSrc, sourceWidth, sourceHeight, initialCrop?, initialRotation?, aspect?, nudgeStep?, title?, imageAlt?, saveLabel?, onSave, onCancel })",
+      "onSave({ crop: { x, y, width, height }, rotation: 0 | 90 | 180 | 270 }) with a source-frame normalized crop",
+      "cropMath exports normalizeCropRect, clampCropRect, isCropContained, translateCropRect, nudgeCropRect, cropToRotated, cropFromRotated, computeOutputBounds, previewDimensions, rotatedAspectRatio, rotateLeft, rotateRight, rotateBy, rotatedDimensions, resetCropState, describeCrop, and cropRectsEqual"
+    ],
+    "tests": [
+      "npm test -- tests/capture/cropMath.test.ts tests/capture/CropRotateEditor.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/capture/cropMath.test.ts tests/capture/CropRotateEditor.test.tsx: 49 passed, exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)",
+      "npm test: 379 passed across 26 files, exit 0",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification I did not author or touch.",
+      "Component tests use a controllable react-easy-crop mock; real image measurement and touch feel remain for browser or human review.",
+      "Corner marks are visual handles; touch resizing uses the cropper's pan and pinch/scroll zoom rather than draggable corners."
+    ],
+    "validationLimitations": [
+      "No real-browser or Playwright crop exercise was run because CAP-2 is not wired into a route; CAP-3/CAP-4 own that integration.",
+      "The editor's live summary updates during selection changes; screen-reader nudge and rotation paths were tested with keyboard events in jsdom."
+    ],
+    "taskDescription": "Implement cropMath.ts as pure helpers for normalized crop rectangles, 90-degree rotation, rotation-aware preview dimensions, containment, reset, and output bounds. Build CropRotateEditor.tsx on react-easy-crop with a dark mat, touch handles, rotate left/right, reset, cancel, and save. Expose rotation buttons and crop nudge controls for keyboard users, 44px targets, and an announced summary of the crop. Do not persist anything from this component."
+  },
+  "nextActions": [],
+  "artifactId": "work-cap-2-001",
+  "createdAt": "2026-10-25T21:11:53.793Z"
+}

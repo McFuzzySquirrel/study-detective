@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T05:56:54.115Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "SEARCH-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/search/searchCards.ts",
+      "src/features/search/SearchPanel.tsx",
+      "src/features/search/SearchPanel.css",
+      "src/features/case/CaseBoardPage.tsx",
+      "src/features/case/CardListPanel.tsx",
+      "tests/search/searchCards.test.ts",
+      "tests/search/SearchPanel.test.tsx",
+      "src/features/case/CardListPanel.css",
+      "src/features/case/CaseBoardPage.css"
+    ],
+    "stdout": "## SEARCH-2 — Live search, filters, and results panel\n\nImplemented the read-only, in-memory search path for one open case, including the 150 ms debounce, type/tag filters, live result announcements, keyboard result navigation, board centering, and card-list wiring.\n\n### Files created\n\n- `src/features/search/searchCards.ts`\n- `src/features/search/SearchPanel.tsx`\n- `src/features/search/SearchPanel.css`\n- `tests/search/searchCards.test.ts`\n- `tests/search/SearchPanel.test.tsx`\n\n### Files changed\n\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/case/CaseBoardPage.css`\n- `src/features/case/CardListPanel.tsx`\n- `src/features/case/CardListPanel.css`\n\n### Acceptance evidence\n\n| Criterion | Result | Evidence |\n|---|---|---|\n| Title, tag, and OCR matches; missing OCR does not throw | Pass | `searchCards.test.ts` covers each field, missing/blank OCR, and non-searchable metadata |\n| 150 ms query debounce; filters apply immediately | Pass | Fake-timer tests assert 149 ms/1 ms boundary; filter clicks update results immediately |\n| Type AND tag AND query; OR within selected tags; Clear all resets everything | Pass | Combination and Clear-all component tests |\n| Result count and no-result explanation announced | Pass | Single mounted `role=\"status\"` with `aria-live=\"polite\"` and `aria-atomic=\"true\"` |\n| Selecting centers and selects on the board; Open detail navigates without writes | Pass | Board store viewport/selection asserted; repository card and case unchanged; detail link test |\n| Search/filter calls perform no writes | Pass | Frozen-data/purity tests plus unchanged repository assertions |\n\n### Keyboard and viewport exercised\n\n- Keyboard: searchbox → type → `ArrowDown` enters results → `ArrowUp`/`ArrowDown`/`Home`/`End` move → `Enter` selects; Filters, Clear all, active-filter removals, and Open detail are native controls.\n- Component tests run in jsdom. No Playwright viewport matrix was added, per the task’s explicit exclusion; SEARCH-3/QA owns browser evidence.\n- Phone CSS breakpoint at 37.5 rem provides a full-width, full-height in-flow sheet; no horizontal overflow mechanisms were introduced.\n\n### Accessibility evidence\n\n- 44×44 CSS assertions for result buttons, detail links, filter chips, and active-filter removals.\n- Token-driven `:focus-visible` outlines on search input, chips, result buttons, detail links, and removals.\n- Result count/no-result region is always mounted before results and never steals focus.\n- Clear all returns focus to the search field; board selection moves focus to the board heading.\n- Contrast assertions cover ink, muted ink, headings, links, error text, and selected-chip text at ≥ 4.5:1.\n- No raw palette literals in the new/changed stylesheets; no `dangerouslySetInnerHTML`; a card title containing a `<script>` string renders as text.\n\n### Shared-file handoff\n\n- `CaseBoardPage.tsx` now accepts `?card=<id>` for card-list search selection. Preserve the order: load cards → reset board viewport → apply centered temporary viewport and selection once. It uses `applyTemporaryViewport`, so search navigation is not persisted as a camera move.\n- `CardListPanel.tsx` embeds `SearchPanel`, hides grouped rows while search criteria are active, and defaults result selection to `/case/:caseId?card=:cardId`. Preserve the `onSearchSelect` override for other surfaces.\n- `CaseBoardPage.css` and `CardListPanel.css` contain only token-driven additions.\n\n### Validation\n\n- `npm test -- tests/search/searchCards.test.ts tests/search/SearchPanel.test.tsx` — **26 passed**\n- `npm run typecheck` — **exit 0**\n- Full suite: `npm test -- --reporter=dot` — **726 passed, 53 files**\n- `npm run lint` — **exit 0**\n- Prettier check — **all matched files formatted**\n- `npm run build` — **exit 0**\n\nNon-blocking limitation: browser viewport behavior at phone/tablet sizes is not exercised in this task; that remains SEARCH-3/QA scope.\n\n```forge-result\n{\"summary\":\"Implemented SEARCH-2: pure in-memory search selector, debounced search panel with type/tag filters, keyboard result list, live count/no-result announcements, board centering/selection, Open detail navigation, and card-list wiring. Targeted tests, full suite, typecheck, lint, formatting, and build pass.\",\"unresolved\":[],\"decisions\":[\"Tag filters are ORed; type, tag, and text criteria are ANDed.\",\"Search selection uses a temporary board viewport so it centers without overwriting the stored camera.\",\"Card-list selection navigates to the board with ?card=<id> so Select means center-and-select on both surfaces; Open detail remains the detail route.\",\"The phone presentation is a full-width, full-height in-flow sheet, intentionally not a focus-trapping modal.\"],\"interfaces\":[\"searchCards(cards, { query?, type?, tags? }) -> readonly CardSearchResult[] with titleMatched, matchedTags, ocrSnippet\",\"hasActiveSearch, collectCardTags, typeFilterLabel, cardTypeLabel, SEARCH_DEBOUNCE_MS\",\"SearchPanel({ cards, onSelectCard, detailHref?, id?, title?, defaultFiltersOpen?, debounceMs?, onActiveChange?, className? })\",\"CardListPanel gained optional onSearchSelect and searchDetailHref\",\"CaseBoardPage accepts ?card=<id> to center and select a card\"],\"tests\":[\"npm test -- tests/search/searchCards.test.ts tests/search/SearchPanel.test.tsx: 26 passed\",\"npm run typecheck: exit 0\",\"npm test -- --reporter=dot: 53 files, 726 tests passed\",\"npm run lint: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"No browser viewport matrix was run for SEARCH-2 because the task excludes it; phone/tablet CSS behavior is covered by the stylesheet contract only.\",\"Tablet uses the same inline panel rather than a distinct right-side overlay; functional use is covered, visual presentation is left for the style gate.\"],\"validationLimitations\":[\"Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 809202
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/search/searchCards.test.ts tests/search/SearchPanel.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented SEARCH-2: pure in-memory search selector, debounced search panel with type/tag filters, keyboard result list, live count/no-result announcements, board centering/selection, Open detail navigation, and card-list wiring. Targeted tests, full suite, typecheck, lint, formatting, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "Tag filters are ORed; type, tag, and text criteria are ANDed.",
+      "Search selection uses a temporary board viewport so it centers without overwriting the stored camera.",
+      "Card-list selection navigates to the board with ?card=<id> so Select means center-and-select on both surfaces; Open detail remains the detail route.",
+      "The phone presentation is a full-width, full-height in-flow sheet, intentionally not a focus-trapping modal."
+    ],
+    "interfaces": [
+      "searchCards(cards, { query?, type?, tags? }) -> readonly CardSearchResult[] with titleMatched, matchedTags, ocrSnippet",
+      "hasActiveSearch, collectCardTags, typeFilterLabel, cardTypeLabel, SEARCH_DEBOUNCE_MS",
+      "SearchPanel({ cards, onSelectCard, detailHref?, id?, title?, defaultFiltersOpen?, debounceMs?, onActiveChange?, className? })",
+      "CardListPanel gained optional onSearchSelect and searchDetailHref",
+      "CaseBoardPage accepts ?card=<id> to center and select a card"
+    ],
+    "tests": [
+      "npm test -- tests/search/searchCards.test.ts tests/search/SearchPanel.test.tsx: 26 passed",
+      "npm run typecheck: exit 0",
+      "npm test -- --reporter=dot: 53 files, 726 tests passed",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "No browser viewport matrix was run for SEARCH-2 because the task excludes it; phone/tablet CSS behavior is covered by the stylesheet contract only.",
+      "Tablet uses the same inline panel rather than a distinct right-side overlay; functional use is covered, visual presentation is left for the style gate."
+    ],
+    "validationLimitations": [
+      "Browser keyboard and phone-sheet behavior remains for SEARCH-3/QA Playwright evidence."
+    ]
+  }
+}

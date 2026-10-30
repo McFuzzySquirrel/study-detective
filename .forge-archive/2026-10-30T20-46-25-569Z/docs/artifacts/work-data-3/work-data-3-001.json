@@ -1,0 +1,61 @@
+{
+  "type": "work.data-3",
+  "category": "work",
+  "taskId": "DATA-3",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Built the case shelf route with ordered case cards, create/edit dialog, empty state, and recoverable database-error state; shelf tests, typecheck, lint, full suite, and production build all pass.",
+  "inputs": [
+    "work-data-2-001",
+    "work-fnd-5-001",
+    "work-data-1-001"
+  ],
+  "filesChanged": [
+    "src/features/shelf/CaseShelfPage.tsx",
+    "src/features/shelf/CaseShelf.tsx",
+    "src/features/shelf/CaseCard.tsx",
+    "src/features/shelf/CaseFormDialog.tsx",
+    "src/features/shelf/shelf.css",
+    "src/app/routes.tsx",
+    "tests/shelf/CaseShelf.test.tsx",
+    "tests/shelf/CaseFormDialog.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Built the case shelf route with ordered case cards, create/edit dialog, empty state, and recoverable database-error state; shelf tests, typecheck, lint, full suite, and production build all pass.",
+    "decisions": [
+      "Ordering uses the repository's compareCaseSummaries helper and is re-applied after local creates/edits.",
+      "Create selects and focuses the new card instead of navigating away, satisfying the opens-or-selects criterion.",
+      "Form actions live inside the form element so Enter submits reliably; validation errors focus the first invalid field.",
+      "AppRoutes exposes optional repository props solely for dependency injection in tests and future composition."
+    ],
+    "interfaces": [
+      "CaseShelfPage({ repository?, loadRepository? })",
+      "CaseRepositoryLoader = () => Promise<CaseRepositoryPort>",
+      "AppRoutes({ shelfRepository?, loadShelfRepository? })",
+      "CaseFormDialog({ mode, initialCase?, onClose, onSubmit })",
+      "CaseFormValues { title, subject: string | null, examDate: string | null }"
+    ],
+    "tests": [
+      "npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)",
+      "npm run build: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx: exit 0 (14 passed)",
+      "npm run typecheck: exit 0",
+      "npm run build: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0 (236 passed)"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.",
+      "No browser-level viewport matrix or axe run was required or executed for DATA-3; component evidence is jsdom-based."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Replace the shelf placeholder with CaseShelfPage, CaseShelf, CaseCard, and CaseFormDialog. Load case summaries from the repository, sort by nearest exam date with undated cases last and then by updatedAt descending, and render title, subject, exam date, counts, a closure badge when closedAt is present, and last modified. Add create and edit flows with inline title validation, optional subject and exam date, 44px actions, empty state, route wiring in src/app/routes.tsx, and a recoverable database-error state with Retry and import guidance. Do not implement case deletion, storage warnings, readiness counts, or backup actions."
+  },
+  "nextActions": [],
+  "artifactId": "work-data-3-001",
+  "createdAt": "2026-10-25T20:27:59.524Z"
+}

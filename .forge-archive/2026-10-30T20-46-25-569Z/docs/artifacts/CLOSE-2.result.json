@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T16:58:27.822Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "CLOSE-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/closure/ClosurePanel.tsx",
+      "src/features/closure/useCaseLifecycle.ts",
+      "src/domain/caseLifecycle.ts",
+      "src/data/caseRepository.ts",
+      "src/features/case/CaseBoardPage.tsx",
+      "src/features/shelf/CaseCard.tsx",
+      "tests/features/closure/ClosurePanel.test.tsx",
+      "tests/domain/caseLifecycle.test.ts",
+      "e2e/closure.spec.ts",
+      "src/domain/model.ts",
+      "src/features/case/CaseBoardPage.css",
+      "src/features/shelf/shelf.css",
+      "tests/domain/model.test.ts",
+      "tests/domain/validation.test.ts",
+      "tests/shelf/CaseFormDialog.test.tsx",
+      "src/features/closure/closure.css"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the project context.\nNow I have enough context. Let me implement the domain lifecycle module first.\nNow let's run the type checker and the required unit tests.\n## CLOSE-2 — Closure panel, close, closed-with-threads, reopen\n\n### Delivered\n\n**Created**\n- `src/domain/caseLifecycle.ts`\n- `src/features/closure/ClosurePanel.tsx`\n- `src/features/closure/useCaseLifecycle.ts`\n- `src/features/closure/closure.css`\n- `tests/domain/caseLifecycle.test.ts`\n- `tests/features/closure/ClosurePanel.test.tsx`\n- `e2e/closure.spec.ts`\n\n**Changed**\n- `src/domain/model.ts` — `CaseSummary` now carries derived `readiness` and `looseThreadCount`, with a consistency refinement.\n- `src/data/caseRepository.ts` — both repositories derive readiness once per case summary read (no stored solved flag).\n- `src/features/case/CaseBoardPage.tsx` — derives readiness once, mounts `ClosurePanel`, owns the lifecycle hook and success toast.\n- `src/features/case/CaseBoardPage.css` — three-area workspace layout: detail, board, closure.\n- `src/features/shelf/CaseCard.tsx` — `Closed`, `Closed · loose threads`, and open-loose shelf badges.\n- `src/features/shelf/shelf.css` — badge tone states and wrapping.\n- `tests/domain/model.test.ts`, `tests/domain/validation.test.ts`, `tests/shelf/CaseFormDialog.test.tsx` — updated summary fixtures and schema assertions.\n\n### Validation\n\nRequired commands:\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts` | **PASS** — 2 files, 19 tests |\n| `npm run test:e2e -- e2e/closure.spec.ts` | **PASS** — 3/3 projects |\n\nAdditional checks:\n- `npm run typecheck` — PASS\n- `npm run lint` — PASS\n- full `npm test` — 68 files, 891 tests PASS\n- Prettier check on all touched files — PASS\n\n### Acceptance evidence\n\n| Criterion | Evidence |\n|---|---|\n| Close disabled while loose, with count explanation | Component tests assert disabled button + `2 loose threads must be resolved…`; e2e asserts disabled `Close again` on the broken closed case. |\n| Close records `closedAt`, shows Closed on case and shelf | Component test checks fixed-clock timestamp and badge; e2e reads IndexedDB `closedAt` and the shelf badge. |\n| Closed case editable; loose edit shows `Closed · loose threads`, preserves `closedAt` | Component test edits a card after closure; e2e adds a loose note while closed and asserts the stored date is unchanged. |\n| Repair re-enables Close | Component and e2e: repair connections, state moves `closed-loose → closed-ready`, Close enabled. |\n| Reopen confirmed, clears `closedAt`, never automatic | Component and e2e: cancel keeps date; confirm clears IndexedDB date and removes badge. |\n| Summaries expose readiness/count | `CaseSummary` schema + repository derivation; component assertion on `getCaseSummary`; shelf e2e badge. |\n| Playwright journey covers close, break, repair, reopen | `e2e/closure.spec.ts`, all three viewports. |\n\n### Routes, viewports, input methods\n\n- Routes exercised: `/` (shelf), `/case/:caseId` (closure panel and board), `/case/:caseId/list` (keyboard connection repair), capture routes for fixture creation.\n- Viewports: **desktop 1440×900**, **tablet landscape 1280×800**, **phone 390×844**.\n- Input: pointer clicks, keyboard `Tab`/`Enter`/`Escape`, native radio/button operation; dialogs trap focus and restore it. Spatial canvas placement was intentionally not claimed as keyboard-operable.\n\n### Accessibility evidence\n\n- **Focus:** close-cancel returns to Close; close-success returns to `Close again`; reopen-cancel returns to Reopen; reopen-success lands on the panel heading; dialogs focus Cancel/Keep closed first.\n- **Announcements:** readiness uses `role=\"status\"` / `aria-live=\"polite\"`; success uses the shared polite Toast; failures use `role=\"alert\"` inside the open dialog and do not move focus.\n- **Targets:** thread links and all panel actions use the 44×44 `--target-min` floor; asserted through CSS contract tests.\n- **Contrast:** measured AA or better — muted ink/surface 7.87, danger text/sunken 9.69, accent ink/accent 7.77, warning ink/warning 8.54.\n- **Reduced motion:** panel transitions/animations disabled under `prefers-reduced-motion`.\n- **Safety:** no raw palette values in `closure.css`; no `dangerouslySetInnerHTML`; titles and reasons render as text.\n\n### Shared files and handoff notes\n\n- `src/domain/model.ts`: `CaseSummary` now **requires** `readiness` and `looseThreadCount`. Other owners constructing summaries manually must supply them; values stay derived and must not be persisted.\n- `src/data/caseRepository.ts`: summary readiness is recomputed on every read. Preserve that boundary; do not introduce stored readiness or a solved flag.\n- `src/features/case/CaseBoardPage.tsx` / `.css`: closure is mounted inside the workspace and depends on the `data-has-detail` grid areas. Keep that layout contract when editing the board shell.\n- `src/features/shelf/CaseCard.tsx` / `shelf.css`: badge states are `closed`, `closed-loose`, and `loose`. Topic status badges remain CLOSE-3 scope.\n\n### Known gaps\n\n- On phone the panel is a full-width stacked, sheet-like surface rather than a modal bottom sheet. It is usable and tested at 390×844; a modal-sheet treatment can be decided in A11Y-1/responsive hardening and may need human visual review.\n- No topic status badges were added, per scope.\n\n```forge-result\n{\"summary\":\"Implemented CLOSE-2: pure lifecycle derivation, ClosurePanel and useCaseLifecycle mounted on CaseBoardPage, confirmed close/reopen with closedAt preserved when edits break readiness, shelf readiness badges, and 19 unit/component tests plus a 3-viewport Playwright closure journey; all required checks pass.\",\"unresolved\":[],\"decisions\":[\"Readiness remains derived on every repository read; CaseSummary carries it only as a non-persisted projection.\",\"Re-affirming closure of an already closed case preserves the original closedAt.\",\"Repairing a closed case re-enables Close while leaving the case closed; it never auto-reopens.\",\"Loose-thread rows link to card detail and expose a separate 'Show on board' action for centering without leaving the board.\",\"Phone closure is a stacked, sheet-like surface; modal-sheet refinement is deferred to responsive hardening.\"],\"interfaces\":[\"deriveCaseLifecycle(closedAt, readiness): CaseLifecycle\",\"closureTimestamp(currentClosedAt, now): string\",\"looseThreadLabel(count): string\",\"readinessLabelFor(readiness): string\",\"useCaseLifecycle({caseRecord, readiness, repository, clock, onCaseChanged})\",\"ClosurePanel({caseRecord, readiness, busy, error, onCloseCase, onReopenCase, cardHref, onShowCard, onClearError})\",\"CaseSummary now includes readiness: 'ready' | 'loose' and looseThreadCount: number\"],\"tests\":[\"npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts: 19 passed\",\"npm run test:e2e -- e2e/closure.spec.ts: 3 passed (desktop, tablet-landscape, phone)\",\"npm run typecheck: passed\",\"npm run lint: passed\",\"npm test: 891 passed\"],\"warnings\":[\"Phone closure panel is not a modal sheet yet; responsive hardening may require revisiting it.\",\"Loose-thread ordering follows readiness title order, not the shelf's createdAt order.\"],\"validationLimitations\":[\"Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 773568
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/closure.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented CLOSE-2: pure lifecycle derivation, ClosurePanel and useCaseLifecycle mounted on CaseBoardPage, confirmed close/reopen with closedAt preserved when edits break readiness, shelf readiness badges, and 19 unit/component tests plus a 3-viewport Playwright closure journey; all required checks pass.",
+    "unresolved": [],
+    "decisions": [
+      "Readiness remains derived on every repository read; CaseSummary carries it only as a non-persisted projection.",
+      "Re-affirming closure of an already closed case preserves the original closedAt.",
+      "Repairing a closed case re-enables Close while leaving the case closed; it never auto-reopens.",
+      "Loose-thread rows link to card detail and expose a separate 'Show on board' action for centering without leaving the board.",
+      "Phone closure is a stacked, sheet-like surface; modal-sheet refinement is deferred to responsive hardening."
+    ],
+    "interfaces": [
+      "deriveCaseLifecycle(closedAt, readiness): CaseLifecycle",
+      "closureTimestamp(currentClosedAt, now): string",
+      "looseThreadLabel(count): string",
+      "readinessLabelFor(readiness): string",
+      "useCaseLifecycle({caseRecord, readiness, repository, clock, onCaseChanged})",
+      "ClosurePanel({caseRecord, readiness, busy, error, onCloseCase, onReopenCase, cardHref, onShowCard, onClearError})",
+      "CaseSummary now includes readiness: 'ready' | 'loose' and looseThreadCount: number"
+    ],
+    "tests": [
+      "npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts: 19 passed",
+      "npm run test:e2e -- e2e/closure.spec.ts: 3 passed (desktop, tablet-landscape, phone)",
+      "npm run typecheck: passed",
+      "npm run lint: passed",
+      "npm test: 891 passed"
+    ],
+    "warnings": [
+      "Phone closure panel is not a modal sheet yet; responsive hardening may require revisiting it.",
+      "Loose-thread ordering follows readiness title order, not the shelf's createdAt order."
+    ],
+    "validationLimitations": [
+      "Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair."
+    ]
+  }
+}

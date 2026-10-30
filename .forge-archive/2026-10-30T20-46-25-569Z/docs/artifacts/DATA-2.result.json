@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:18:05.466Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "DATA-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/data/db.ts",
+      "src/data/mappers.ts",
+      "src/data/caseRepository.ts",
+      "src/data/attachmentStore.ts",
+      "tests/data/dbMigration.test.ts",
+      "tests/data/caseRepository.test.ts",
+      "tests/data/attachmentStore.test.ts",
+      "package-lock.json",
+      "package.json",
+      "src/data/errors.ts",
+      "src/data/transactions.ts",
+      "tests/data/testDatabase.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task.\nNow I'll implement the data layer. Starting with shared errors, schema, and mappers.\nNow the data test helper and migration tests.\nImplemented the Dexie v1 schema and repository boundary for Notes Detective.\n\n```forge-result\n{\"summary\":\"Implemented the Dexie v1 database, strict row mappers, transactional CaseRepository, AttachmentStore, and in-memory repository fake; added 46 data tests covering migration, round-trips, malformed-row rejection, Blob metadata, unique pair keys, and transaction rollback.\",\"unresolved\":[],\"decisions\":[\"Cases store viewport and closure metadata; saveViewport preserves updatedAt so shelf ordering does not churn on pan/zoom.\",\"Card and connection writes update the owning case's updatedAt in the same transaction.\",\"Connections use both a globally unique pairKey index and a unique [caseId+pairKey] compound index.\",\"Attachment writes verify the owning card in the same transaction and reject duplicate kinds in one set.\",\"Stored-row validation failures surface as StorageReadError with the underlying DomainValidationError as cause.\"],\"interfaces\":[\"NotesDetectiveDatabase, createNotesDetectiveDatabase(name?), openNotesDetectiveDatabase(name?), DATABASE_VERSION=1.\",\"CaseRepository(db, { clock?, idFactory? }) implementing CaseRepositoryPort: createCase, getCase, getCaseSummary, listCaseSummaries, updateCase, saveViewport, createCard, createCardWithAttachments, getCard, listCards, updateCard, deleteCard.\",\"AttachmentStore(db, { clock?, idFactory? }): addAttachment, addAttachments, getAttachment, getAttachmentByKind, listAttachments, deleteAttachment.\",\"InMemoryCaseRepository({ clock?, idFactory?, seed? }) implementing CaseRepositoryPort.\",\"NewAttachment, buildAttachmentRecord, compareCaseSummaries, StorageReadError, RecordNotFoundError.\"],\"tests\":[\"npm test -- tests/data/dbMigration.test.ts tests/data/caseRepository.test.ts tests/data/attachmentStore.test.ts: exit 0 (46 tests)\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm test: exit 0 (222 tests across 13 files)\",\"npm run test:coverage: exit 0; src/data 95.25% lines, src/domain 97.95% lines\"],\"warnings\":[\"Added fake-indexeddb 6.2.6 as an exact devDependency because it was not previously installed.\",\"Data tests use // @vitest-environment node: jsdom's Blob is not preserved by fake-indexeddb's Node structuredClone, while Node's Blob round-trips correctly through IndexedDB.\",\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.\",\"Connection CRUD and cascade case deletion remain intentionally out of scope for LINK-1 and DATA-5.\"]}\n```\n\n### Files created\n\n- `src/data/db.ts`\n- `src/data/mappers.ts`\n- `src/data/caseRepository.ts`\n- `src/data/attachmentStore.ts`\n- `src/data/errors.ts`\n- `src/data/transactions.ts`\n- `tests/data/dbMigration.test.ts`\n- `tests/data/caseRepository.test.ts`\n- `tests/data/attachmentStore.test.ts`\n- `tests/data/testDatabase.ts`\n\n### Files changed\n\n- `package.json` — added exact `fake-indexeddb` devDependency\n- `package-lock.json` — lockfile entry for `fake-indexeddb@6.2.6`\n\n`docs/artifacts/DATA-2.md` was not modified, and nothing was committed.\n",
+    "stderr": "",
+    "durationMs": 582235
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/data/dbMigration.test.ts tests/data/caseRepository.test.ts tests/data/attachmentStore.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented the Dexie v1 database, strict row mappers, transactional CaseRepository, AttachmentStore, and in-memory repository fake; added 46 data tests covering migration, round-trips, malformed-row rejection, Blob metadata, unique pair keys, and transaction rollback.",
+    "unresolved": [],
+    "decisions": [
+      "Cases store viewport and closure metadata; saveViewport preserves updatedAt so shelf ordering does not churn on pan/zoom.",
+      "Card and connection writes update the owning case's updatedAt in the same transaction.",
+      "Connections use both a globally unique pairKey index and a unique [caseId+pairKey] compound index.",
+      "Attachment writes verify the owning card in the same transaction and reject duplicate kinds in one set.",
+      "Stored-row validation failures surface as StorageReadError with the underlying DomainValidationError as cause."
+    ],
+    "interfaces": [
+      "NotesDetectiveDatabase, createNotesDetectiveDatabase(name?), openNotesDetectiveDatabase(name?), DATABASE_VERSION=1.",
+      "CaseRepository(db, { clock?, idFactory? }) implementing CaseRepositoryPort: createCase, getCase, getCaseSummary, listCaseSummaries, updateCase, saveViewport, createCard, createCardWithAttachments, getCard, listCards, updateCard, deleteCard.",
+      "AttachmentStore(db, { clock?, idFactory? }): addAttachment, addAttachments, getAttachment, getAttachmentByKind, listAttachments, deleteAttachment.",
+      "InMemoryCaseRepository({ clock?, idFactory?, seed? }) implementing CaseRepositoryPort.",
+      "NewAttachment, buildAttachmentRecord, compareCaseSummaries, StorageReadError, RecordNotFoundError."
+    ],
+    "tests": [
+      "npm test -- tests/data/dbMigration.test.ts tests/data/caseRepository.test.ts tests/data/attachmentStore.test.ts: exit 0 (46 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0 (222 tests across 13 files)",
+      "npm run test:coverage: exit 0; src/data 95.25% lines, src/domain 97.95% lines"
+    ],
+    "warnings": [
+      "Added fake-indexeddb 6.2.6 as an exact devDependency because it was not previously installed.",
+      "Data tests use // @vitest-environment node: jsdom's Blob is not preserved by fake-indexeddb's Node structuredClone, while Node's Blob round-trips correctly through IndexedDB.",
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.",
+      "Connection CRUD and cascade case deletion remain intentionally out of scope for LINK-1 and DATA-5."
+    ]
+  }
+}

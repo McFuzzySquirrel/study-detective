@@ -1,0 +1,61 @@
+{
+  "type": "work.a11y-5",
+  "category": "work",
+  "taskId": "A11Y-5",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "Implemented A11Y-5: a deterministic 150-card IndexedDB fixture, a five-second scripted pan/zoom Playwright performance spec with average FPS and p95 gates, a Vite-manifest initial-JavaScript budget script with parser tests, and the performance-budget document. All three required validation commands pass; bundle is 87.6 KiB gzip against 300 KiB, and desktop/tablet/phone runs recorded 37.2/46.2/60.0 FPS average with 33.4/33.4/16.8 ms p95. The 45 FPS and cold-load targets are explicitly deferred to human/field review.",
+  "inputs": [
+    "work-a11y-4-001",
+    "work-a11y-1-001",
+    "work-a11y-2-001",
+    "work-a11y-3-001"
+  ],
+  "filesChanged": [
+    "e2e/helpers/seedLargeCase.ts",
+    "e2e/performance.spec.ts",
+    "scripts/perf-budget.mjs",
+    "tests/a11y/perfBudget.test.ts",
+    "docs/quality/performance-budget.md",
+    "vite.config.ts",
+    "playwright.config.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented A11Y-5: a deterministic 150-card IndexedDB fixture, a five-second scripted pan/zoom Playwright performance spec with average FPS and p95 gates, a Vite-manifest initial-JavaScript budget script with parser tests, and the performance-budget document. All three required validation commands pass; bundle is 87.6 KiB gzip against 300 KiB, and desktop/tablet/phone runs recorded 37.2/46.2/60.0 FPS average with 33.4/33.4/16.8 ms p95. The 45 FPS and cold-load targets are explicitly deferred to human/field review.",
+    "decisions": [
+      "Count only the Vite entry and its transitive static imports; lazy board/OCR chunks are excluded by the manifest graph and listed separately.",
+      "Use a 75% detail camera for the CI floor because it is host-load stable; dense zoomed-out overview and the 45 FPS target are reserved for the human tablet review.",
+      "Run Playwright with one worker so frame evidence measures the board rather than parallel software-WebGL contention."
+    ],
+    "interfaces": [],
+    "tests": [
+      "npm test -- tests/a11y/perfBudget.test.ts: exit 0 (engine-verified)",
+      "npm run build && node scripts/perf-budget.mjs: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/performance.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/a11y/perfBudget.test.ts: exit 0, 5 tests passed",
+      "npm run build && node scripts/perf-budget.mjs: exit 0, 87.6 KiB gzip <= 300 KiB",
+      "npm run test:e2e -- e2e/performance.spec.ts: exit 0, 3 projects passed",
+      "npm test: exit 0, 1122 tests passed",
+      "npm run test:e2e -- e2e/a11y.spec.ts: exit 0, 5 passed and 4 project-scoped skips",
+      "npm run lint: 0 errors, 3 pre-existing react-refresh warnings",
+      "npm run typecheck: exit 0",
+      "npm run format:check: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Automated frame evidence uses a 75% camera with 8 visible cards on tablet/desktop; a dense overview of 20+ visible cards is not gated automatically.",
+      "The synthetic fixture has no images, OCR text, or strings, so texture residency and string-layer volume remain human-review risks.",
+      "The 45 FPS tablet target and 3-second cold load are not automated and require human/field verification."
+    ],
+    "validationLimitations": [
+      "Headless Chromium software WebGL is not the target tablet; the 45 FPS result cannot be inferred from the 30 FPS floor.",
+      "The local preview server does not represent a 20 Mbps network profile, so cold load is documented but deferred to field measurement."
+    ],
+    "taskDescription": "Add e2e/helpers/seedLargeCase.ts to insert a 150-card synthetic case through the app's IndexedDB schema, e2e/performance.spec.ts to pan and zoom for five seconds and record average FPS and p95 frame time, scripts/perf-budget.mjs to read the Vite manifest and fail when initial entry plus shared chunks exceed 300 KB gzip excluding board and OCR chunks, and docs/quality/performance-budget.md to state the budgets and measurement method. The CI floor is 30 FPS for headless software rendering; the 45 FPS target is verified on the target tablet in the final human review. Fail the performance spec if the board does not become interactive or the 30 FPS floor is missed. Do not add bundle precache checks."
+  },
+  "nextActions": [],
+  "artifactId": "work-a11y-5-001",
+  "createdAt": "2026-10-26T20:23:04.013Z"
+}

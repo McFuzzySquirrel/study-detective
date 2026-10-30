@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T21:34:53.944Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "REL-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "e2e/pwa.spec.ts",
+      "scripts/check-bundle-budget.mjs",
+      "tests/release/bundleBudget.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the task scope.\nNow I'll write the precache budget checker.\nNow the Playwright PWA journey.\nNow I'll run the exact validation commands from the task contract.\n## REL-3 Verification Report\n\n### Task and exact commands\n\n**Task:** REL-3 — Verify installable offline PWA, same-origin requests, and precache budget  \n**Owner:** qa-engineer  \n**Build:** production `vite build` served by `vite preview` (`http://127.0.0.1:4173`)\n\n| # | Exact command | Real result |\n|---|---|---|\n| 1 | `npm run build && node scripts/check-bundle-budget.mjs` | **exit 0** — 67 precache entries, 11,427,556 bytes = **10.90 MiB**, budget 26,214,400 bytes = 25.00 MiB |\n| 2 | `npm test -- tests/release/bundleBudget.test.ts` | **exit 0** — 11/11 tests passed |\n| 3 | `npm run test:e2e -- e2e/pwa.spec.ts` | **exit 0** — 9/9 tests passed across desktop, tablet-landscape, phone |\n\nAdditional gates run: `npm run lint` (0 errors; 3 pre-existing `react-refresh` warnings in `RecallSummary.tsx`), `npm run typecheck` (exit 0), `npm test` (89 files, 1,176/1,176), `npm run test:coverage` (exit 0; `src/domain` 98.43% lines, `src/data` 91.04% lines), `node scripts/perf-budget.mjs` (initial JS 88.1 KiB ≤ 300 KiB).\n\n### Behaviour exercised and criteria proven\n\n- **Manifest, 192/512/maskable icons, service worker present:** the spec fetches the served manifest, validates identity/`display`/relative `start_url`/`scope`, fetches every declared PNG, verifies the PNG signature and reads real IHDR dimensions (192×192, 512×512, 512×512), fetches `/sw.js`, and asserts the registration scope/active worker.\n- **Offline reload renders the shelf and demo:** fresh browser context, real first-run demo seed into IndexedDB, wait for SW activation, reload under control, `context.setOffline(true)`, reload again, assert the shelf heading, demo link, open the demo board, assert “6 cards pinned to the cork” and `data-board-scene-status=\"ready\"`.\n- **OCR assets precached and available offline:** asserts `ocr/worker.min.js`, `ocr/tesseract-core-simd-lstm.wasm`, `tesseract-core-simd-lstm.wasm.js`, and `ocr/eng.traineddata.gz` are present in the real Cache Storage, then fetches them while offline through the controlled page. Measured: worker 111,307 B; wasm 2,857,601 B; wasm.js 3,899,472 B; traineddata 5,199,098 B decoded (served with `Content-Encoding: gzip`).\n- **No non-same-origin runtime request:** every page request is recorded before navigation; HTTP(S) origins must match the preview origin, and unexpected protocols fail. Zero external requests in all 9 runs.\n- **Waiting update prompts, does not activate silently:** the test appends a marker to `dist/sw.js` at the same URL, triggers `registration.update()`, asserts a new worker reaches `installed`/waiting, the prompt appears, `controllerchange` count remains 0, and `Later` leaves the worker waiting. Original `sw.js` bytes are restored in `finally`.\n- **Precache budget enforcement:** the checker parses the actual Workbox `precacheAndRoute([...])` manifest, resolves each entry inside `dist`, and fails on oversize totals, missing files, absolute/external URLs, traversal, duplicate URLs, or malformed manifests. Unit tests prove pass at exactly the budget and failure one byte above.\n\n**Viewports/browsers:** Chromium `desktop` 1440×900, `tablet-landscape` 1280×800, `phone` 390×844. Persistence path: real IndexedDB demo seed, real service-worker registration, real Cache Storage, real offline reload. No mocked IndexedDB or archive.\n\n### Defects\n\nNo defect found. No product code was changed.\n\n### Automated vs human gates\n\n- Automated and passing: PWA installability prerequisites, offline shell/shelf/demo/board, OCR precache/offline delivery, same-origin request audit, waiting-update prompt, precache budget, parser and threshold tests.\n- Remains human: browser-native **Install / Add to Home Screen** prompt, the deployed GitHub Pages URL, real OCR recognition on a captured image, and the REL-HR-1 field journey.\n\n### Residual risk / out of scope\n\n- The install prompt itself is browser-native and not clicked headlessly; only installability prerequisites and service-worker control are automated.\n- REL-3 exercises the production preview, not the deployed Pages URL; deployment/human verification remains REL-HR-1.\n- Firefox/WebKit PWA behavior is not in this spec; A11Y-6 owns the cross-browser compat smoke path.\n- The waiting-worker test simulates a deployment via transient `dist/sw.js` byte changes, not a real two-release rollout.\n- OCR assets are proven served from cache; actual OCR recognition is not run here.\n\n### Files created or changed\n\n- **Created** `e2e/pwa.spec.ts`\n- **Created** `scripts/check-bundle-budget.mjs`\n- **Created** `tests/release/bundleBudget.test.ts`\n\nNo changes to `docs/artifacts/`; no product source or committed docs were modified. (`docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already modified by the engine, not by this task.)\n\n```forge-result\n{\"summary\":\"REL-3 complete: e2e/pwa.spec.ts passes 9/9 across desktop 1440x900, tablet-landscape 1280x800, and phone 390x844, proving served manifest + real 192/512/maskable PNGs, active service worker, offline reload into shelf/demo/board, cached OCR worker/wasm/traineddata fetched offline, and a real waiting-worker prompt with zero controllerchange before confirmation. scripts/check-bundle-budget.mjs reads the generated Workbox precache (67 entries, 10.90 MiB <= 25 MiB) and fails on oversize, missing, external, traversal, duplicate, or malformed entries; tests/release/bundleBudget.test.ts passes 11/11. All three contract validation commands exited 0; lint, typecheck, full unit suite, and coverage also pass.\",\"unresolved\":[],\"decisions\":[\"Parse the actual generated Workbox precacheAndRoute array rather than scanning dist, so the budget follows what the service worker really caches.\",\"Use 25 MiB (25*1024*1024 bytes) for the documented 25 MB budget, consistent with pwaOptions.maximumFileSizeToCacheInBytes.\",\"Prove the waiting-update path by changing real service-worker bytes at the same URL, then assert waiting state, zero controllerchange, and Later leaving it waiting; restore the original file in finally.\",\"Start every PWA test from an empty browser context so the demo seeds through the real IndexedDB path; pre-set only the hint-seen marker.\"],\"interfaces\":[\"scripts/check-bundle-budget.mjs exports DEFAULT_PRECACHE_BUDGET_BYTES, DEFAULT_SW_PATH, parsePrecacheManifest, computePrecacheBudget, formatPrecacheBudgetReport, parseArguments, and main.\",\"CLI: node scripts/check-bundle-budget.mjs [--sw <path>] [--dist <dir>] [--budget-kb <n> | --budget-bytes <n>] [--json] [--help].\",\"e2e/pwa.spec.ts defines separate installability, offline reload/OCR, and waiting-update journeys.\"],\"tests\":[\"npm run build && node scripts/check-bundle-budget.mjs: exit 0; 67 entries, 11,427,556 bytes (10.90 MiB) <= 26,214,400 bytes (25.00 MiB)\",\"npm test -- tests/release/bundleBudget.test.ts: 11/11 passed\",\"npm run test:e2e -- e2e/pwa.spec.ts: 9/9 passed on desktop, tablet-landscape, and phone\",\"npm run lint: 0 errors (3 pre-existing RecallSummary react-refresh warnings)\",\"npm run typecheck: exit 0\",\"npm test: 1,176/1,176 passed\",\"npm run test:coverage: exit 0; src/domain 98.43% lines, src/data 91.04% lines\",\"node scripts/perf-budget.mjs: initial JavaScript 88.1 KiB <= 300 KiB (existing A11Y-5 gate)\"],\"warnings\":[\"The waiting-worker proof transiently appends a comment to dist/sw.js and restores the original bytes in finally; Playwright runs one worker, so no other test observes the temporary file.\",\"vite preview serves eng.traineddata.gz with Content-Encoding: gzip; the offline fetch reports 5,199,098 decoded bytes while the file on disk is 2,952,873 bytes.\",\"The update probe simulates a deployment by changing worker bytes, not by running two real deployments.\"],\"validationLimitations\":[\"The browser-native install prompt and Add to Home Screen flow require a human reviewer; only installability prerequisites and service-worker control are automated.\",\"The deployed GitHub Pages URL was not visited; REL-3 uses the production preview and the deployed field journey remains REL-HR-1.\",\"Firefox and WebKit PWA paths are outside this spec; A11Y-6 owns the compat smoke path.\",\"Offline OCR proves cached delivery and response bytes, not a completed recognition run.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 848099
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm run build && node scripts/check-bundle-budget.mjs: exit 0 (engine-verified)",
+        "npm test -- tests/release/bundleBudget.test.ts: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/pwa.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "REL-3 complete: e2e/pwa.spec.ts passes 9/9 across desktop 1440x900, tablet-landscape 1280x800, and phone 390x844, proving served manifest + real 192/512/maskable PNGs, active service worker, offline reload into shelf/demo/board, cached OCR worker/wasm/traineddata fetched offline, and a real waiting-worker prompt with zero controllerchange before confirmation. scripts/check-bundle-budget.mjs reads the generated Workbox precache (67 entries, 10.90 MiB <= 25 MiB) and fails on oversize, missing, external, traversal, duplicate, or malformed entries; tests/release/bundleBudget.test.ts passes 11/11. All three contract validation commands exited 0; lint, typecheck, full unit suite, and coverage also pass.",
+    "unresolved": [],
+    "decisions": [
+      "Parse the actual generated Workbox precacheAndRoute array rather than scanning dist, so the budget follows what the service worker really caches.",
+      "Use 25 MiB (25*1024*1024 bytes) for the documented 25 MB budget, consistent with pwaOptions.maximumFileSizeToCacheInBytes.",
+      "Prove the waiting-update path by changing real service-worker bytes at the same URL, then assert waiting state, zero controllerchange, and Later leaving it waiting; restore the original file in finally.",
+      "Start every PWA test from an empty browser context so the demo seeds through the real IndexedDB path; pre-set only the hint-seen marker."
+    ],
+    "interfaces": [
+      "scripts/check-bundle-budget.mjs exports DEFAULT_PRECACHE_BUDGET_BYTES, DEFAULT_SW_PATH, parsePrecacheManifest, computePrecacheBudget, formatPrecacheBudgetReport, parseArguments, and main.",
+      "CLI: node scripts/check-bundle-budget.mjs [--sw <path>] [--dist <dir>] [--budget-kb <n> | --budget-bytes <n>] [--json] [--help].",
+      "e2e/pwa.spec.ts defines separate installability, offline reload/OCR, and waiting-update journeys."
+    ],
+    "tests": [
+      "npm run build && node scripts/check-bundle-budget.mjs: exit 0; 67 entries, 11,427,556 bytes (10.90 MiB) <= 26,214,400 bytes (25.00 MiB)",
+      "npm test -- tests/release/bundleBudget.test.ts: 11/11 passed",
+      "npm run test:e2e -- e2e/pwa.spec.ts: 9/9 passed on desktop, tablet-landscape, and phone",
+      "npm run lint: 0 errors (3 pre-existing RecallSummary react-refresh warnings)",
+      "npm run typecheck: exit 0",
+      "npm test: 1,176/1,176 passed",
+      "npm run test:coverage: exit 0; src/domain 98.43% lines, src/data 91.04% lines",
+      "node scripts/perf-budget.mjs: initial JavaScript 88.1 KiB <= 300 KiB (existing A11Y-5 gate)"
+    ],
+    "warnings": [
+      "The waiting-worker proof transiently appends a comment to dist/sw.js and restores the original bytes in finally; Playwright runs one worker, so no other test observes the temporary file.",
+      "vite preview serves eng.traineddata.gz with Content-Encoding: gzip; the offline fetch reports 5,199,098 decoded bytes while the file on disk is 2,952,873 bytes.",
+      "The update probe simulates a deployment by changing worker bytes, not by running two real deployments."
+    ],
+    "validationLimitations": [
+      "The browser-native install prompt and Add to Home Screen flow require a human reviewer; only installability prerequisites and service-worker control are automated.",
+      "The deployed GitHub Pages URL was not visited; REL-3 uses the production preview and the deployed field journey remains REL-HR-1.",
+      "Firefox and WebKit PWA paths are outside this spec; A11Y-6 owns the compat smoke path.",
+      "Offline OCR proves cached delivery and response bytes, not a completed recognition run."
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "type": "work.backup-3",
+  "category": "work",
+  "taskId": "BACKUP-3",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented BACKUP-3: backup/restore dialog with stage progress, copy-default and typed replace flows, File System Access plus download/file-input fallbacks, once-per-case reminder persistence, shelf/board wiring, and 23 passing component tests.",
+  "inputs": [
+    "work-backup-2-001"
+  ],
+  "filesChanged": [
+    "src/features/backup/BackupDialog.tsx",
+    "src/features/backup/BackupDialog.css",
+    "src/features/backup/useBackupReminder.ts",
+    "src/features/shelf/CaseShelf.tsx",
+    "src/features/case/CaseBoardPage.tsx",
+    "tests/backup/BackupDialog.test.tsx",
+    "tests/backup/useBackupReminder.test.tsx",
+    "src/features/case/CaseBoardPage.css",
+    "src/features/shelf/CaseCard.tsx",
+    "src/features/shelf/CaseShelfPage.tsx",
+    "src/features/shelf/shelf.css",
+    "src/features/backup/backupOperations.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented BACKUP-3: backup/restore dialog with stage progress, copy-default and typed replace flows, File System Access plus download/file-input fallbacks, once-per-case reminder persistence, shelf/board wiring, and 23 passing component tests.",
+    "decisions": [
+      "Kept archive machinery behind a BackupOperations seam so React never opens Dexie or parses ZIP data.",
+      "Mapped typed import/export errors to named progress stages and kept inspected archives available for retry after failures.",
+      "Persisted backupPromptedAt through the repository on dismiss and successful export, including exports started from the shelf."
+    ],
+    "interfaces": [],
+    "tests": [
+      "npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx: exit 0 (23 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (560 tests)",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "No browser journey was added or run; BACKUP-4 owns Playwright evidence for native pickers and real downloads."
+    ],
+    "validationLimitations": [
+      "File System Access and download behaviour is component-tested with injected fakes; real browser picker behaviour is deferred to BACKUP-4."
+    ],
+    "taskDescription": "Create BackupDialog with export, import, archive summary, copy/replace choice, typed replace confirmation, stage progress, actionable errors, and Open case on success. Add useBackupReminder that triggers once when a case has at least 5 cards and 1 connection, writes backupPromptedAt on dismiss or successful export, and never shows again for that case. Wire export and import actions into CaseShelf and CaseBoardPage and render the reminder banner there. Use File System Access when available and a file input/download fallback otherwise. Add component tests for copy, replace, cancel, errors, reminder trigger, dismissal, and no repeat. Do not add the browser journey."
+  },
+  "nextActions": [],
+  "artifactId": "work-backup-3-001",
+  "createdAt": "2026-10-25T22:21:14.468Z"
+}

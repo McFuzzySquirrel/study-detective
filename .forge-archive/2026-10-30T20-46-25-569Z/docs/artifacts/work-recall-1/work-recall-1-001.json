@@ -1,0 +1,59 @@
+{
+  "type": "work.recall-1",
+  "category": "work",
+  "taskId": "RECALL-1",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "Implemented and verified the in-memory recall scratch store and pure undirected pair comparison with remembered, missed, extra, and type-mismatch groups, stable canonical ordering, no score, and storage write-spy tests; required tests and typecheck pass.",
+  "inputs": [
+    "work-link-1-001",
+    "work-board-4-001",
+    "work-board-5-001",
+    "work-link-5-001",
+    "work-link-hr-1-001"
+  ],
+  "filesChanged": [
+    "src/features/recall/recallStore.ts",
+    "src/features/recall/compareConnections.ts",
+    "tests/recall/compareConnections.test.ts",
+    "tests/recall/recallStore.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented and verified the in-memory recall scratch store and pure undirected pair comparison with remembered, missed, extra, and type-mismatch groups, stable canonical ordering, no score, and storage write-spy tests; required tests and typecheck pass.",
+    "decisions": [
+      "Scratch IDs are canonical domain pair keys; duplicate draws return the existing row without a second string.",
+      "A wrong-type pair is remembered and separately type-mismatched, never missed; an exact-type scratch row suppresses the mismatch.",
+      "Duplicate input rows collapse deterministically with association preferred as the representative type.",
+      "The store uses vanilla Zustand with no persistence middleware or storage dependency."
+    ],
+    "interfaces": [
+      "createRecallStore(), recallStore, selectScratchConnections, selectScratchCount, selectHasScratch, selectScratchConnection",
+      "addScratchConnection(input), removeScratchConnection(id), removeScratchConnectionForPair(from,to), clearScratch(), resetOnExit()",
+      "compareConnections(truth, scratch): {remembered, missed, extra, typeMismatch}",
+      "canonicalizeConnection(connection), canonicalizeConnections(connections)"
+    ],
+    "tests": [
+      "npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts: 33 passed",
+      "npm run typecheck: passed",
+      "npm test: 871 passed",
+      "eslint and prettier on src/features/recall and tests/recall: passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "RECALL-2 must call resetOnExit on unmount and route change to complete the non-persistent lifecycle.",
+      "Reduced-motion scratch string rendering is RECALL-2 scope; no animation exists in these logic modules."
+    ],
+    "validationLimitations": [
+      "Write-spy evidence is unit-level and does not prove future UI wiring cannot introduce a repository call.",
+      "No browser journey applies to this unit-only task."
+    ],
+    "taskDescription": "Create recallStore.ts with scratch pairs, add, remove, clear, and reset-on-exit actions that exist only in memory. Create compareConnections.ts to canonicalize pairs, compare truth and scratch in either direction, and return remembered, missed, extra, and typeMismatch arrays with stable ordering and no score. Add unit tests for empty, exact, reversed, duplicate, extra, missed, and type-mismatch cases. Add a write-spy test proving no repository or IndexedDB method is called by the store or comparison."
+  },
+  "nextActions": [],
+  "artifactId": "work-recall-1-001",
+  "createdAt": "2026-10-26T16:45:09.052Z"
+}

@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:02:32.365Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "FND-5",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/styles/tokens.css",
+      "src/styles/base.css",
+      "src/components/Button.tsx",
+      "src/components/IconButton.tsx",
+      "src/components/Dialog.tsx",
+      "src/components/Toast.tsx",
+      "src/components/Field.tsx",
+      "src/components/EmptyState.tsx",
+      "src/components/components.css",
+      "tests/components/primitives.test.tsx",
+      "tests/styles/tokens.test.ts",
+      "package-lock.json",
+      "package.json",
+      "src/app/AppShell.css",
+      "src/app/UpdatePrompt.css",
+      "tests/helpers/css-contract.ts"
+    ],
+    "stdout": "I'll start by reading the execution file.\nNow I'll create the token layer.\nImplemented FND-5: the locked \"Midnight Archive\" token layer, updated global base styles, six accessible primitives, shell theme adoption, and the token/component test suites.\n\n**Created**\n- `src/styles/tokens.css`\n- `src/components/Button.tsx`\n- `src/components/IconButton.tsx`\n- `src/components/Dialog.tsx`\n- `src/components/Toast.tsx`\n- `src/components/Field.tsx`\n- `src/components/EmptyState.tsx`\n- `src/components/components.css`\n- `tests/components/primitives.test.tsx`\n- `tests/styles/tokens.test.ts`\n- `tests/helpers/css-contract.ts`\n\n**Changed**\n- `src/styles/base.css`\n- `src/app/AppShell.css` (shared shell styling moved onto tokens)\n- `src/app/UpdatePrompt.css`\n- `package.json`, `package-lock.json` (added exact `@testing-library/user-event@14.6.1` for real keyboard simulation)\n\n**Verification**\n- `npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts` — 66/66 passing\n- `npm test` — 98/98 passing\n- `npm run typecheck` — passing\n- `npm run lint` — passing\n- `npm run format:check` — passing\n- `npm run build` — passing\n\n**Evidence summary**\n- Keyboard/focus: Tab and Shift+Tab cycle inside Dialog; Escape closes; close-button close restores focus; initial focus lands on the first input rather than the close control; Enter/Space activate Button, IconButton, Toast action, and EmptyState action; Field control is tab-reachable.\n- Targets: parsed CSS resolves `--target-min` to 44 px and asserts ≥44×44 for Button, IconButton, Dialog controls, Toast action, Field control, and EmptyState action.\n- Contrast: computed token pairs cover body, muted, paper, link, error text (≥4.5:1), primary/danger/success/warning controls (≥4.5:1), large headings (≥3:1), and focus/border non-text pairs (≥3:1).\n- Motion: parsed reduced-motion block removes primitive transitions, animations, and transforms.\n- Palette isolation: component TSX/CSS contains no raw hex/rgb/hsl values and no `dangerouslySetInnerHTML`.\n- No browser viewport matrix was run; this task's validation scope is unit/component and token-contract tests.\n\n**Handoff notes**\n- `AppShell.css` now consumes tokens; preserve `.app-frame*`, `.placeholder*`, `.not-found*`, and `.error-view*` selectors and the focus/inert behavior.\n- `Toast` should remain mounted with `message={null}` between announcements so the polite live region persists.\n- Direction B is the approved theme; tokens.css is the sole palette source.\n\n```forge-result\n{\"summary\":\"Implemented locked Midnight Archive tokens, base styles, Button/IconButton/Dialog/Toast/Field/EmptyState primitives, token contrast and keyboard/focus test suites; all required tests, typecheck, and lint pass.\",\"unresolved\":[],\"decisions\":[\"Applied Direction B (Midnight Archive) as the single dark theme with period headings limited to headings and case-file chrome.\",\"Used a render-prop Field API so input/textarea/select keeps correct label, hint, and error wiring without duplicating ID logic.\",\"Kept Toast timers in feature owners while the primitive always renders a polite live region and optional keyboard-operable action.\"],\"interfaces\":[\"Dialog: open, onClose, title, description, children, actions, size, dismissible, closeOnBackdrop, initialFocusRef, returnFocusRef.\",\"Toast: message (nullable to keep the live region mounted), tone, actionLabel/onAction, onDismiss.\",\"Field: label, hint, error, required and a render-prop control props object.\"],\"tests\":[\"npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts: exit 0, 66/66\",\"npm test: exit 0, 98/98\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains an engine-generated change I did not author.\",\"No Playwright viewport evidence was required or run for this task.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 520755
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)",
+        "npm run lint: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented locked Midnight Archive tokens, base styles, Button/IconButton/Dialog/Toast/Field/EmptyState primitives, token contrast and keyboard/focus test suites; all required tests, typecheck, and lint pass.",
+    "unresolved": [],
+    "decisions": [
+      "Applied Direction B (Midnight Archive) as the single dark theme with period headings limited to headings and case-file chrome.",
+      "Used a render-prop Field API so input/textarea/select keeps correct label, hint, and error wiring without duplicating ID logic.",
+      "Kept Toast timers in feature owners while the primitive always renders a polite live region and optional keyboard-operable action."
+    ],
+    "interfaces": [
+      "Dialog: open, onClose, title, description, children, actions, size, dismissible, closeOnBackdrop, initialFocusRef, returnFocusRef.",
+      "Toast: message (nullable to keep the live region mounted), tone, actionLabel/onAction, onDismiss.",
+      "Field: label, hint, error, required and a render-prop control props object."
+    ],
+    "tests": [
+      "npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts: exit 0, 66/66",
+      "npm test: exit 0, 98/98",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains an engine-generated change I did not author.",
+      "No Playwright viewport evidence was required or run for this task."
+    ]
+  }
+}

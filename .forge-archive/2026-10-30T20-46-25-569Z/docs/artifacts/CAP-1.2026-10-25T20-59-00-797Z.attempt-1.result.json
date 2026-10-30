@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:59:00.797Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "CAP-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/capture/imageValidation.ts",
+      "src/features/capture/imagePipeline.ts",
+      "src/features/capture/cardImport.ts",
+      "src/data/caseRepository.ts",
+      "tests/capture/imageValidation.test.ts",
+      "tests/capture/imagePipeline.test.ts",
+      "tests/capture/cardImport.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the project structure.\nNow I'll implement the three capture modules. Let me start with validation.\nDependencies aren't installed in this sandbox. Let me install them.\nNow the validation tests.\n## CAP-1 result report\n\n### Outcome\n\nImplemented the complete local image-import path: boundary validation, EXIF-aware derivative generation, normalized crop/rotation, atomic card creation, progress/cancel handling, and cleanup.\n\n- **Validation** rejects oversized files, empty files, spoofed MIME types, unsupported SVG/HEIC/GIF/PDF containers, unrecognized bytes, and decode failures before any card or Blob is written.\n- **Pipeline** decodes once with `imageOrientation: 'from-image'`, retains an uncropped oriented original capped at 4096 px (or full decoded size when opted in), and generates 2048 px display and 320 px thumbnail derivatives with normalized crop and 0/90/180/270 rotation. No path upscales.\n- **Import** runs validation → decode → transform → encode → digest → atomic `createCardWithAttachments`, with progress stages and abort support before the transaction.\n- **Repository** already contained `createCardWithAttachments` from DATA-2; I verified the one-transaction behavior and added contract documentation only.\n\n### Files created\n\n- `src/features/capture/imageValidation.ts`\n- `src/features/capture/imagePipeline.ts`\n- `src/features/capture/cardImport.ts`\n- `tests/capture/imageValidation.test.ts`\n- `tests/capture/imagePipeline.test.ts`\n- `tests/capture/cardImport.test.ts`\n\n### File changed\n\n- `src/data/caseRepository.ts` — JSDoc comments only on `createCardWithAttachments` and the in-memory implementation; no behavior or schema change.\n\n### Boundary evidence observed\n\n| Check | Observed result |\n|---|---|\n| Exactly 30 MB (`31,457,280` bytes) | Accepted; decoded once |\n| One byte over (`31,457,281` bytes) | Rejected before decode |\n| Zero bytes | Rejected |\n| PNG bytes reported as `image/jpeg` | `mime-mismatch`, no decode |\n| SVG bytes / HEIC bytes | `unsupported-format` (`svg` / `heic`) |\n| Corrupt/truncated payload | `corrupt-image`, no rows |\n| 6000×4000 default | original 4096×2731, display 2048×1365, thumbnail 320×213 |\n| 200×100 source | all outputs remain 200×100 (no upscaling) |\n| 6000×4000 full-resolution opt-in | original 6000×4000, display 2048×1365, thumbnail 320×213 |\n| 4000×3000, 0.5×0.25 crop, 90° | original 4000×3000, display 750×2000, thumbnail 120×320 |\n| 5000×3000, 0.5 crop, 90° via import | original 4096×2458, display 1229×2048, thumbnail 192×320 |\n| Successful 3000×2000 import | 1 card + 3 attachments (original/display/thumbnail), one repository call |\n| Injected `bulkAdd` failure | 0 cards, 0 attachments, case `updatedAt` unchanged; retry succeeded |\n| Cancel before/during processing | `cancelled`, 0 rows |\n| Cancel before transaction | `cancelled`, repository not called |\n| Cancel during `<img>` fallback decode | internal object URL revoked, 0 rows |\n\n### UI handoff contract\n\n```ts\ninspectImageFile(file: Blob, options?: { signal?: AbortSignal }): Promise<ImageInspectionResult>\n\nvalidateImageFile(file: Blob, options?: {\n  signal?: AbortSignal;\n  decoder?: ImageDecoder;\n  keepDecodedImage?: boolean;\n  decodeOptions?: ImageDecodeOptionsWithoutSignal;\n}): Promise<ImageValidationResult>\n\nprocessImage(file: Blob, options?: {\n  crop?: Partial<CropRect>;             // normalized 0..1\n  rotation?: 0 | 90 | 180 | 270;\n  retainFullResolution?: boolean;\n  sourceMime?: SupportedImageMime;\n  signal?: AbortSignal;\n  decode?: ImageDecoder;\n  decodeOptions?: ImageDecodeOptionsWithoutSignal;\n  createCanvas?: CanvasFactory;\n  digest?: BlobDigest;\n  onProgress?: (stage: 'decoding' | 'transforming' | 'encoding') => void;\n}): Promise<ProcessedImage>\n\nimportImageCard(input: ImportImageCardInput, options: {\n  repository: Pick<CaseRepositoryPort, 'createCardWithAttachments'>;\n  signal?: AbortSignal;\n  onProgress?: (progress: { stage: ImportStage }) => void;\n  decode?: ImageDecoder;\n  decodeOptions?: ImageDecodeOptionsWithoutSignal;\n  createCanvas?: CanvasFactory;\n  digest?: BlobDigest;\n}): Promise<CardImportOutcome>\n```\n\n`ImportStage` is `validating | decoding | transforming | encoding | saving | done`.\n\n`CardImportOutcome` is:\n\n```ts\n| { status: 'imported'; card: CardRecord; attachments: readonly AttachmentRecord[] }\n| { status: 'cancelled' }\n| { status: 'failed'; code: 'invalid-image' | 'unsupported-card-type' | 'invalid-card' | 'processing' | 'storage'; message: string; validationCode?; cause? }\n```\n\nCancel is honored until `saving` begins. Once the IndexedDB transaction starts, the import completes and returns `imported`. The UI should disable cancel on the `saving` stage and revoke its own preview object URLs on unmount/cancel.\n\n### Verification\n\n- `npm test -- tests/capture/imageValidation.test.ts tests/capture/imagePipeline.test.ts tests/capture/cardImport.test.ts` — **52 tests passed**.\n- `npm run typecheck` — **exit 0**.\n- `npm test` — **24 files, 330 tests passed**.\n- `npm run lint` — **exit 0**.\n- `npx prettier --check src/features/capture tests/capture src/data/caseRepository.ts` — **pass**.\n- `npm run build` — **exit 0**; production bundle emitted.\n\n### Risks / validation limitations\n\n- Unit tests inject bitmaps and canvases. A real-browser fixture journey for JPEG EXIF orientation, canvas pixel output, and tablet crop feel is still needed in CAP-3/CAP-4.\n- A 30 MB high-resolution source still holds one decoded RGBA bitmap in memory; sequential canvas release lowers peak usage but does not remove that decoded bitmap.\n- `createImageBitmap` orientation support, `OffscreenCanvas` availability, and WebP canvas encoding vary by browser. The code has an `<img>` fallback and a WebP→JPEG encoder fallback, but these paths need browser verification.\n- No OCR asset check was run because CAP-1 contains no OCR assets or scripts; that belongs to OCR-1.\n\n```forge-result\n{\"summary\":\"Implemented validated local image ingestion, EXIF-aware bounded derivatives, normalized crop/rotation, and atomic photo-card import; required tests (52), typecheck, full suite (330), lint, format, and production build pass.\",\"unresolved\":[],\"decisions\":[\"The retained original stays uncropped and EXIF-normalized so later re-crops regenerate display and thumbnail derivatives from it.\",\"Display and thumbnail receive the normalized crop and user rotation; the original is capped at 4096px by default or the decoded size when full-resolution is opted in.\",\"Cancellation is honored through validation, decode, transform, and encoding, and is re-checked immediately before the repository transaction.\",\"createCardWithAttachments already existed from DATA-2; CAP-1 reuses its single-transaction path and only adds contract documentation.\",\"WebP encoding failures fall back to JPEG, and the stored MIME is always resolved from the encoder's actual Blob type.\"],\"interfaces\":[\"inspectImageFile(file, { signal? }) and validateImageFile(file, { signal?, decoder?, keepDecodedImage?, decodeOptions? })\",\"processImage(file, { crop?, rotation?, retainFullResolution?, sourceMime?, signal?, decode?, decodeOptions?, createCanvas?, digest?, onProgress? })\",\"importImageCard(input, { repository, signal?, onProgress?, decode?, decodeOptions?, createCanvas?, digest? }) returning imported, cancelled, or typed failed outcomes\",\"Import stages: validating, decoding, transforming, encoding, saving, done\"],\"tests\":[\"npm test -- tests/capture/imageValidation.test.ts tests/capture/imagePipeline.test.ts tests/capture/cardImport.test.ts: 52 passed\",\"npm run typecheck: exit 0\",\"npm test: 24 files, 330 tests passed\",\"npm run lint: exit 0\",\"npx prettier --check src/features/capture tests/capture src/data/caseRepository.ts: pass\",\"npm run build: exit 0\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.\",\"src/data/caseRepository.ts changes are documentation-only; createCardWithAttachments was already implemented by DATA-2.\",\"Unit tests use injected bitmaps/canvas mocks; real browser EXIF, canvas, and tablet crop behavior remains for Playwright/QA verification.\",\"A 30MB high-resolution image still requires one full decoded bitmap in memory even with sequential canvas release.\"],\"validationLimitations\":[\"No real-browser image decode or EXIF fixture journey was run in CAP-1; the capture route/UI is out of scope.\",\"Cancellation cannot interrupt an IndexedDB transaction once saving begins; the UI should disable cancel at the saving stage.\",\"UI-created preview object URLs must be revoked by the UI on unmount/cancel; the pipeline owns only its internal fallback URL.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 897413
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/capture/imageValidation.test.ts tests/capture/imagePipeline.test.ts tests/capture/cardImport.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented validated local image ingestion, EXIF-aware bounded derivatives, normalized crop/rotation, and atomic photo-card import; required tests (52), typecheck, full suite (330), lint, format, and production build pass.",
+    "unresolved": [],
+    "decisions": [
+      "The retained original stays uncropped and EXIF-normalized so later re-crops regenerate display and thumbnail derivatives from it.",
+      "Display and thumbnail receive the normalized crop and user rotation; the original is capped at 4096px by default or the decoded size when full-resolution is opted in.",
+      "Cancellation is honored through validation, decode, transform, and encoding, and is re-checked immediately before the repository transaction.",
+      "createCardWithAttachments already existed from DATA-2; CAP-1 reuses its single-transaction path and only adds contract documentation.",
+      "WebP encoding failures fall back to JPEG, and the stored MIME is always resolved from the encoder's actual Blob type."
+    ],
+    "interfaces": [
+      "inspectImageFile(file, { signal? }) and validateImageFile(file, { signal?, decoder?, keepDecodedImage?, decodeOptions? })",
+      "processImage(file, { crop?, rotation?, retainFullResolution?, sourceMime?, signal?, decode?, decodeOptions?, createCanvas?, digest?, onProgress? })",
+      "importImageCard(input, { repository, signal?, onProgress?, decode?, decodeOptions?, createCanvas?, digest? }) returning imported, cancelled, or typed failed outcomes",
+      "Import stages: validating, decoding, transforming, encoding, saving, done"
+    ],
+    "tests": [
+      "npm test -- tests/capture/imageValidation.test.ts tests/capture/imagePipeline.test.ts tests/capture/cardImport.test.ts: 52 passed",
+      "npm run typecheck: exit 0",
+      "npm test: 24 files, 330 tests passed",
+      "npm run lint: exit 0",
+      "npx prettier --check src/features/capture tests/capture src/data/caseRepository.ts: pass",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.",
+      "src/data/caseRepository.ts changes are documentation-only; createCardWithAttachments was already implemented by DATA-2.",
+      "Unit tests use injected bitmaps/canvas mocks; real browser EXIF, canvas, and tablet crop behavior remains for Playwright/QA verification.",
+      "A 30MB high-resolution image still requires one full decoded bitmap in memory even with sequential canvas release."
+    ],
+    "validationLimitations": [
+      "No real-browser image decode or EXIF fixture journey was run in CAP-1; the capture route/UI is out of scope.",
+      "Cancellation cannot interrupt an IndexedDB transaction once saving begins; the UI should disable cancel at the saving stage.",
+      "UI-created preview object URLs must be revoked by the UI on unmount/cancel; the pipeline owns only its internal fallback URL."
+    ]
+  }
+}

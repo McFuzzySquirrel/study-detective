@@ -1,0 +1,70 @@
+{
+  "type": "work.backup-1",
+  "category": "work",
+  "taskId": "BACKUP-1",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented BACKUP-1: strict `.ndcase` manifest, one-case fflate exporter with recomputed SHA-256 and safe image paths, File System Access plus download save paths, and 23 real-archive tests; targeted test, typecheck, full suite, lint, format, build, and coverage pass.",
+  "inputs": [
+    "work-cap-4-001",
+    "work-data-4-001",
+    "work-data-3-001",
+    "work-data-5-001",
+    "work-cap-3-001"
+  ],
+  "filesChanged": [
+    "src/features/backup/archiveFormat.ts",
+    "src/features/backup/exportCase.ts",
+    "tests/backup/exportCase.test.ts",
+    "src/data/caseRepository.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented BACKUP-1: strict `.ndcase` manifest, one-case fflate exporter with recomputed SHA-256 and safe image paths, File System Access plus download save paths, and 23 real-archive tests; targeted test, typecheck, full suite, lint, format, build, and coverage pass.",
+    "decisions": [
+      "The manifest reuses the strict domain case/card/connection schemas so tags, positions, viewport, closure, OCR, crop/rotation, isDemo, and backupPromptedAt round-trip without a parallel model.",
+      "Attachment paths are derived only from UUID plus MIME type (`images/<id>.<ext>`), so titles and tags can never become ZIP paths.",
+      "Export recomputes every SHA-256 from Blob bytes instead of trusting the stored digest; image entries are stored uncompressed while the manifest is deflated.",
+      "ZIP entry mtimes are set from `exportedAt`, making repeated exports of the same case at the same injected time byte-stable.",
+      "The repository gained `listConnections(caseId)` because export needs validated connection reads and no connection repository exists yet."
+    ],
+    "interfaces": [
+      "CaseRepositoryPort.listConnections(caseId: string): Promise<ConnectionRecord[]>",
+      "buildCaseArchive(input: BuildCaseArchiveInput): Promise<CaseArchive>",
+      "exportCase(input: ExportCaseInput): Promise<ExportCaseResult>",
+      "saveCaseArchive(archive: CaseArchive, options?: SaveCaseArchiveOptions): Promise<SaveCaseArchiveResult>",
+      "triggerBlobDownload(blob: Blob, fileName: string): void",
+      "parseCaseArchiveManifest(input: unknown): CaseArchiveManifest",
+      "buildCaseArchiveManifest(input: BuildCaseArchiveManifestInput): CaseArchiveManifest",
+      "buildCaseArchiveFileName(title: string, exportedAt: string): string",
+      "ArchiveExportError, ArchiveSaveError, ArchiveSaveCancelledError"
+    ],
+    "tests": [
+      "npm test -- tests/backup/exportCase.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/backup/exportCase.test.ts: exit 0 (23 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (436 tests)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0",
+      "npm run test:coverage: exit 0 (src/domain 96.79% lines, src/data 94.61% lines, src/features/backup 87.3% lines)"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "`listConnections` is a new shared-file API on `src/data/caseRepository.ts`; future owners must preserve validated reads and pairKey ordering.",
+      "The native save picker is opened after hashing in `exportCase`, so transient user activation can expire for very large archives; BACKUP-3 may need a pre-opened destination for such cases.",
+      "`DEFAULT_APP_VERSION` is hardcoded to 0.1.0 and should be replaced by build-time version injection if the package version changes.",
+      "`docs/EXECUTION-AUDIT.jsonl` has a pre-existing engine-generated modification that was not authored or touched."
+    ],
+    "validationLimitations": [
+      "Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.",
+      "No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey."
+    ],
+    "taskDescription": "Create archiveFormat.ts with a Zod-validated manifest for format notes-detective-case, formatVersion 1, exportedAt, appVersion, dbSchemaVersion, the case record, cards, connections, and attachment metadata with SHA-256 and relative image paths. The case record includes isDemo and backupPromptedAt. Create exportCase.ts to load exactly one case and its attachments, hash each Blob, and build a ZIP with manifest.json plus images/<attachmentId>.<ext> using fflate. Include tags, positions, viewport, closure state, OCR fields, and the demo marker. Expose save via File System Access when available and a Blob download fallback. Add tests that unzip the result, validate the manifest, verify checksums, and prove no other case is included."
+  },
+  "nextActions": [],
+  "artifactId": "work-backup-1-001",
+  "createdAt": "2026-10-25T21:44:24.180Z"
+}

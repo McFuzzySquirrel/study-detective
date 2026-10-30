@@ -1,0 +1,54 @@
+{
+  "type": "work.board-3",
+  "category": "work",
+  "taskId": "BOARD-3",
+  "producedBy": "board-engineer",
+  "status": "failed",
+  "summary": "Task BOARD-3 was not integrated: Concurrent write overlap on src/features/case/CaseBoardPage.tsx: another task in this wave already changed these paths. Declare a dependency between the tasks or give them disjoint outputs, then replay this task.",
+  "inputs": [
+    "work-board-2-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001",
+    "work-cap-3-001",
+    "work-cap-4-001"
+  ],
+  "filesChanged": [],
+  "payload": {
+    "agentOutputExcerpt": "BOARD-3 implemented CardSprite, CardLayer, gesture disambiguation, live board-store positions, thumbnail-first photo rendering, and 300 ms final-position persistence; required unit and Playwright checks pass.",
+    "decisions": [
+      "Touch lifts only after a 500 ms hold with a 6 px pre-lift tolerance; mouse and pen drag immediately and a no-movement release opens detail.",
+      "Card drags update the board store and Pixi scene per pointer event, while only the debounced final position reaches the repository.",
+      "Thumbnail and display derivatives decode from page-owned object URLs through Image/Texture rather than Pixi Assets because blob URLs have no extension.",
+      "Card layer keeps one visible derivative per card after upgrade and reconciles cache evictions when cards return onscreen."
+    ],
+    "interfaces": [
+      "BoardSnapshot card image { thumbnailUrl, displayUrl?, thumbnailAttachmentId?, displayAttachmentId? }",
+      "BoardCanvas({ snapshot, store?, onCardMove?, onOpenCard? })",
+      "usePixiApp returns moveCardPreview(cardId, position) and setLiftedCard(cardId, scale)",
+      "boardStore cardPositions, liftedCardId, liftScale with hydrateCardPositions/setCardPosition/setLiftedCard"
+    ],
+    "tests": [
+      "npm test -- tests/board/useCardGestures.test.ts: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/board/useCardGestures.test.ts: 16 passed",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: 12 passed",
+      "npm test: 557 passed",
+      "npm run test:e2e: 39 passed",
+      "npm run typecheck, lint, format:check, build: passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Tablet 45 FPS remains a human-review target; no app-level FPS harness was run in this task.",
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification not touched here.",
+      "Browser evidence is Chromium-based across desktop, tablet, and phone projects."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create CardSprite, CardLayer, and useCardGestures. Render a thumbnail-first texture that upgrades to the display derivative, a pin, a title strip, and a type indicator. Mouse drag starts immediately; touch requires a 500ms long press with a 6px movement tolerance. Taps open the card detail route. Dragging updates the board store at frame rate and persists the final position with a 300ms debounce. Reduced motion removes lift scaling. Mount CardLayer in BoardScene. Do not render strings or selection menus."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-3-001",
+  "createdAt": "2026-10-25T22:28:43.324Z"
+}

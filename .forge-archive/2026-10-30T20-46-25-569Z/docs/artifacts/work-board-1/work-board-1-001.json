@@ -1,0 +1,59 @@
+{
+  "type": "work.board-1",
+  "category": "work",
+  "taskId": "BOARD-1",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "Implemented pure viewport math and a vanilla Zustand board store with slice-only actions, reference-preserving selectors, temporary fit/recall viewport semantics, and 56 targeted tests; targeted tests, typecheck, full suite (469), lint, formatting, and build pass.",
+  "inputs": [
+    "work-cap-2-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001",
+    "work-cap-3-001",
+    "work-cap-4-001"
+  ],
+  "filesChanged": [
+    "src/board/viewport.ts",
+    "src/board/boardStore.ts",
+    "tests/board/viewport.test.ts",
+    "tests/board/boardStore.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented pure viewport math and a vanilla Zustand board store with slice-only actions, reference-preserving selectors, temporary fit/recall viewport semantics, and 56 targeted tests; targeted tests, typecheck, full suite (469), lint, formatting, and build pass.",
+    "decisions": [
+      "Viewport x/y is the world point at the top-left screen corner; round-trip transforms stay within 1e-9.",
+      "Fit defaults to a maximum scale of 1, reserves 64px padding, clamps to 0.25-2.5, and centers the content.",
+      "Fit and recall use applyTemporaryViewport so storedViewport and viewportDirty stay untouched until a real pan or zoom.",
+      "The store is vanilla Zustand so board math and state remain free of PixiJS, Dexie, and React component imports."
+    ],
+    "interfaces": [
+      "viewport.ts exports clampScale, normalizeViewport, worldToScreen, screenToWorld, panViewport, zoomViewportAt, zoomViewportToScale, computeVisibleWorldRect, fitViewportToBounds, computeCardsBounds, fitViewportToCards, unionWorldRects, computeMinimapProjection, projectWorldToMinimap, projectWorldRectToMinimap, unprojectMinimapPoint, projectViewportToMinimap, serializeViewport, deserializeViewport, and viewportsEqual.",
+      "boardStore.ts exports createBoardStore(initialViewport?), boardStore, createInitialBoardState, BoardState, BoardActions, BoardStore, BoardGesture, and selectors such as selectViewport, selectViewportDirty, selectSelectedCardId, selectMode, and selectGesture.",
+      "markViewportPersisted(saved?) accepts the exact persisted snapshot and keeps viewportDirty true if the live camera moved again during the async save."
+    ],
+    "tests": [
+      "npm test -- tests/board/viewport.test.ts tests/board/boardStore.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/board/viewport.test.ts tests/board/boardStore.test.ts: exit 0 (56 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (469 tests)",
+      "npm run build: exit 0",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl and docs/WORKFLOW-STATE.json have pre-existing engine-generated modifications that were not authored or touched.",
+      "The build does not yet emit a separate board chunk because no route imports src/board; BOARD-2 owns the lazy route integration and bundle evidence.",
+      "Tablet 45 FPS and real pointer gesture feel require the Pixi scene and browser/human verification in later board tasks."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create pure viewport helpers for screen/world conversion, pan, zoom around a pointer, clamp 0.25 to 2.5, fit-to-cards with padding, minimap projection, and viewport serialization. Create a Zustand board store for viewport, selected card, hovered card, mode, and gesture state. The store must expose actions and selectors without importing PixiJS, Dexie, or React components. Add unit tests for every transform, clamp, fit, and reset path."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-1-001",
+  "createdAt": "2026-10-25T21:40:27.232Z"
+}

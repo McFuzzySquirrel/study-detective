@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T06:45:21.098Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "LINK-4",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/connections/ConnectionDetail.tsx",
+      "src/features/connections/ConnectionLegend.tsx",
+      "src/features/connections/useUndoDeleteConnection.ts",
+      "src/features/case/CaseBoardPage.tsx",
+      "tests/connections/ConnectionDetail.test.tsx",
+      "tests/connections/ConnectionLegend.test.tsx",
+      "src/features/case/CaseBoardPage.css",
+      "src/features/connections/connections.css"
+    ],
+    "stdout": "## LINK-4 result report\n\n### Summary\nImplemented connection detail, provenance-aware retyping, delete confirmation, single-level 8-second undo, and the collapsible board legend. The required tests and typecheck pass, as do lint, the full unit suite, and the production build.\n\n### Files created\n- `src/features/connections/ConnectionDetail.tsx`\n- `src/features/connections/ConnectionLegend.tsx`\n- `src/features/connections/useUndoDeleteConnection.ts`\n- `tests/connections/ConnectionDetail.test.tsx`\n- `tests/connections/ConnectionLegend.test.tsx`\n\n### Files changed\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/case/CaseBoardPage.css`\n- `src/features/connections/connections.css`\n\n### Acceptance evidence\n| Criterion | Result |\n|---|---|\n| Valid retype updates the existing row without changing the connection ID | **Pass** — integration test asserts the repository row keeps `NOTE_SOURCE_CONNECTION_ID` while its type becomes `provenance`, and the page's `BoardSnapshot` handed to the canvas changes to the same ID with the new type. |\n| `CaseBoardPage` mounts `ConnectionDetail` on selection and `ConnectionLegend` in board controls | **Pass** — page test selects the connection in the board store; legend is mounted in the labelled “Board controls” group. |\n| Invalid provenance retype is disabled and explains why | **Pass** — note-to-topic provenance radio is disabled, `aria-describedby` points at the visible reason, and the reason explains the Note/Source rule. |\n| Delete confirmation names both cards and the type; cancel leaves the connection intact | **Pass** — dialog text includes both titles and `Association`/`Provenance`; cancel leaves the repository row and the detail mounted, and returns focus to the Delete trigger. |\n| Undo restores within 8 seconds; timeout and a second delete clear the slot | **Pass** — hook tests cover restore-by-original-ID, the 7,999/8,000 ms boundary, and slot replacement on a second delete. |\n| Legend communicates both types without colour alone and is keyboard operable | **Pass** — text says “solid red” and “dashed amber”; CSS asserts `solid` vs `dashed` border patterns; native button toggles with Enter/Space and exposes `aria-expanded`/`aria-controls`. |\n\n### Keyboard, focus, and announcements\n- Exercise: `Tab` to the radio group, `ArrowDown` to change type, `Enter`/`Space` on the legend toggle, pointer activation of dialogs and buttons via `user-event`.\n- Delete confirmation uses the shared `Dialog`: initial focus on “Keep connection”, Tab trap, Escape cancels, focus returns to the Delete trigger.\n- Undo toast uses the shared polite `role=\"status\"` Toast. After Undo, focus moves to the restored detail heading so the disappearing action never drops focus to `<body>`.\n- Retype failures render a `role=\"alert\"`; provenance eligibility is exposed in a polite status region.\n- Target measurement asserted: `.connection-detail__label` and `.nd-button` are at least 44×44 CSS pixels.\n- Contrast asserted: legend/detail body text uses `--color-ink-muted` on `--color-surface` at 7.87:1; emphasis text at higher contrast. Association swatch is 3.17:1 against the surface, with a dashed/solid shape and explicit text as the non-colour signal.\n\n### Validation commands run\n- `npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx` → **exit 0, 10/10 tests**\n- `npm run typecheck` → **exit 0**\n- Additional checks: `npm run lint` exit 0; full suite `npm test` → **56 files, 748 tests passed**; `npm run build` exit 0.\n\n### Shared-file handoff\n- `CaseBoardPage.tsx` now subscribes to `selectedConnectionId`, mounts `ConnectionDetail`, mounts `ConnectionLegend`, and owns retype/delete/undo composition. Preserve the `connection-detail-title` ID — it is the focus-recovery target after Undo.\n- Detail is hidden only when the LINK-3 type menu is open for the same connection; dropping that condition would show two competing surfaces after a new thread.\n- `connections.css` now owns the detail and legend styles plus the existing type menu. The menu shadow was changed to `var(--shadow-panel)` to remove the last raw `rgb()` fallback.\n\n### Known gaps / review notes\n- `BoardCanvas` does not yet emit a string tap to `selectConnection`; the detail mounts when selection arrives from creation/duplicate or the store. Canvas string selection remains board-engineer scope, and the keyboard picker is explicitly deferred to LINK-5.\n- Component tests run in jsdom at its default 1024×768 window; the responsive CSS stacks below 64rem and uses a side column at ≥64rem, but no real-browser viewport or tablet board-feel pass was run here. That remains for LINK-HR-1.\n\n```forge-result\n{\n  \"summary\": \"Implemented LINK-4 connection detail, provenance-aware retype, delete confirmation, single-level 8-second undo, and the collapsible board legend; required tests, typecheck, lint, full suite, and build pass.\",\n  \"unresolved\": [],\n  \"decisions\": [\n    \"Retype calls ConnectionRepository.retype on the existing row; the detail derives eligibility from the live card types and uses the shared provenance reason copy.\",\n    \"ConnectionDetail hides only while the LINK-3 type menu for that same connection is open, so creation and inspection never compete.\",\n    \"useUndoDeleteConnection keeps one in-memory target snapshot, clears it on timeout, dismiss, or a second delete, and restores through repository.restore with the original ID.\",\n    \"The legend is a native button with aria-expanded/aria-controls; solid versus dashed swatches plus explicit text carry the meaning without colour alone.\"\n  ],\n  \"interfaces\": [\n    \"ConnectionDetail props: connection, fromCard, toCard, busy?, onRetype(type), onDelete(), onClose?\",\n    \"ConnectionLegend props: defaultOpen?, className?\",\n    \"useUndoDeleteConnection options: repository?, loadRepository?, timeoutMs?, onDeleted?, onRestored?\",\n    \"useUndoDeleteConnection result: pending, message, deleting, undoing, error, deleteWithUndo, undo, dismiss, clearError\",\n    \"UNDO_DELETE_CONNECTION_TIMEOUT_MS, connectionDeletionMessage, connectionTypeLabel, CONNECTION_TYPE_LABELS\"\n  ],\n  \"tests\": [\n    \"npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx: exit 0, 10 tests\",\n    \"npm run typecheck: exit 0\",\n    \"npm run lint: exit 0\",\n    \"npm test: exit 0, 56 files / 748 tests\",\n    \"npm run build: exit 0\"\n  ],\n  \"warnings\": [\n    \"Pointer tap on an existing string is not wired in BoardCanvas; detail selection currently comes from create/duplicate or the board store. LINK-5 owns the keyboard picker.\",\n    \"Real-browser viewport and tablet board-feel verification of the detail/legend layout remains for LINK-HR-1.\"\n  ],\n  \"validationLimitations\": [\n    \"Component tests run in jsdom at its default 1024x768 viewport; the CSS breakpoints are not browser-exercised.\",\n    \"No Playwright journey was required or run for this task.\"\n  ]\n}\n```\n",
+    "stderr": "",
+    "durationMs": 640491
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented LINK-4 connection detail, provenance-aware retype, delete confirmation, single-level 8-second undo, and the collapsible board legend; required tests, typecheck, lint, full suite, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "Retype calls ConnectionRepository.retype on the existing row; the detail derives eligibility from the live card types and uses the shared provenance reason copy.",
+      "ConnectionDetail hides only while the LINK-3 type menu for that same connection is open, so creation and inspection never compete.",
+      "useUndoDeleteConnection keeps one in-memory target snapshot, clears it on timeout, dismiss, or a second delete, and restores through repository.restore with the original ID.",
+      "The legend is a native button with aria-expanded/aria-controls; solid versus dashed swatches plus explicit text carry the meaning without colour alone."
+    ],
+    "interfaces": [
+      "ConnectionDetail props: connection, fromCard, toCard, busy?, onRetype(type), onDelete(), onClose?",
+      "ConnectionLegend props: defaultOpen?, className?",
+      "useUndoDeleteConnection options: repository?, loadRepository?, timeoutMs?, onDeleted?, onRestored?",
+      "useUndoDeleteConnection result: pending, message, deleting, undoing, error, deleteWithUndo, undo, dismiss, clearError",
+      "UNDO_DELETE_CONNECTION_TIMEOUT_MS, connectionDeletionMessage, connectionTypeLabel, CONNECTION_TYPE_LABELS"
+    ],
+    "tests": [
+      "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx: exit 0, 10 tests",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0, 56 files / 748 tests",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "Pointer tap on an existing string is not wired in BoardCanvas; detail selection currently comes from create/duplicate or the board store. LINK-5 owns the keyboard picker.",
+      "Real-browser viewport and tablet board-feel verification of the detail/legend layout remains for LINK-HR-1."
+    ],
+    "validationLimitations": [
+      "Component tests run in jsdom at its default 1024x768 viewport; the CSS breakpoints are not browser-exercised.",
+      "No Playwright journey was required or run for this task."
+    ]
+  }
+}

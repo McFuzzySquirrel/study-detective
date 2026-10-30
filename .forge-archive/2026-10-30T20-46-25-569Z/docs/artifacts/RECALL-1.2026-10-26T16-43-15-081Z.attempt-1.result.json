@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T16:43:15.081Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "RECALL-1",
+  "attempt": 1,
+  "outcome": "failed",
+  "reason": "forge-result.unresolved must be a string array; use [] when no blocking requirements remain.",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/recall/recallStore.ts",
+      "src/features/recall/compareConnections.ts",
+      "tests/recall/compareConnections.test.ts",
+      "tests/recall/recallStore.test.ts"
+    ],
+    "stdout": "## Result Report\n\n**Task:** RECALL-1 — Implement scratch connections and recall comparison  \n**Owner:** board-engineer\n\n### Files created\n\n- `src/features/recall/recallStore.ts`\n- `src/features/recall/compareConnections.ts`\n- `tests/recall/compareConnections.test.ts`\n- `tests/recall/recallStore.test.ts`\n\nNo existing shared files were modified. `CaseBoardPage.tsx`, `routes.tsx`, and all storage/bundle-boundary files are untouched.\n\n### What was implemented\n\n- **`recallStore.ts`**\n  - Vanilla Zustand in-memory store (`createStore` from `zustand/vanilla`) with singleton `recallStore` and isolated `createRecallStore()`.\n  - `addScratchConnection`, `removeScratchConnection`, `removeScratchConnectionForPair`, `clearScratch`, and `resetOnExit`.\n  - Scratch pairs are canonicalized with the domain `buildPairKey`; the pair key is the scratch string ID. A duplicate draw in either orientation returns the existing row.\n  - Rejects self-links, empty endpoints, and unknown relationship types without changing state.\n  - Selectors for scratch connections, count, presence, and lookup.\n  - No Dexie, repository, IndexedDB, localStorage, persist middleware, React, or PixiJS imports.\n\n- **`compareConnections.ts`**\n  - `compareConnections(truth, scratch)` returns exactly `remembered`, `missed`, `extra`, and `typeMismatch`.\n  - Matching is undirected; a reversed scratch pair counts as remembered.\n  - A wrong-type pair is remembered and listed in `typeMismatch`, never in `missed`; explicit `expectedType` and `actualType` are returned.\n  - Duplicate input rows collapse to one output entry per pair. Every group is sorted by canonical pair key; no score, percentage, grade, streak, or ranking exists in the result.\n  - Invalid rows are ignored rather than crashing a recall check.\n  - Exports `canonicalizeConnection` and `canonicalizeConnections` for result rendering and future tasks.\n\n### Verification exercised\n\n- Empty truth/scratch → four empty groups.\n- Exact, reversed, duplicate, extra, and missed pairs.\n- Type mismatch in both orientations and suppression when an exact-type scratch row also exists.\n- Stable canonical ordering and disjoint missed/extra/type-mismatch outputs.\n- Duplicate representative-type selection independent of input order.\n- Store add/duplicate/remove/clear/reset behavior and isolation between store instances.\n- Write-spy test asserting zero calls to `IDBFactory.open`, `IDBDatabase.transaction`, IDB object-store read/write methods, `Storage` mutations, and every `ConnectionRepository` / `InMemoryConnectionRepository` method during enter, draw, check, remove, reset, and exit.\n- Module-boundary source checks for forbidden storage, repository, React, PixiJS, and persist imports.\n- A guard sanity test confirms the localStorage spy observes a real write.\n\n### Validation results\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts` | **33 tests passed** |\n| `npm run typecheck` | **Passed, zero errors** |\n| `npm test` (full suite) | **66 files / 871 tests passed** |\n| Targeted ESLint + Prettier check | **Passed** |\n\n### Contract for downstream tasks\n\n- **Consumed snapshot:** none. These modules consume only plain connection-like objects; they never receive or call a repository.\n- **Board/UI integration contract:** RECALL-2 must call `recallStore.getState().resetOnExit()` on recall unmount/route change, and `useScratchConnections` can bind `selectScratchConnections`, `addScratchConnection`, and the removal actions.\n- **Results contract:** RECALL-3 can pass truth `ConnectionRecord[]` and scratch `ScratchConnection[]` directly to `compareConnections`, then map IDs to titles.\n\n### Limitations\n\n- RECALL-1 is unit-only by design; no browser gesture or visual evidence applies to this task.\n- The recall page, toolbar, scratch string rendering, and results panel remain RECALL-2/RECALL-3 scope.\n\n```forge-result\n{\"summary\":\"Implemented the in-memory recall scratch store and pure pairwise comparison with canonical undirected matching, separate missed/extra/type-mismatch groups, stable ordering, no score, and storage write-spy tests; required tests and typecheck pass.\",\"decisions\":[\"Scratch pair keys are the canonical domain pair key and double as scratch IDs; duplicate draws return the existing row.\",\"A wrong-type pair is remembered and type-mismatched, not missed; any exact-type scratch row suppresses the mismatch.\",\"Duplicate input rows are deduplicated deterministically with association preferred as the representative type.\",\"The store uses vanilla Zustand with no persistence middleware or storage dependency.\"],\"interfaces\":[\"createRecallStore(), recallStore, selectScratchConnections, selectScratchCount, selectHasScratch, selectScratchConnection\",\"addScratchConnection(input), removeScratchConnection(id), removeScratchConnectionForPair(from,to), clearScratch(), resetOnExit()\",\"compareConnections(truth, scratch): {remembered, missed, extra, typeMismatch}\",\"canonicalizeConnection(connection), canonicalizeConnections(connections)\"],\"tests\":[\"npm test -- tests/recall/compareConnections.test.ts tests/recall/recallStore.test.ts: 33 passed\",\"npm run typecheck: passed\",\"npm test: 871 passed\"],\"warnings\":[\"RECALL-2 must call resetOnExit on unmount and route change to satisfy the non-persistent lifecycle.\",\"No browser journey is applicable to this unit-only task.\"],\"validationLimitations\":[\"Write-spy evidence is unit-level: it proves the recall modules perform no repository or IndexedDB call, not that a future UI wiring cannot add one.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 341593
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "failed",
+      "reason": "forge-result.unresolved must be a string array; use [] when no blocking requirements remain."
+    },
+    {
+      "gate": "requirements",
+      "status": "skipped",
+      "reason": "Not reached"
+    },
+    {
+      "gate": "validation",
+      "status": "skipped",
+      "reason": "Not reached"
+    }
+  ]
+}

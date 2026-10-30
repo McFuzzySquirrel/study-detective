@@ -1,0 +1,65 @@
+{
+  "type": "work.ocr-2",
+  "category": "work",
+  "taskId": "OCR-2",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented OCR-2: an accessible opt-in OcrPanel with all statuses, title autofill/apply/dismiss, persisted OCR metadata, confirmed clear, capture and card-detail wiring, 18 focused component/integration tests, and a real-tesseract Playwright journey passing at desktop, tablet, and phone viewports.",
+  "inputs": [
+    "work-ocr-1-001",
+    "work-search-2-001"
+  ],
+  "filesChanged": [
+    "src/features/ocr/OcrPanel.tsx",
+    "src/features/ocr/OcrPanel.css",
+    "src/features/capture/NoteSourceForm.tsx",
+    "src/features/cards/CardDetailPage.tsx",
+    "tests/ocr/OcrPanel.test.tsx",
+    "e2e/ocr.spec.ts",
+    "e2e/fixtures/ocr-note.png",
+    "src/data/caseRepository.ts",
+    "src/features/capture/CapturePage.tsx",
+    "src/features/capture/cardImport.ts",
+    "src/features/ocr/ocrWorker.ts",
+    "src/features/ocr/ocrTitle.ts",
+    "tests/ocr/CardDetailOcr.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented OCR-2: an accessible opt-in OcrPanel with all statuses, title autofill/apply/dismiss, persisted OCR metadata, confirmed clear, capture and card-detail wiring, 18 focused component/integration tests, and a real-tesseract Playwright journey passing at desktop, tablet, and phone viewports.",
+    "decisions": [
+      "Empty titles are filled from the first meaningful OCR line and announced; non-empty titles only change through Apply.",
+      "Capture OCR metadata is written in the same atomic card transaction as the photo; card detail writes it through updateCard.",
+      "Clear OCR uses nullable CardPatch OCR fields so removal is validated and persisted rather than client-only.",
+      "The production worker uses absolute same-origin asset URLs and the explicit SIMD LSTM loader because bundled assets do not include the relaxed-SIMD core.",
+      "Clear confirmation restores focus to the OCR panel heading when the Clear trigger unmounts with the result."
+    ],
+    "interfaces": [
+      "OcrPanel({ image, title, initialResult?, onTitleChange?, onApplyTitle?, onPersist?, onClear?, onResultChange?, ocrOptions?, disabled?, headingLevel?, id? })",
+      "NoteSourceForm gained image?: OcrImage | null and NoteSourceValues.ocr?: OcrResult",
+      "ImportImageCardInput gained optional ocrText/ocrConfidence/ocrEngineVersion/ocrUpdatedAt",
+      "CardPatch OCR fields accept null to clear"
+    ],
+    "tests": [
+      "npm test -- tests/ocr/OcrPanel.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/ocr.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/ocr/OcrPanel.test.tsx: 15 passed",
+      "npm run test:e2e -- e2e/ocr.spec.ts: 3 passed (desktop 1440x900, tablet-landscape 1280x800, phone 390x844)",
+      "npm test: 796 passed across 61 files",
+      "npm run typecheck, npm run lint, npm run format:check, npm run build: pass"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "No axe scan was run for the OCR panel in this task; QA owns the phase axe matrix.",
+      "Handwriting OCR quality remains a manual product observation."
+    ],
+    "validationLimitations": [
+      "Playwright activated OCR with pointer/file input; keyboard reachability and focus behavior are covered by component tests rather than a keyboard-only browser OCR journey."
+    ],
+    "taskDescription": "Create OcrPanel with idle, loading, reading, done, failed, and timed-out states; a progress indicator; Cancel; Run again; Clear OCR; text; confidence; and engine version. Wire it into NoteSourceForm for a pending image and CardDetailPage for a saved card. When the title is empty, apply the first meaningful OCR line and announce it. When the title is non-empty, show Suggested title with Apply and Dismiss and never change the field automatically. Persist text and metadata on success; clearing removes it after confirmation. Add component tests and a Playwright journey that reads a clear fixture, accepts a title, searches the text, reloads, and verifies persistence. Do not add search or backup code."
+  },
+  "nextActions": [],
+  "artifactId": "work-ocr-2-001",
+  "createdAt": "2026-10-26T07:39:05.133Z"
+}

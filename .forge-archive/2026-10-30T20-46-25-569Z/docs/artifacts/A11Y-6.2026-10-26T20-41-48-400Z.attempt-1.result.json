@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T20:41:48.400Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "A11Y-6",
+  "attempt": 1,
+  "outcome": "failed",
+  "reason": "expected outputs missing: src/app/App.tsx",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/app/BrowserNotice.tsx",
+      "playwright.config.ts",
+      "e2e/compat.spec.ts",
+      "tests/app/BrowserNotice.test.tsx"
+    ],
+    "stdout": "## A11Y-6 Verification Report\n\n**Task:** A11Y-6 — Add browser capability notice and cross-browser smoke paths  \n**Requirement:** A11Y-FR-08 / VIS-CON-06 — non-blocking notice for missing APIs; Chromium, Firefox, and WebKit smoke of shelf, demo case, board, search, and settings without an unhandled error.\n\n### Commands run and real results\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/app/BrowserNotice.test.tsx` | **12/12 tests passed**, exit 0 |\n| `npx playwright install firefox webkit` | exit 0; Firefox 157.0 and the pinned WebKit build available |\n| `npm run test:e2e -- e2e/compat.spec.ts` | **5/5 projects passed**, exit 0 |\n| `npm run typecheck` | exit 0 |\n| `npm run lint` | exit 0; 3 pre-existing `RecallSummary.tsx` warnings, no new warnings |\n| `npm test` | **1134/1134 tests passed**, 86 files, exit 0 |\n| `npm run test:coverage` | **86 files / 1134 tests passed** on the final run |\n| `npx playwright test e2e/smoke.spec.ts` | 3/3 Chromium viewports passed |\n| `npx playwright test e2e/a11y.spec.ts` | 5 passed, 4 intentionally skipped, **zero serious/critical axe findings** |\n\n### Behaviors verified against acceptance criteria\n\n- **Each missing API produces a specific non-blocking notice and the shelf still renders**\n  - Per-API component tests remove each of `indexedDB`, `Worker`, `WebAssembly`, and `navigator.serviceWorker` from an otherwise complete environment.\n  - Each test asserts exactly one `data-capability` item, specific API/capability copy, no `role=\"dialog\"`, no `aria-modal`, and the real `Case shelf` heading plus empty-state content still render.\n  - An `App` composition test removes all four APIs and asserts the notice lists all four while the shelf still renders.\n- **A supported browser shows no notice**\n  - Component test with all four APIs present renders an empty container.\n  - The cross-browser journey asserts `data-testid=\"browser-notice\"` has count 0 on shelf and settings in all five Playwright projects.\n- **Chromium, Firefox, and WebKit smoke shelf, demo case, board, search, settings without an unhandled error**\n  - Real first-run production demo seed writes through IndexedDB, then the journey walks shelf → demo case → board (`data-board-scene-status=\"ready\"`, 6 cards) → card list search for “Photosynthesis” → settings.\n  - Both `pageerror` and console-error streams must be empty.\n- **Notice links to a support matrix and is dismissible for the session**\n  - Link points at `README.md#browser-support`; the test reads `README.md` and verifies the `## Browser support` section and every API name exist.\n  - Dismiss test removes the banner, verifies it stays gone on re-render, and verifies a fresh mount restores it.\n\n### Viewports, browsers, input, persistence\n\n- Chromium: desktop **1440x900**, tablet **1280x800**, phone **390x844**.\n- Firefox: **1440x900**.\n- WebKit: **1440x900**.\n- Input: real Playwright clicks/typing; React Testing Library `user-event` in component tests.\n- Persistence: real IndexedDB, production demo seeder, no route-injected fixture for the browser journey.\n\n### Measured values\n\n- 12 targeted component tests; 5 browser projects; 1134 total unit/component tests.\n- Demo board reported **6 cards**.\n- Build: **1011 modules**, entry JavaScript **87.48 KiB gzip**; service-worker precache **67 entries / 11,159.16 KiB**.\n- Overall coverage: **79.02% statements, 74.35% branches, 82.4% functions, 78.91% lines**.\n- Axe regression: zero serious/critical violations.\n\n### Defects / environment notes\n\n- **No product defect found** for A11Y-6.\n- Playwright WebKit’s default ephemeral context cannot store Blob/File values in IndexedDB (`Error preparing Blob/File data`), which prevents the demo’s four image attachments from seeding. The WebKit smoke therefore uses a fresh **persistent profile**. This is a documented Playwright/WebKit session limitation, not a product change; the same production seeder and IndexedDB path run. Chromium and Firefox use normal contexts.\n- One unrelated first coverage run transiently timed out in `tests/case/TopicStatusBadge.test.tsx`; the isolated test and subsequent full coverage runs passed. Non-blocking, outside A11Y-6.\n\n### Automated vs human\n\nAll A11Y-6 checks are automated. iOS Safari, Android Chrome, visual banner appearance, and final field acceptance remain human/`REL-HR-1` review; no human sign-off is claimed.\n\n### Files created\n\n- `src/app/BrowserNotice.tsx`\n- `src/app/browserSupport.ts`\n- `e2e/compat.spec.ts`\n- `tests/app/BrowserNotice.test.tsx`\n\n### Files changed\n\n- `src/App.tsx`\n- `src/app/AppShell.css`\n- `playwright.config.ts`\n- `README.md`\n\nNo `docs/artifacts/` files were modified or committed. `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already engine-modified and were not touched.\n\n```forge-result\n{\"summary\":\"Implemented A11Y-6: a supportsCoreApis helper and dismissible non-blocking BrowserNotice mounted in App.tsx with a README support matrix, plus Firefox/WebKit Playwright projects and a real first-run IndexedDB cross-browser shelf/demo/board/search/settings smoke. Required checks pass: 12 component tests and 5/5 browser projects.\",\"unresolved\":[],\"decisions\":[\"The notice is one non-blocking section in the shell status slot with one specific list item per missing API, not a modal.\",\"Dismissal is component state, so the banner stays hidden across SPA route changes and returns after a fresh page mount.\",\"The support matrix lives in the repository README and the notice links to its canonical GitHub anchor because the deployed site does not serve markdown.\",\"Firefox and WebKit projects are restricted by testMatch to the documented compat smoke rather than the full journey matrix.\",\"WebKit runs the smoke in a fresh persistent profile because Playwright WebKit ephemeral sessions cannot store Blob/File values in IndexedDB; the production seed and IndexedDB path are unchanged.\"],\"interfaces\":[\"supportsCoreApis(environment?: CoreApiEnvironment): CoreApiSupport\",\"BrowserNotice({ environment?: CoreApiEnvironment })\",\"SUPPORT_MATRIX_URL and CORE_API_NOTICES from src/app/browserSupport.ts\",\"Playwright projects firefox and webkit with testMatch /compat\\\\.spec\\\\.ts$/\"],\"tests\":[\"npm test -- tests/app/BrowserNotice.test.tsx: 12 passed\",\"npx playwright install firefox webkit: exit 0\",\"npm run test:e2e -- e2e/compat.spec.ts: 5/5 projects passed\",\"npm test: 1134 passed\",\"npm run test:coverage: 86 files / 1134 tests passed\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0 with only pre-existing warnings\",\"npx playwright test e2e/a11y.spec.ts: 5 passed, 4 skipped, zero serious/critical findings\"],\"warnings\":[\"Playwright WebKit's default ephemeral context cannot store Blobs in IndexedDB, so the WebKit smoke uses a persistent profile; this is an engine/session limitation, not a product defect.\",\"One unrelated first coverage run transiently timed out in tests/case/TopicStatusBadge.test.tsx; isolated and subsequent full runs passed.\"],\"validationLimitations\":[\"Missing-API notice behavior is proven in component tests rather than by forcing APIs off in a real browser; the browser journey proves the no-notice path in all supported engines.\",\"The notice is not axe-scanned in a real unsupported browser because no such engine is available in the matrix.\",\"iOS Safari, Android Chrome, and final field acceptance remain human review.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 1124288
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "failed",
+      "reason": "expected outputs missing: src/app/App.tsx"
+    },
+    {
+      "gate": "handoff",
+      "status": "skipped",
+      "reason": "Not reached"
+    },
+    {
+      "gate": "requirements",
+      "status": "skipped",
+      "reason": "Not reached"
+    },
+    {
+      "gate": "validation",
+      "status": "skipped",
+      "reason": "Not reached"
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented A11Y-6: a supportsCoreApis helper and dismissible non-blocking BrowserNotice mounted in App.tsx with a README support matrix, plus Firefox/WebKit Playwright projects and a real first-run IndexedDB cross-browser shelf/demo/board/search/settings smoke. Required checks pass: 12 component tests and 5/5 browser projects.",
+    "unresolved": [],
+    "decisions": [
+      "The notice is one non-blocking section in the shell status slot with one specific list item per missing API, not a modal.",
+      "Dismissal is component state, so the banner stays hidden across SPA route changes and returns after a fresh page mount.",
+      "The support matrix lives in the repository README and the notice links to its canonical GitHub anchor because the deployed site does not serve markdown.",
+      "Firefox and WebKit projects are restricted by testMatch to the documented compat smoke rather than the full journey matrix.",
+      "WebKit runs the smoke in a fresh persistent profile because Playwright WebKit ephemeral sessions cannot store Blob/File values in IndexedDB; the production seed and IndexedDB path are unchanged."
+    ],
+    "interfaces": [
+      "supportsCoreApis(environment?: CoreApiEnvironment): CoreApiSupport",
+      "BrowserNotice({ environment?: CoreApiEnvironment })",
+      "SUPPORT_MATRIX_URL and CORE_API_NOTICES from src/app/browserSupport.ts",
+      "Playwright projects firefox and webkit with testMatch /compat\\.spec\\.ts$/"
+    ],
+    "tests": [
+      "npm test -- tests/app/BrowserNotice.test.tsx: 12 passed",
+      "npx playwright install firefox webkit: exit 0",
+      "npm run test:e2e -- e2e/compat.spec.ts: 5/5 projects passed",
+      "npm test: 1134 passed",
+      "npm run test:coverage: 86 files / 1134 tests passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 with only pre-existing warnings",
+      "npx playwright test e2e/a11y.spec.ts: 5 passed, 4 skipped, zero serious/critical findings"
+    ],
+    "warnings": [
+      "Playwright WebKit's default ephemeral context cannot store Blobs in IndexedDB, so the WebKit smoke uses a persistent profile; this is an engine/session limitation, not a product defect.",
+      "One unrelated first coverage run transiently timed out in tests/case/TopicStatusBadge.test.tsx; isolated and subsequent full runs passed."
+    ],
+    "validationLimitations": [
+      "Missing-API notice behavior is proven in component tests rather than by forcing APIs off in a real browser; the browser journey proves the no-notice path in all supported engines.",
+      "The notice is not axe-scanned in a real unsupported browser because no such engine is available in the matrix.",
+      "iOS Safari, Android Chrome, and final field acceptance remain human review."
+    ]
+  }
+}

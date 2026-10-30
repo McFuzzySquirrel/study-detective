@@ -1,0 +1,72 @@
+{
+  "type": "work.close-2",
+  "category": "work",
+  "taskId": "CLOSE-2",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented CLOSE-2: pure lifecycle derivation, ClosurePanel and useCaseLifecycle mounted on CaseBoardPage, confirmed close/reopen with closedAt preserved when edits break readiness, shelf readiness badges, and 19 unit/component tests plus a 3-viewport Playwright closure journey; all required checks pass.",
+  "inputs": [
+    "work-close-1-001",
+    "work-link-hr-1-001"
+  ],
+  "filesChanged": [
+    "src/features/closure/ClosurePanel.tsx",
+    "src/features/closure/useCaseLifecycle.ts",
+    "src/domain/caseLifecycle.ts",
+    "src/data/caseRepository.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/features/shelf/CaseCard.tsx",
+    "tests/features/closure/ClosurePanel.test.tsx",
+    "tests/domain/caseLifecycle.test.ts",
+    "e2e/closure.spec.ts",
+    "src/domain/model.ts",
+    "src/features/case/CaseBoardPage.css",
+    "src/features/shelf/shelf.css",
+    "tests/domain/model.test.ts",
+    "tests/domain/validation.test.ts",
+    "tests/shelf/CaseFormDialog.test.tsx",
+    "src/features/closure/closure.css"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented CLOSE-2: pure lifecycle derivation, ClosurePanel and useCaseLifecycle mounted on CaseBoardPage, confirmed close/reopen with closedAt preserved when edits break readiness, shelf readiness badges, and 19 unit/component tests plus a 3-viewport Playwright closure journey; all required checks pass.",
+    "decisions": [
+      "Readiness remains derived on every repository read; CaseSummary carries it only as a non-persisted projection.",
+      "Re-affirming closure of an already closed case preserves the original closedAt.",
+      "Repairing a closed case re-enables Close while leaving the case closed; it never auto-reopens.",
+      "Loose-thread rows link to card detail and expose a separate 'Show on board' action for centering without leaving the board.",
+      "Phone closure is a stacked, sheet-like surface; modal-sheet refinement is deferred to responsive hardening."
+    ],
+    "interfaces": [
+      "deriveCaseLifecycle(closedAt, readiness): CaseLifecycle",
+      "closureTimestamp(currentClosedAt, now): string",
+      "looseThreadLabel(count): string",
+      "readinessLabelFor(readiness): string",
+      "useCaseLifecycle({caseRecord, readiness, repository, clock, onCaseChanged})",
+      "ClosurePanel({caseRecord, readiness, busy, error, onCloseCase, onReopenCase, cardHref, onShowCard, onClearError})",
+      "CaseSummary now includes readiness: 'ready' | 'loose' and looseThreadCount: number"
+    ],
+    "tests": [
+      "npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/closure.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/features/closure/ClosurePanel.test.tsx tests/domain/caseLifecycle.test.ts: 19 passed",
+      "npm run test:e2e -- e2e/closure.spec.ts: 3 passed (desktop, tablet-landscape, phone)",
+      "npm run typecheck: passed",
+      "npm run lint: passed",
+      "npm test: 891 passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Phone closure panel is not a modal sheet yet; responsive hardening may require revisiting it.",
+      "Loose-thread ordering follows readiness title order, not the shelf's createdAt order."
+    ],
+    "validationLimitations": [
+      "Spatial board placement and canvas gestures were not exercised; the closure journey uses the keyboard card list and capture route for graph repair."
+    ],
+    "taskDescription": "Create ClosurePanel and useCaseLifecycle. Mount the panel on CaseBoardPage. Show readiness, loose-thread rows with links, and a Close action disabled until the count is zero. Closing writes closedAt through CaseRepository after confirmation. Render Closed and Reopen for a closed case; if edits break readiness, render Closed · loose threads without clearing closedAt. Reopen asks for confirmation and clears closedAt. Extend case summaries with loose-thread count and readiness for the shelf badge. Add component tests for every state and a Playwright journey that closes a complete case, adds a loose note, sees the warning, repairs it, and reopens. Do not add topic badges."
+  },
+  "nextActions": [],
+  "artifactId": "work-close-2-001",
+  "createdAt": "2026-10-26T16:58:27.830Z"
+}

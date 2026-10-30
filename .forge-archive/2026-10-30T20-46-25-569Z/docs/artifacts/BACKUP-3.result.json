@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T22:21:14.467Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BACKUP-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/backup/BackupDialog.tsx",
+      "src/features/backup/BackupDialog.css",
+      "src/features/backup/useBackupReminder.ts",
+      "src/features/shelf/CaseShelf.tsx",
+      "src/features/case/CaseBoardPage.tsx",
+      "tests/backup/BackupDialog.test.tsx",
+      "tests/backup/useBackupReminder.test.tsx",
+      "src/features/case/CaseBoardPage.css",
+      "src/features/shelf/CaseCard.tsx",
+      "src/features/shelf/CaseShelfPage.tsx",
+      "src/features/shelf/shelf.css",
+      "src/features/backup/backupOperations.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task scope.\nImplemented BACKUP-3.\n\n## Files created\n- `src/features/backup/BackupDialog.tsx`\n- `src/features/backup/BackupDialog.css`\n- `src/features/backup/backupOperations.ts`\n- `src/features/backup/useBackupReminder.ts`\n- `tests/backup/BackupDialog.test.tsx`\n- `tests/backup/useBackupReminder.test.tsx`\n\n## Files changed\n- `src/features/shelf/CaseShelf.tsx`\n- `src/features/shelf/CaseShelfPage.tsx`\n- `src/features/shelf/CaseCard.tsx`\n- `src/features/shelf/shelf.css`\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/case/CaseBoardPage.css`\n\n## Behaviour delivered\n- Export/import backup dialog with archive summary, copy-default restore, explicit replace choice, typed title confirmation, stage progress, actionable errors, and `Open case` / `Back to shelf` success actions.\n- File System Access pickers are used when available; Blob download and file input fallbacks are wired.\n- `useBackupReminder` triggers at ≥5 cards and ≥1 connection, persists `backupPromptedAt` on dismiss or export, and never repeats for that case.\n- Shelf card export actions, shelf import action (including the empty-shelf recovery link), board export action, and board reminder banner are wired.\n- Shared `backupOperations.ts` seam keeps Dexie/archive parsing out of React components.\n\n## Validation\n- `npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx` — passed, 23 tests.\n- `npm run typecheck` — passed.\n- Extra: full `npm test` — 560 tests passed.\n- Extra: `npm run lint`, Prettier check, and `npm run build` — passed.\n\n## Evidence and limits\n- Keyboard: Escape closes and restores trigger focus; Enter/click drives export, copy restore, replace choice, and cancellation.\n- Inputs exercised: injected File System Access picker, file input change, and Blob download fallback.\n- Targets/contrast: 44 px assertions for the file trigger, restore choices, and empty-shelf restore link; token-only colors and reduced-motion rules verified.\n- No archive is uploaded; export uses repository/archive APIs only.\n- No browser journey was added or run; that remains BACKUP-4 scope. Component evidence is jsdom-only, with native picker/browser viewport behavior deferred to that journey.\n\n```forge-result\n{\"summary\":\"Implemented BACKUP-3: backup/restore dialog with stage progress, copy-default and typed replace flows, File System Access plus download/file-input fallbacks, once-per-case reminder persistence, shelf/board wiring, and 23 passing component tests.\",\"unresolved\":[],\"decisions\":[\"Kept archive machinery behind a BackupOperations seam so React never opens Dexie or parses ZIP data.\",\"Mapped typed import/export errors to named progress stages and kept inspected archives available for retry after failures.\",\"Persisted backupPromptedAt through the repository on dismiss and successful export, including exports started from the shelf.\"],\"tests\":[\"npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx: exit 0 (23 tests)\",\"npm run typecheck: exit 0\",\"npm test: exit 0 (560 tests)\",\"npm run lint: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"No browser journey was added or run; BACKUP-4 owns Playwright evidence for native pickers and real downloads.\"],\"validationLimitations\":[\"File System Access and download behaviour is component-tested with injected fakes; real browser picker behaviour is deferred to BACKUP-4.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 865277
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented BACKUP-3: backup/restore dialog with stage progress, copy-default and typed replace flows, File System Access plus download/file-input fallbacks, once-per-case reminder persistence, shelf/board wiring, and 23 passing component tests.",
+    "unresolved": [],
+    "decisions": [
+      "Kept archive machinery behind a BackupOperations seam so React never opens Dexie or parses ZIP data.",
+      "Mapped typed import/export errors to named progress stages and kept inspected archives available for retry after failures.",
+      "Persisted backupPromptedAt through the repository on dismiss and successful export, including exports started from the shelf."
+    ],
+    "tests": [
+      "npm test -- tests/backup/BackupDialog.test.tsx tests/backup/useBackupReminder.test.tsx: exit 0 (23 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (560 tests)",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "No browser journey was added or run; BACKUP-4 owns Playwright evidence for native pickers and real downloads."
+    ],
+    "validationLimitations": [
+      "File System Access and download behaviour is component-tested with injected fakes; real browser picker behaviour is deferred to BACKUP-4."
+    ],
+    "interfaces": []
+  }
+}

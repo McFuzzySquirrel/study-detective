@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T21:06:21.971Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "REL-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      ".github/workflows/ci.yml",
+      "package.json",
+      "vitest.config.ts",
+      "scripts/validate-workflows.mjs",
+      "tests/release/ciConfig.test.ts",
+      "package-lock.json",
+      "vitest.coverage.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and the referenced documentation.\nNow I'll implement the CI workflow, coverage thresholds, validator, and tests.\n## REL-1 — CI quality gate with coverage thresholds\n\nImplemented the Node 24 CI quality gate, the coverage policy, the workflow validator, and validator tests. No deployment was added.\n\n### Files created / changed\n\n**Created**\n- `.github/workflows/ci.yml` — push/pull_request CI on Node 24 with `npm ci`, workflow validation, lint, typecheck, coverage tests, production build, Playwright browser install (Chromium/Firefox/WebKit with deps), and E2E.\n- `scripts/validate-workflows.mjs` — YAML validator asserting triggers, `quality` job, Node 24, required commands, browser matrix, and absence of bypasses.\n- `tests/release/ciConfig.test.ts` — 11 tests covering the real workflow plus missing-step, `continue-on-error`, `|| true`, `; exit 0`, no-op `exit 0`, conditional step, wrong Node, missing trigger, missing file, and coverage policy.\n- `vitest.coverage.ts` — pure coverage-policy module shared by config and tests.\n\n**Modified**\n- `package.json` — added `validate:workflows` script and pinned `yaml` devDependency.\n- `package-lock.json` — lockfile update for `yaml@2.9.1`.\n- `vitest.config.ts` — imports and applies the domain/data coverage thresholds.\n\nI did not modify `docs/artifacts/`, the execution file, or create any human-review attestation. `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already modified by the engine harness.\n\n### Validation evidence\n\nAll Node/npm commands were run under **Node v24.22.1**.\n\n| Check | Command | Result |\n|---|---|---|\n| Workflow validator | `node scripts/validate-workflows.mjs` | **exit 0** — job `quality`, Node 24, `push` + `pull_request`, all 7 required commands present |\n| Validator tests | `npm test -- tests/release/ciConfig.test.ts` | **11/11 passed** |\n| Coverage | `npm run test:coverage` | **exit 0** — 87 test files, 1145 tests; `src/domain` 98.43% lines, `src/data` 91.04% lines |\n| Build | `npm run build` | **exit 0** — `dist/` emitted; PWA precache 67 entries, 11,159.16 KiB |\n| Lint | `npm run lint` | **exit 0** — 0 errors, 3 pre-existing warnings |\n| Typecheck | `npm run typecheck` | **exit 0** |\n| Workflow syntax | `actionlint .github/workflows/ci.yml` | **exit 0** |\n| Formatting | `npx prettier --check ...` | **pass** for all changed files |\n| E2E discovery | `npx playwright test --list` | **exit 0** — 92 tests in 20 files, 5 projects |\n| E2E smoke | `npx playwright test e2e/smoke.spec.ts --project=desktop` | **1/1 passed** |\n| Browser compat | `npx playwright test e2e/compat.spec.ts --project=firefox --project=webkit` | **2/2 passed** |\n\n### Coverage threshold enforcement\n\nBoth layers were verified with temporary probe files, then removed:\n\n- A fully uncovered `src/domain` file → `exit 1`: `Coverage for lines (0%) does not meet per-file threshold (1%)`.\n- A large partially covered probe → `exit 1`: `Coverage for lines (61.09%) does not meet \"src/domain/**\" threshold (85%)`.\n\nThe 85% floor is enforced on the `src/domain/**` and `src/data/**` directory aggregates, as specified for those modules. `perFile.lines: 1` ensures any entirely uncovered file fails even when the directory aggregate stays healthy.\n\n### Not in this task\n\n- No GitHub Pages deploy workflow, no `VITE_BASE_PATH` build, no deployed URL. Those belong to REL-2.\n- No precache/budget/same-origin audit changes. Those belong to REL-3/REL-4.\n- No GitHub Actions run exists yet because the engine has not committed/pushed this change. The workflow was validated locally with the same YAML parser, `actionlint`, and the required command sequence.\n- Merge blocking still depends on repository branch protection requiring the `Quality gate (Node 24)` check; that is a GitHub repository setting, not a file in this task.\n\n### Human gate / residual risks\n\n- `REL-HR-1` human acceptance on tablet, phone, and desktop remains open and cannot be satisfied by CI (`REL-CON-03`). I did not create an attestation.\n- The full 92-test Playwright suite was not executed locally; CI will run it via `npm run test:e2e`. Smoke and Firefox/WebKit compat paths were executed successfully.\n- One transient full-coverage run timed out in `tests/demo/firstRun.test.tsx`; immediate reruns, including the final Node 24 run, passed 1145/1145. This appears to be a pre-existing timing flake, not a REL-1 change.\n- Lint has 3 pre-existing `react-refresh/only-export-components` warnings in `RecallSummary.tsx`; there are no lint errors.\n\n```forge-result\n{\"summary\":\"REL-1 complete: Node 24 push/PR CI quality gate with required lint, typecheck, coverage, build, Playwright browser install, and E2E; 85% domain/data line floors plus uncovered-file failure; YAML validator and 11 validator tests. All required validation commands pass under Node 24.22.1.\",\"unresolved\":[],\"decisions\":[\"Use one merge-blocking quality job so all required steps share the Node 24 setup and cannot be skipped independently.\",\"Enforce the 85% line floor on src/domain and src/data directory aggregates, with perFile.lines=1 so fully uncovered files fail even if the aggregate is healthy.\",\"Keep the coverage policy in vitest.coverage.ts so release tests can import it without executing the Vite config module runner.\",\"Run the workflow validator inside CI as well as in the unit suite.\"],\"interfaces\":[\"scripts/validate-workflows.mjs: validateWorkflow(workflow), validateWorkflowFile(path), main(argv), REQUIRED_STEP_RULES, REQUIRED_JOB_ID=quality, REQUIRED_NODE_MAJOR=24.\",\"npm run validate:workflows validates .github/workflows/ci.yml.\",\"vitest.coverage.ts: DOMAIN_DATA_LINE_COVERAGE=85 and domainDataCoverageThresholds for src/domain/** and src/data/**.\"],\"tests\":[\"node scripts/validate-workflows.mjs: exit 0\",\"npm test -- tests/release/ciConfig.test.ts: 11/11 passed\",\"npm run test:coverage: exit 0, 1145/1145 tests, domain 98.43% lines, data 91.04% lines\",\"npm run build: exit 0\",\"npm run lint: exit 0 with 3 pre-existing warnings\",\"npm run typecheck: exit 0\",\"actionlint .github/workflows/ci.yml: exit 0\",\"npx playwright test e2e/smoke.spec.ts --project=desktop: 1/1 passed\",\"npx playwright test e2e/compat.spec.ts --project=firefox --project=webkit: 2/2 passed\"],\"warnings\":[\"No GitHub-hosted workflow run has occurred yet; the workflow is validated locally and by actionlint.\",\"Merge blocking requires the Quality gate (Node 24) status check to be required in repository branch protection.\",\"One transient tests/demo/firstRun.test.tsx timeout occurred during an intermediate coverage run; final Node 24 coverage runs passed 1145/1145.\",\"Lint reports 3 pre-existing react-refresh warnings in src/features/recall/RecallSummary.tsx.\"],\"validationLimitations\":[\"The full 92-test Playwright suite was not run locally; only discovery, desktop smoke, and Firefox/WebKit compat were executed.\",\"No deployment or base-path build was performed because REL-1 explicitly excludes deployment.\",\"Automated checks cannot replace the separate REL-HR-1 human journey gate.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 1016984
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "node scripts/validate-workflows.mjs: exit 0 (engine-verified)",
+        "npm test -- tests/release/ciConfig.test.ts: exit 0 (engine-verified)",
+        "npm run test:coverage: exit 0 (engine-verified)",
+        "npm run build: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "REL-1 complete: Node 24 push/PR CI quality gate with required lint, typecheck, coverage, build, Playwright browser install, and E2E; 85% domain/data line floors plus uncovered-file failure; YAML validator and 11 validator tests. All required validation commands pass under Node 24.22.1.",
+    "unresolved": [],
+    "decisions": [
+      "Use one merge-blocking quality job so all required steps share the Node 24 setup and cannot be skipped independently.",
+      "Enforce the 85% line floor on src/domain and src/data directory aggregates, with perFile.lines=1 so fully uncovered files fail even if the aggregate is healthy.",
+      "Keep the coverage policy in vitest.coverage.ts so release tests can import it without executing the Vite config module runner.",
+      "Run the workflow validator inside CI as well as in the unit suite."
+    ],
+    "interfaces": [
+      "scripts/validate-workflows.mjs: validateWorkflow(workflow), validateWorkflowFile(path), main(argv), REQUIRED_STEP_RULES, REQUIRED_JOB_ID=quality, REQUIRED_NODE_MAJOR=24.",
+      "npm run validate:workflows validates .github/workflows/ci.yml.",
+      "vitest.coverage.ts: DOMAIN_DATA_LINE_COVERAGE=85 and domainDataCoverageThresholds for src/domain/** and src/data/**."
+    ],
+    "tests": [
+      "node scripts/validate-workflows.mjs: exit 0",
+      "npm test -- tests/release/ciConfig.test.ts: 11/11 passed",
+      "npm run test:coverage: exit 0, 1145/1145 tests, domain 98.43% lines, data 91.04% lines",
+      "npm run build: exit 0",
+      "npm run lint: exit 0 with 3 pre-existing warnings",
+      "npm run typecheck: exit 0",
+      "actionlint .github/workflows/ci.yml: exit 0",
+      "npx playwright test e2e/smoke.spec.ts --project=desktop: 1/1 passed",
+      "npx playwright test e2e/compat.spec.ts --project=firefox --project=webkit: 2/2 passed"
+    ],
+    "warnings": [
+      "No GitHub-hosted workflow run has occurred yet; the workflow is validated locally and by actionlint.",
+      "Merge blocking requires the Quality gate (Node 24) status check to be required in repository branch protection.",
+      "One transient tests/demo/firstRun.test.tsx timeout occurred during an intermediate coverage run; final Node 24 coverage runs passed 1145/1145.",
+      "Lint reports 3 pre-existing react-refresh warnings in src/features/recall/RecallSummary.tsx."
+    ],
+    "validationLimitations": [
+      "The full 92-test Playwright suite was not run locally; only discovery, desktop smoke, and Firefox/WebKit compat were executed.",
+      "No deployment or base-path build was performed because REL-1 explicitly excludes deployment.",
+      "Automated checks cannot replace the separate REL-HR-1 human journey gate."
+    ]
+  }
+}

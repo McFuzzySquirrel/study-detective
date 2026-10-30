@@ -1,0 +1,62 @@
+{
+  "type": "work.search-1",
+  "category": "work",
+  "taskId": "SEARCH-1",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented SEARCH-1 normalized tags: pure tag rules, accessible TagInput, note/source/topic capture wiring, card-detail tag editing with persistence, and passing targeted tests, full suite, typecheck, lint, formatting, and build.",
+  "inputs": [
+    "work-cap-4-001",
+    "work-board-4-001",
+    "work-board-5-001",
+    "work-cap-3-001"
+  ],
+  "filesChanged": [
+    "src/domain/tags.ts",
+    "src/features/search/TagInput.tsx",
+    "src/features/search/TagInput.css",
+    "src/features/capture/NoteSourceForm.tsx",
+    "src/features/capture/TopicForm.tsx",
+    "src/features/cards/CardDetailPage.tsx",
+    "tests/domain/tags.test.ts",
+    "tests/search/TagInput.test.tsx",
+    "src/features/capture/CapturePage.tsx",
+    "src/features/cards/CardDetail.css",
+    "tests/capture/CaptureFlow.test.tsx",
+    "tests/capture/TopicForm.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented SEARCH-1 normalized tags: pure tag rules, accessible TagInput, note/source/topic capture wiring, card-detail tag editing with persistence, and passing targeted tests, full suite, typecheck, lint, formatting, and build.",
+    "decisions": [],
+    "interfaces": [
+      "src/domain/tags.ts: normalizeTag, addTag, removeTag, validateTagSet, TagAddResult, TagSetValidation",
+      "TagInput({ value, onChange, label?, hint?, id?, disabled?, listLabel?, className? })",
+      "NoteSourceValues.tags and TopicFormValues.tags are optional readonly string[]",
+      "CapturePage pending drafts carry tags into importImageCard and createCard",
+      "CardDetailPage Edit tags dialog saves through CaseRepositoryPort.updateCard"
+    ],
+    "tests": [
+      "npm test -- tests/domain/tags.test.ts tests/search/TagInput.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/domain/tags.test.ts tests/search/TagInput.test.tsx: pass (25)",
+      "npm run typecheck: pass",
+      "npm test: pass (676)",
+      "npm run lint: pass",
+      "npm run build: pass"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "No Playwright viewport matrix was run for SEARCH-1; browser keyboard/phone search evidence belongs to SEARCH-3 and QA.",
+      "Responsive tag wrapping is implemented below 600px but only jsdom component behavior was exercised here."
+    ],
+    "validationLimitations": [
+      "The required validation commands do not include a browser journey; viewport behavior at 390x844, 768x1024, and desktop sizes remains unverified in a real browser for this task."
+    ],
+    "taskDescription": "Create tags.ts with normalizeTag, addTag, removeTag, and validateTagSet. Enforce trim, 24 characters, 10 tags per card, case-insensitive duplicate rejection, and preservation of the first display casing. Build TagInput with Enter/comma add, Backspace remove, a counter, announced errors, and 44px remove buttons. Wire TagInput into NoteSourceForm, TopicForm, and CardDetailPage so tags persist with the card and survive reload. Do not add search or filters."
+  },
+  "nextActions": [],
+  "artifactId": "work-search-1-001",
+  "createdAt": "2026-10-26T05:24:48.106Z"
+}

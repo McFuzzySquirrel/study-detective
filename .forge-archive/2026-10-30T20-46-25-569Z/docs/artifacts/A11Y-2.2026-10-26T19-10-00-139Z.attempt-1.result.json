@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T19:10:00.139Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "A11Y-2",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/app/KeyboardShortcuts.tsx",
+      "src/app/focus.ts",
+      "src/app/AppShell.tsx",
+      "src/features/case/CardListPanel.tsx",
+      "src/features/connections/ConnectionPicker.tsx",
+      "src/features/recall/RecallToolbar.tsx",
+      "src/features/search/SearchPanel.tsx",
+      "src/features/settings/SettingsPage.tsx",
+      "tests/a11y/keyboard.test.tsx",
+      "e2e/keyboard-journey.spec.ts",
+      "src/board/BoardCanvas.tsx",
+      "src/components/components.css",
+      "src/features/cards/CardDetailPage.tsx",
+      "src/features/case/CaseBoardPage.tsx",
+      "src/components/ShortcutList.tsx",
+      "src/components/shortcuts.ts"
+    ],
+    "stdout": "## Outcome\n\nA11Y-2 is implemented and verified. The shell now owns a route-wide keyboard shortcut listener, the non-spatial path works without the canvas, Settings documents every shortcut, and the board exposes a named/described canvas region plus a visible `Open card list` action.\n\n### Acceptance evidence\n\n| Criterion | Result |\n|---|---|\n| Keyboard journey: create, edit, provenance attach, association create/retype, search, recall enter/check/reset/exit | **Pass** — `e2e/keyboard-journey.spec.ts`, 3/3 projects |\n| `AppShell` mounts `KeyboardShortcuts` on every route | **Pass** — mounted in `AppShell.tsx`; component test opens help from the shell |\n| Every shortcut listed in Settings; shortcuts suppressed while typing | **Pass** — one shared `KEYBOARD_SHORTCUTS` list drives Settings and help; guard test covers input, textarea, select, contenteditable. `Escape` remains active by the feature’s documented `Always` guard so it can clear search/close overlays |\n| Focus visible, logical, restored after dialogs/sheets | **Pass** — help, edit, connection picker, nested manage dialog, delete confirmation, undo, and recall reset assertions |\n| Canvas name, description, and visible `Open card list` | **Pass** — host `role=\"group\"` named `Case board canvas`, dynamic description with card count and card-list alternative, visible link asserted in browser |\n| No keyboard trap on primary screens | **Pass** — no new trap; existing `Dialog` traps only while open and closes on Escape; recall reset moves focus to `Check` instead of losing it to body |\n\n### Keyboard path / viewports exercised\n\n- **Browser:** Chromium, keyboard-only interactions (`focus()` + Enter/Space/typing, native file input), no pointer gestures.\n- **Desktop:** 1440x900 — **Pass**\n- **Tablet landscape:** 1280x800 — **Pass**\n- **Phone:** 390x844 — **Pass** (search opens from `/`; recall entry uses the Case actions sheet)\n- **Component:** jsdom focus, shortcut-guard, Settings documentation, canvas description, and recall focus tests.\n\n### Accessibility evidence\n\n- **Focus restoration:** `?` returns to the invoking control; card edit returns to Edit; picker returns to Connect/Attach source; nested connection dialog returns to its trigger; delete/undo return to the relevant card action; Reset recall lands on Check.\n- **Announcements:** existing SearchPanel result status, recall live region, and Toast regions are exercised; no new focus-moving live regions.\n- **Targets/contrast:** new controls use existing `Button`/`IconButton` 44px primitives and semantic tokens only; no raw palette values in changed component files.\n- **Motion:** no new animation; existing reduced-motion rules remain intact.\n- **Text safety:** all new content is plain React text; no `dangerouslySetInnerHTML`.\n\n### Validation run\n\n- `npm test -- tests/a11y/keyboard.test.tsx` — **pass** (12 tests)\n- `npm run test:e2e -- e2e/keyboard-journey.spec.ts` — **pass** (3 projects)\n- `npm run typecheck` — **pass**\n- `npm run lint` — **pass**, 0 errors; 3 pre-existing `react-refresh` warnings in `RecallSummary.tsx`\n- `npm run format:check` — **pass**\n- `npm test` — **pass**, 81 files / 1019 tests\n- `npm run build` (run by Playwright) — **pass**\n\n### Files created\n\n- `src/app/KeyboardShortcuts.tsx`\n- `src/app/focus.ts`\n- `src/components/ShortcutList.tsx`\n- `src/components/shortcuts.ts`\n- `tests/a11y/keyboard.test.tsx`\n- `e2e/keyboard-journey.spec.ts`\n\n### Files changed\n\n- `src/app/AppShell.tsx`\n- `src/board/BoardCanvas.tsx`\n- `src/components/components.css`\n- `src/features/cards/CardDetailPage.tsx`\n- `src/features/case/CardListPanel.tsx`\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/recall/RecallToolbar.tsx`\n- `src/features/search/SearchPanel.tsx`\n- `src/features/settings/SettingsPage.tsx`\n\n### Shared-file handoff notes\n\n- `AppShell.tsx`: keep `<KeyboardShortcuts />` mounted inside the router shell so shortcuts remain route-wide.\n- `CaseBoardPage.tsx`: the new `FOCUS_SEARCH_EVENT` listener is what opens the phone search sheet from `/`; preserve it when changing phone sheet state.\n- `BoardCanvas.tsx`: the host now owns `aria-describedby` and `data-testid=\"open-card-list\"` is on the visible link. The generated Pixi canvas keeps its existing `role=\"img\"`/label; the wrapper is the named, described region.\n- `SearchPanel.tsx`: keep `data-shortcut-target=\"search\"` on the input and the `?focus=search` mount focus behavior.\n- `CardListPanel.tsx`: `data-card-row`, `data-card-open`, and `data-connect-action` drive `[/]` and `c`; preserve them.\n- `SettingsPage.tsx`: render `ShortcutList` so the Settings list stays in sync with the shared definitions.\n\n### Known limitations\n\n- Spatial placement, canvas panning, and scratch drawing remain pointer-only by design.\n- Playwright evidence is Chromium-only; Firefox/WebKit smoke remains A11Y-6 scope.\n- `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` contain pre-existing engine modifications and were not touched.\n\n```forge-result\n{\"summary\":\"Implemented A11Y-2: route-wide KeyboardShortcuts and focus helpers mounted in AppShell, keyboard wiring for card CRUD, provenance attach, connection create/retype, search, recall check/reset/exit, Settings shortcut documentation, and a named/described canvas with a visible Open card list action. Unit suite, keyboard component tests, keyboard-only Playwright journey at desktop/tablet/phone, typecheck, lint, formatting, and build pass.\",\"unresolved\":[],\"decisions\":[\"Used one shared KEYBOARD_SHORTCUTS definition for both the ? help dialog and the Settings reference so they cannot drift.\",\"Suppressed ?, /, [, ], and c for editable targets; kept Escape active per the feature's Always guard so it can close overlays or clear search.\",\"Used DOM focus as the source of truth: [ and ] move to the previous/next [data-card-row], while c focuses and clicks that row's real Connect button so the dialog restores focus to it.\",\"Kept the Pixi canvas element's existing role/label and added the accessible description to the surrounding host group, avoiding a second renderer concern in the board component.\",\"On card detail and capture, / dispatches the search event and falls back to navigating to the case card list with ?focus=search; the card list panel focuses its field on mount.\",\"Reset recall moves focus to Check when Reset disables itself, preventing focus from falling to the document body.\"],\"interfaces\":[\"KeyboardShortcuts({ enabled? }) mounted by AppShell; ShortcutList shared by Settings and the help dialog.\",\"focus.ts exports FOCUS_SEARCH_EVENT, DISMISS_EVENT, isEditableElement, hasOpenDialog, activeFocusElement, focusMainLandmark, focusSearchField, moveCardListFocus, and connectFocusedCard.\",\"SearchPanel input exposes data-shortcut-target=search and accepts ?focus=search on mount.\",\"CardListPanel rows expose data-card-row, data-card-open, and data-connect-action.\",\"BoardCanvas host exposes aria-label='Case board canvas' plus the dynamic card-count description, and the visible link has data-testid=open-card-list.\",\"RecallToolbar actions expose data-recall-action values and recover focus after Reset becomes disabled.\"],\"tests\":[\"npm test -- tests/a11y/keyboard.test.tsx: exit 0 (12 tests)\",\"npm run test:e2e -- e2e/keyboard-journey.spec.ts: exit 0 (3 passed at desktop 1440x900, tablet 1280x800, phone 390x844)\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0 with 3 pre-existing RecallSummary warnings\",\"npm run format:check: exit 0\",\"npm test: exit 0 (81 files, 1019 tests)\"],\"warnings\":[\"Playwright evidence covers Chromium-based projects only.\",\"Escape intentionally remains active while typing so it can clear an active search; letter, bracket, slash, and c shortcuts stay inert.\",\"The generated Pixi canvas keeps its existing aria-label; the named and described region is the canvas host wrapper.\"],\"validationLimitations\":[\"Spatial placement, panning, and scratch drawing were not exercised by keyboard because they remain pointer-only by design.\",\"Headless Chromium cannot validate safe-area or visual focus-ring appearance; those remain human visual review items.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 946612
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/a11y/keyboard.test.tsx: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/keyboard-journey.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented A11Y-2: route-wide KeyboardShortcuts and focus helpers mounted in AppShell, keyboard wiring for card CRUD, provenance attach, connection create/retype, search, recall check/reset/exit, Settings shortcut documentation, and a named/described canvas with a visible Open card list action. Unit suite, keyboard component tests, keyboard-only Playwright journey at desktop/tablet/phone, typecheck, lint, formatting, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "Used one shared KEYBOARD_SHORTCUTS definition for both the ? help dialog and the Settings reference so they cannot drift.",
+      "Suppressed ?, /, [, ], and c for editable targets; kept Escape active per the feature's Always guard so it can close overlays or clear search.",
+      "Used DOM focus as the source of truth: [ and ] move to the previous/next [data-card-row], while c focuses and clicks that row's real Connect button so the dialog restores focus to it.",
+      "Kept the Pixi canvas element's existing role/label and added the accessible description to the surrounding host group, avoiding a second renderer concern in the board component.",
+      "On card detail and capture, / dispatches the search event and falls back to navigating to the case card list with ?focus=search; the card list panel focuses its field on mount.",
+      "Reset recall moves focus to Check when Reset disables itself, preventing focus from falling to the document body."
+    ],
+    "interfaces": [
+      "KeyboardShortcuts({ enabled? }) mounted by AppShell; ShortcutList shared by Settings and the help dialog.",
+      "focus.ts exports FOCUS_SEARCH_EVENT, DISMISS_EVENT, isEditableElement, hasOpenDialog, activeFocusElement, focusMainLandmark, focusSearchField, moveCardListFocus, and connectFocusedCard.",
+      "SearchPanel input exposes data-shortcut-target=search and accepts ?focus=search on mount.",
+      "CardListPanel rows expose data-card-row, data-card-open, and data-connect-action.",
+      "BoardCanvas host exposes aria-label='Case board canvas' plus the dynamic card-count description, and the visible link has data-testid=open-card-list.",
+      "RecallToolbar actions expose data-recall-action values and recover focus after Reset becomes disabled."
+    ],
+    "tests": [
+      "npm test -- tests/a11y/keyboard.test.tsx: exit 0 (12 tests)",
+      "npm run test:e2e -- e2e/keyboard-journey.spec.ts: exit 0 (3 passed at desktop 1440x900, tablet 1280x800, phone 390x844)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 with 3 pre-existing RecallSummary warnings",
+      "npm run format:check: exit 0",
+      "npm test: exit 0 (81 files, 1019 tests)"
+    ],
+    "warnings": [
+      "Playwright evidence covers Chromium-based projects only.",
+      "Escape intentionally remains active while typing so it can clear an active search; letter, bracket, slash, and c shortcuts stay inert.",
+      "The generated Pixi canvas keeps its existing aria-label; the named and described region is the canvas host wrapper."
+    ],
+    "validationLimitations": [
+      "Spatial placement, panning, and scratch drawing were not exercised by keyboard because they remain pointer-only by design.",
+      "Headless Chromium cannot validate safe-area or visual focus-ring appearance; those remain human visual review items."
+    ]
+  }
+}

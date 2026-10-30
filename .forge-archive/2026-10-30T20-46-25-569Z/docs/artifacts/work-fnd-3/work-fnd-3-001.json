@@ -1,0 +1,62 @@
+{
+  "type": "work.fnd-3",
+  "category": "work",
+  "taskId": "FND-3",
+  "producedBy": "foundation-engineer",
+  "status": "complete",
+  "summary": "FND-3 complete: HashRouter shell, lazy placeholders, route-level error boundary, offline notice, accessible main/skip-link frame, and all required validations passing.",
+  "inputs": [
+    "work-fnd-1-001"
+  ],
+  "filesChanged": [
+    "src/App.tsx",
+    "src/app/AppShell.tsx",
+    "src/app/AppShell.css",
+    "src/app/routes.tsx",
+    "src/app/placeholders.tsx",
+    "src/app/ErrorBoundary.tsx",
+    "src/app/OfflineNotice.tsx",
+    "tests/app/routing.test.tsx",
+    "tests/app/ErrorBoundary.test.tsx",
+    "tests/app/OfflineNotice.test.tsx",
+    "tests/app/smoke.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "FND-3 complete: HashRouter shell, lazy placeholders, route-level error boundary, offline notice, accessible main/skip-link frame, and all required validations passing.",
+    "decisions": [
+      "Used HashRouter at the composition root and a MemoryRouter-compatible AppRoutes export.",
+      "Kept one location-keyed route error boundary around the route outlet so shell chrome survives route failures and recovery remounts the view.",
+      "Skip link intercepts fragment navigation and focuses main directly because HashRouter owns the URL hash.",
+      "Kept feature screens in a shared lazy placeholders module so the initial shell stays free of route content."
+    ],
+    "interfaces": [
+      "AppShell accepts children plus optional storageStatus for future storage state.",
+      "AppRoutes is exported both named and default for MemoryRouter tests.",
+      "ErrorBoundary accepts resetKey to clear its error state when the route changes."
+    ],
+    "tests": [
+      "npm test -- tests/app/routing.test.tsx tests/app/ErrorBoundary.test.tsx tests/app/OfflineNotice.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)",
+      "npm run build: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/app/routing.test.tsx tests/app/ErrorBoundary.test.tsx tests/app/OfflineNotice.test.tsx: exit 0, 17 tests",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm run build: exit 0",
+      "npm test: exit 0, 32 tests",
+      "npm run format:check: exit 0",
+      "npm run test:e2e -- e2e/smoke.spec.ts: exit 0, 3 viewport projects"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl has an engine-generated one-line change that I did not author.",
+      "Feature routes still render placeholders until their owning specialists replace the lazy imports."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Replace the placeholder App with HashRouter and a lazy route table for /, /case/:caseId, /case/:caseId/capture, /case/:caseId/recall, /settings, and *. Export AppRoutes so tests can use MemoryRouter. Add AppShell with a compact top bar, content region, storage/offline status slot, an ErrorBoundary that logs no user content and offers Reload and Back to shelf, an OfflineNotice bound to online/offline events, and a recoverable not-found screen. Until later features land, the four screens render clearly labeled placeholders from src/app/placeholders.tsx. Do not implement data loading or feature UI."
+  },
+  "nextActions": [],
+  "artifactId": "work-fnd-3-001",
+  "createdAt": "2026-10-25T18:59:27.825Z"
+}

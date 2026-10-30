@@ -1,0 +1,63 @@
+{
+  "type": "work.link-4",
+  "category": "work",
+  "taskId": "LINK-4",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented LINK-4 connection detail, provenance-aware retype, delete confirmation, single-level 8-second undo, and the collapsible board legend; required tests, typecheck, lint, full suite, and build pass.",
+  "inputs": [
+    "work-link-3-001",
+    "work-link-1-001",
+    "work-link-2-001"
+  ],
+  "filesChanged": [
+    "src/features/connections/ConnectionDetail.tsx",
+    "src/features/connections/ConnectionLegend.tsx",
+    "src/features/connections/useUndoDeleteConnection.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "tests/connections/ConnectionDetail.test.tsx",
+    "tests/connections/ConnectionLegend.test.tsx",
+    "src/features/case/CaseBoardPage.css",
+    "src/features/connections/connections.css"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented LINK-4 connection detail, provenance-aware retype, delete confirmation, single-level 8-second undo, and the collapsible board legend; required tests, typecheck, lint, full suite, and build pass.",
+    "decisions": [
+      "Retype calls ConnectionRepository.retype on the existing row; the detail derives eligibility from the live card types and uses the shared provenance reason copy.",
+      "ConnectionDetail hides only while the LINK-3 type menu for that same connection is open, so creation and inspection never compete.",
+      "useUndoDeleteConnection keeps one in-memory target snapshot, clears it on timeout, dismiss, or a second delete, and restores through repository.restore with the original ID.",
+      "The legend is a native button with aria-expanded/aria-controls; solid versus dashed swatches plus explicit text carry the meaning without colour alone."
+    ],
+    "interfaces": [
+      "ConnectionDetail props: connection, fromCard, toCard, busy?, onRetype(type), onDelete(), onClose?",
+      "ConnectionLegend props: defaultOpen?, className?",
+      "useUndoDeleteConnection options: repository?, loadRepository?, timeoutMs?, onDeleted?, onRestored?",
+      "useUndoDeleteConnection result: pending, message, deleting, undoing, error, deleteWithUndo, undo, dismiss, clearError",
+      "UNDO_DELETE_CONNECTION_TIMEOUT_MS, connectionDeletionMessage, connectionTypeLabel, CONNECTION_TYPE_LABELS"
+    ],
+    "tests": [
+      "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/connections/ConnectionDetail.test.tsx tests/connections/ConnectionLegend.test.tsx: exit 0, 10 tests",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0, 56 files / 748 tests",
+      "npm run build: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Pointer tap on an existing string is not wired in BoardCanvas; detail selection currently comes from create/duplicate or the board store. LINK-5 owns the keyboard picker.",
+      "Real-browser viewport and tablet board-feel verification of the detail/legend layout remains for LINK-HR-1."
+    ],
+    "validationLimitations": [
+      "Component tests run in jsdom at its default 1024x768 viewport; the CSS breakpoints are not browser-exercised.",
+      "No Playwright journey was required or run for this task."
+    ],
+    "taskDescription": "Create ConnectionDetail with the two card titles, current type, retype control, and Delete. Mount ConnectionDetail and ConnectionLegend on CaseBoardPage. Retype validates provenance eligibility and updates the existing row. Delete asks for confirmation naming both cards and the type, then removes the connection and shows an 8-second undo toast that restores the same ID. The legend uses red association and dashed amber provenance keys, collapsible on the board. Add component tests for retype, invalid retype, delete confirmation, undo restoration, timeout, and legend accessibility. Do not add the keyboard target picker."
+  },
+  "nextActions": [],
+  "artifactId": "work-link-4-001",
+  "createdAt": "2026-10-26T06:45:21.106Z"
+}

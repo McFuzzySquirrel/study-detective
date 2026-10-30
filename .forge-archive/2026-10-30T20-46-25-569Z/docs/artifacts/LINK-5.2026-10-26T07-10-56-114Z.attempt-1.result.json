@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T07:10:56.114Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "LINK-5",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/connections/ConnectionPicker.tsx",
+      "src/features/cards/CardDetailPage.tsx",
+      "src/features/case/CardListPanel.tsx",
+      "tests/connections/ConnectionPicker.test.tsx",
+      "e2e/keyboard-links.spec.ts",
+      "src/features/case/CardListPage.tsx",
+      "src/features/connections/connections.css"
+    ],
+    "stdout": "Implemented LINK-5.\n\n## Files created\n\n- `src/features/connections/ConnectionPicker.tsx`\n- `tests/connections/ConnectionPicker.test.tsx`\n- `e2e/keyboard-links.spec.ts`\n\n## Files changed\n\n- `src/features/cards/CardDetailPage.tsx`\n- `src/features/case/CardListPanel.tsx`\n- `src/features/case/CardListPage.tsx` — supporting repository/state wiring for the picker\n- `src/features/connections/connections.css`\n\n`docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` are engine-modified and were not touched by this task.\n\n## What was built\n\n- `ConnectionPicker` dialog with:\n  - searchable target list\n  - Association / Provenance radio group\n  - Save and Cancel\n  - keyboard-only create, retype, and delete\n  - existing-connection list with edit/delete entry points\n  - delete confirmation with Keep connection / Delete connection\n  - no PixiJS, canvas, board-store, or Dexie dependency\n- `Connect to…` on card detail and every card-list row.\n- `Attach source` on note cards in both surfaces, opening the picker on Provenance with a Sources-only list.\n- Provenance target rules:\n  - note → Sources\n  - source → Notes\n  - topic → Provenance disabled with an announced explanation\n  - association always unfiltered\n- Duplicate-pair handling: saving an existing pair retypes the existing row instead of creating another.\n- Parent state updates through `onConnectionCreated`, `onConnectionChanged`, and `onConnectionDeleted`.\n\n## Keyboard path exercised\n\n- Card list → `Connect to…` → search → choose target → Save.\n- Card list → `Attach source` → choose Source → Save.\n- Open existing connection → retype via type radio → Save.\n- Open existing connection → Delete connection → Keep/Delete confirmation.\n- Reload → reopen picker → verify surviving connection.\n- Card detail → `Connect to…` → Escape → focus returns to trigger.\n- All UI actions in the e2e journey used focus plus `Enter`, `Space`, `Tab`, and `Escape`; no canvas interaction.\n\n## Viewports exercised\n\nPlaywright passed at:\n\n- desktop `1440x900`\n- tablet landscape `1280x800`\n- phone `390x844`\n\n## Acceptance criteria\n\n| Criterion | Result |\n|---|---|\n| `Connect to…` reachable from card detail and card list with visible focus path | Pass |\n| Provenance filters Sources for a note / Notes for a source; association unfiltered | Pass |\n| Create, retype, delete work without a pointer and persist after reload | Pass |\n| Validation errors and target counts announced; focus returns to trigger | Pass |\n| Playwright keyboard journey completes with no canvas interaction | Pass |\n\n## Accessibility evidence\n\n- Dialog focus trap and return-focus behavior come from the shared `Dialog` primitive.\n- Create mode focuses the search field; edit mode focuses the first type radio.\n- Failed save without a target focuses the first available target; error is announced through a mounted `role=\"alert\"` region.\n- Target count is announced through a mounted `role=\"status\"` live region and updates on search/type changes.\n- Deleting opens an explicit confirmation; Keep connection returns focus to the re-rendered Delete connection action.\n- 44×44 target assertions pass for target/type rows and existing-connection actions.\n- Contrast assertions pass at 4.5:1 for ink, muted ink, heading ink, and danger text on the dialog surface.\n- `connections.css` contains no raw hex/rgb/hsl palette values.\n- Reduced-motion rules disable picker transitions/animations.\n\n## Shared files and handoff notes\n\n- `CardDetailPage.tsx`, `CardListPanel.tsx`, and `CardListPage.tsx` now accept optional `connectionRepository` / `loadConnectionRepository` props and lazily resolve `ConnectionRepository` when omitted. Preserve these props and the connection callbacks when editing these screens.\n- `connections.css` now owns `.connection-picker__*` selectors. Keep palette values in `tokens.css`.\n- The picker deliberately renders only while open and is keyed by card/intent so dialog state resets without setState-in-effect cascades.\n\n## Known gaps\n\n- LINK-HR-1 still owns the human board/string feel review; this task did not attempt visual sign-off.\n- The full create/retype/delete workflow is proven from the card list; card detail is proven for reachability, focus return, and picker opening.\n- No axe scan was part of this task; QA owns the independent accessibility matrix.\n\n```forge-result\n{\"summary\":\"Implemented LINK-5 keyboard connection picker with searchable targets, provenance filtering, create/retype/delete, card detail and card list entry points, announced counts/errors, focus restoration, 13 component tests, and a keyboard-only Playwright journey passing at desktop, tablet, and phone viewports.\",\"unresolved\":[],\"decisions\":[\"The picker is a canvas-free Dialog that writes through an injected ConnectionRepository and reports resulting rows to the parent page.\",\"Existing pairs are retyped instead of duplicated, preserving the connection ID and pair key.\",\"Attach source opens on Provenance with Source targets; provenance selection filters to Sources for notes and Notes for sources, while Association stays unfiltered.\",\"The picker is rendered only while open and keyed by card and intent, so initial state comes from props without a cascading reset effect.\"],\"interfaces\":[\"ConnectionPicker props: open, currentCard, cards, connections, intent='connect'|'attach-source', repository?, loadRepository?, initialConnectionId?, onClose, onConnectionCreated/Changed/Deleted\",\"CardDetailPage props added: connectionRepository?, loadConnectionRepository?\",\"CardListPanel props added: connectionRepository?, loadConnectionRepository?, onConnectionCreated/Changed/Deleted\",\"CardListPage props added: connectionRepository?, loadConnectionRepository?\"],\"tests\":[\"npm test -- tests/connections/ConnectionPicker.test.tsx: 13 passed\",\"npm run test:e2e -- e2e/keyboard-links.spec.ts: 3 passed (desktop 1440x900, tablet 1280x800, phone 390x844)\",\"npm run lint: pass\",\"npm run typecheck: pass\",\"npm test: 778 passed\"],\"warnings\":[\"Card detail is covered for picker reachability and focus return; the full create/retype/delete persistence journey is exercised from the card list.\",\"LINK-HR-1 still owns the human visual and board-feel review.\"],\"validationLimitations\":[\"Component tests run in jsdom; the e2e journey provides the real-browser viewport and IndexedDB evidence.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 879879
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/connections/ConnectionPicker.test.tsx: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/keyboard-links.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented LINK-5 keyboard connection picker with searchable targets, provenance filtering, create/retype/delete, card detail and card list entry points, announced counts/errors, focus restoration, 13 component tests, and a keyboard-only Playwright journey passing at desktop, tablet, and phone viewports.",
+    "unresolved": [],
+    "decisions": [
+      "The picker is a canvas-free Dialog that writes through an injected ConnectionRepository and reports resulting rows to the parent page.",
+      "Existing pairs are retyped instead of duplicated, preserving the connection ID and pair key.",
+      "Attach source opens on Provenance with Source targets; provenance selection filters to Sources for notes and Notes for sources, while Association stays unfiltered.",
+      "The picker is rendered only while open and keyed by card and intent, so initial state comes from props without a cascading reset effect."
+    ],
+    "interfaces": [
+      "ConnectionPicker props: open, currentCard, cards, connections, intent='connect'|'attach-source', repository?, loadRepository?, initialConnectionId?, onClose, onConnectionCreated/Changed/Deleted",
+      "CardDetailPage props added: connectionRepository?, loadConnectionRepository?",
+      "CardListPanel props added: connectionRepository?, loadConnectionRepository?, onConnectionCreated/Changed/Deleted",
+      "CardListPage props added: connectionRepository?, loadConnectionRepository?"
+    ],
+    "tests": [
+      "npm test -- tests/connections/ConnectionPicker.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/keyboard-links.spec.ts: 3 passed (desktop 1440x900, tablet 1280x800, phone 390x844)",
+      "npm run lint: pass",
+      "npm run typecheck: pass",
+      "npm test: 778 passed"
+    ],
+    "warnings": [
+      "Card detail is covered for picker reachability and focus return; the full create/retype/delete persistence journey is exercised from the card list.",
+      "LINK-HR-1 still owns the human visual and board-feel review."
+    ],
+    "validationLimitations": [
+      "Component tests run in jsdom; the e2e journey provides the real-browser viewport and IndexedDB evidence."
+    ]
+  }
+}

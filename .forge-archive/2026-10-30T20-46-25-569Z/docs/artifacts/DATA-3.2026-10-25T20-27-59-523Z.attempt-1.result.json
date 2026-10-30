@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:27:59.523Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "DATA-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/shelf/CaseShelfPage.tsx",
+      "src/features/shelf/CaseShelf.tsx",
+      "src/features/shelf/CaseCard.tsx",
+      "src/features/shelf/CaseFormDialog.tsx",
+      "src/features/shelf/shelf.css",
+      "src/app/routes.tsx",
+      "tests/shelf/CaseShelf.test.tsx",
+      "tests/shelf/CaseFormDialog.test.tsx"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task scope.\nI'll load the required skill and explore the project structure.\nNow I have the full picture. Let me implement the shelf components.\n## DATA-3 — Case shelf with create and edit\n\n### Result\n\nImplemented the shelf route, ordered case cards, create/edit dialog, empty state, and recoverable database-error state. No deletion, storage-warning, readiness, or backup actions were added.\n\n### Files created\n\n- `src/features/shelf/CaseShelfPage.tsx`\n- `src/features/shelf/CaseShelf.tsx`\n- `src/features/shelf/CaseCard.tsx`\n- `src/features/shelf/CaseFormDialog.tsx`\n- `src/features/shelf/shelf.css`\n- `tests/shelf/CaseShelf.test.tsx`\n- `tests/shelf/CaseFormDialog.test.tsx`\n\n### Files changed\n\n- `src/app/routes.tsx` — lazily routes `/` to `CaseShelfPage`; adds optional `shelfRepository` / `loadShelfRepository` props for test injection.\n\n### Acceptance criteria\n\n| Criterion | Result |\n|---|---|\n| Shelf route replaces placeholder and renders persisted cases in exam-date order, undated last, then updatedAt descending | Pass |\n| Valid create persists, selects/focuses the new card, and announces success | Pass |\n| Empty title shows an announced inline error and writes nothing | Pass |\n| Edit updates title/subject/exam date, refreshes the card and ordering, and restores focus | Pass |\n| Empty state has exactly one primary create action and no dead controls | Pass |\n| Repository open/read failure shows a recoverable error with Retry and `.ndcase` import guidance | Pass |\n| Card links and edit actions are keyboard reachable with visible focus and 44px targets | Pass |\n\n### Keyboard and input evidence\n\n- Tab order exercised: `New case` → case link → `Edit <case>`.\n- Create exercised by keyboard only: focus empty-state action, Enter, type title, Enter.\n- Dialog initial focus lands on `Case title`; empty title returns focus to the invalid input.\n- Escape closes the dialog and restores focus to the opening trigger.\n- After create, focus moves to the newly selected card link; after edit, focus returns to that card’s Edit button.\n- Retry moves focus to the first recovered case link.\n- Some edit/recovery tests use pointer events for setup; all required controls were separately exercised with keyboard assertions.\n\nViewport: component tests run in jsdom, so no browser viewport matrix was exercised. Responsive CSS is defined for phone widths at `37.5rem`, but this is not browser-level evidence.\n\n### Accessibility evidence\n\n- Focus: dialog focus trap and restoration use the shared `Dialog`; shelf-specific focus-to-new-card and Retry focus are asserted.\n- Announcements: `Field` renders title errors in `role=\"alert\"`; save success uses the always-mounted polite `Toast` live region; the database error panel uses `role=\"alert\"`.\n- Targets: `.case-card__link`, `.nd-button`, and `.nd-field__control` all assert at least 44×44 CSS pixels.\n- Contrast: no new palette literals; `shelf.css` consumes locked tokens only, and `shelf.css` is asserted to contain no hex/rgb/hsl values. The existing token contrast suite passes.\n- Reduced motion: `.case-card` transition/animation removal is asserted under `prefers-reduced-motion`; no shelf animation was added.\n- Plain text: all titles, subjects, and dates render through React text nodes; no `dangerouslySetInnerHTML`.\n\n### Shared-file handoff\n\n`src/app/routes.tsx` is foundation-owned. Preserve:\n- the lazy named import `module.CaseShelfPage`;\n- the optional `AppRoutesProps.shelfRepository` and `loadShelfRepository` forwarding.\n\n`CaseShelfPage` itself accepts optional `repository` and `loadRepository` props for tests and future composition.\n\n### Known gaps\n\n- No Playwright/browser viewport or axe run was part of this task’s required validation commands.\n- Whole-card pointer hit-testing is CSS-only and was not exercised in a real browser.\n- Import guidance is intentionally text-only because backup/import UI belongs to BACKUP-* tasks.\n\n### Validation run\n\n- `npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx` → 14 passed\n- `npm run typecheck` → passed\n- `npm run build` → passed\n- Additional checks: `npm run lint` → passed; full suite → 236 passed\n\n`docs/artifacts/` was not modified. `docs/EXECUTION-AUDIT.jsonl` has a pre-existing engine change I did not author or touch.\n\n```forge-result\n{\"summary\":\"Built the case shelf route with ordered case cards, create/edit dialog, empty state, and recoverable database-error state; shelf tests, typecheck, lint, full suite, and production build all pass.\",\"unresolved\":[],\"decisions\":[\"Ordering uses the repository's compareCaseSummaries helper and is re-applied after local creates/edits.\",\"Create selects and focuses the new card instead of navigating away, satisfying the opens-or-selects criterion.\",\"Form actions live inside the form element so Enter submits reliably; validation errors focus the first invalid field.\",\"AppRoutes exposes optional repository props solely for dependency injection in tests and future composition.\"],\"interfaces\":[\"CaseShelfPage({ repository?, loadRepository? })\",\"CaseRepositoryLoader = () => Promise<CaseRepositoryPort>\",\"AppRoutes({ shelfRepository?, loadShelfRepository? })\",\"CaseFormDialog({ mode, initialCase?, onClose, onSubmit })\",\"CaseFormValues { title, subject: string | null, examDate: string | null }\"],\"tests\":[\"npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx: exit 0 (14 passed)\",\"npm run typecheck: exit 0\",\"npm run build: exit 0\",\"npm run lint: exit 0\",\"npm test: exit 0 (236 passed)\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.\",\"No browser-level viewport matrix or axe run was required or executed for DATA-3; component evidence is jsdom-based.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 582858
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)",
+        "npm run build: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Built the case shelf route with ordered case cards, create/edit dialog, empty state, and recoverable database-error state; shelf tests, typecheck, lint, full suite, and production build all pass.",
+    "unresolved": [],
+    "decisions": [
+      "Ordering uses the repository's compareCaseSummaries helper and is re-applied after local creates/edits.",
+      "Create selects and focuses the new card instead of navigating away, satisfying the opens-or-selects criterion.",
+      "Form actions live inside the form element so Enter submits reliably; validation errors focus the first invalid field.",
+      "AppRoutes exposes optional repository props solely for dependency injection in tests and future composition."
+    ],
+    "interfaces": [
+      "CaseShelfPage({ repository?, loadRepository? })",
+      "CaseRepositoryLoader = () => Promise<CaseRepositoryPort>",
+      "AppRoutes({ shelfRepository?, loadShelfRepository? })",
+      "CaseFormDialog({ mode, initialCase?, onClose, onSubmit })",
+      "CaseFormValues { title, subject: string | null, examDate: string | null }"
+    ],
+    "tests": [
+      "npm test -- tests/shelf/CaseShelf.test.tsx tests/shelf/CaseFormDialog.test.tsx: exit 0 (14 passed)",
+      "npm run typecheck: exit 0",
+      "npm run build: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0 (236 passed)"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.",
+      "No browser-level viewport matrix or axe run was required or executed for DATA-3; component evidence is jsdom-based."
+    ]
+  }
+}

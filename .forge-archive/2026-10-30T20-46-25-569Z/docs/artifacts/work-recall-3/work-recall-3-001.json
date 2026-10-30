@@ -1,0 +1,58 @@
+{
+  "type": "work.recall-3",
+  "category": "work",
+  "taskId": "RECALL-3",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented RECALL-3: grouped accessible recall results, board check/missed/extra/type-mismatch markers, live announcements, keyboard focus, reduced-motion handling, and no-persistence evidence. Required unit and Playwright validations pass.",
+  "inputs": [
+    "work-recall-2-001",
+    "work-recall-1-001"
+  ],
+  "filesChanged": [
+    "src/features/recall/RecallResults.tsx",
+    "src/features/recall/RecallSummary.tsx",
+    "src/features/recall/RecallToolbar.tsx",
+    "src/features/recall/RecallPage.tsx",
+    "tests/recall/RecallResults.test.tsx",
+    "tests/recall/compareConnections.type.test.ts",
+    "e2e/recall-results.spec.ts",
+    "src/features/recall/recall.css"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented RECALL-3: grouped accessible recall results, board check/missed/extra/type-mismatch markers, live announcements, keyboard focus, reduced-motion handling, and no-persistence evidence. Required unit and Playwright validations pass.",
+    "decisions": [
+      "The summary is the accessible source of truth; the board overlay is decorative and aria-hidden.",
+      "The live region stays mounted for the page lifetime so Check is a real announcement update.",
+      "Check moves focus to the results heading while leaving all toolbar actions mounted.",
+      "Overlay placement uses the same plain card positions and camera as the canvas, without importing PixiJS."
+    ],
+    "interfaces": [
+      "RecallResultsProps: comparison, cards, focusOnMount?",
+      "RecallResultOverlayProps: comparison, cards (with position), viewport",
+      "RecallSummaryProps: comparison, cards",
+      "recallSummaryAnnouncement(comparison): string"
+    ],
+    "tests": [
+      "npm test -- tests/recall/RecallResults.test.tsx tests/recall/compareConnections.type.test.ts: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/recall-results.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/recall/RecallResults.test.tsx tests/recall/compareConnections.type.test.ts: exit 0",
+      "npm run test:e2e -- e2e/recall-results.spec.ts: exit 0 (desktop + tablet; phone skipped intentionally)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (928 tests)",
+      "npm run test:e2e -- e2e/recall.spec.ts: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Lint reports three nonblocking react-refresh advisories because RecallSummary also exports pure label/announcement helpers.",
+      "The phone Playwright project skips the pointer scratch-drawing journey; keyboard entry/check/reset/exit are covered by component tests."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create RecallResults and RecallSummary. On Check, compute comparison results and overlay markers on the board: remembered check, missed dashed outline, extra muted cross, and a type-mismatch label. Render a grouped summary list of remembered, missed, extra, and type-mismatched pairs with card titles and counts inside RecallPage. Announce the summary with aria-live and keep it fully keyboard readable. Respect reduced motion and ensure no score wording. Add component tests for all groups, type mismatch, empty scratch, and keyboard reading; extend the Playwright recall journey to assert visible results and no persistence."
+  },
+  "nextActions": [],
+  "artifactId": "work-recall-3-001",
+  "createdAt": "2026-10-26T17:49:03.089Z"
+}

@@ -1,0 +1,60 @@
+{
+  "type": "work.close-1",
+  "category": "work",
+  "taskId": "CLOSE-1",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented pure readiness, loose-thread, and topic-status selectors with 27 boundary tests; the required test and typecheck commands pass.",
+  "inputs": [
+    "work-link-1-001",
+    "work-link-5-001",
+    "work-link-hr-1-001"
+  ],
+  "filesChanged": [
+    "src/domain/readiness.ts",
+    "tests/domain/readiness.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented pure readiness, loose-thread, and topic-status selectors with 27 boundary tests; the required test and typecheck commands pass.",
+    "decisions": [
+      "One loose thread per offending card; a note missing both requirements carries both reason codes but contributes one to the total count.",
+      "Topic status counts distinct notes linked by association only; any distinct connection, including a source or topic neighbour, clears topic looseness.",
+      "Wrong-type links never satisfy readiness: association does not satisfy a source link and provenance does not satisfy a topic link or linked-note count.",
+      "Corrupt rows are defensive: duplicate card rows collapse to the first occurrence, duplicate connection rows count once, and self-links or dangling endpoints are ignored.",
+      "Output order is deterministic by title, exact title, then id; loose notes precede loose topics."
+    ],
+    "interfaces": [
+      "deriveReadiness(cards: readonly ReadinessCard[], connections?: readonly ReadinessConnection[]): CaseReadiness",
+      "deriveLooseThreads(...): readonly LooseThread[]",
+      "countLooseThreads(...): number",
+      "isCaseReady(...): boolean",
+      "deriveTopicReadiness(...): readonly TopicReadiness[]",
+      "getNoteReadiness(cardId, cards, connections?): NoteReadiness | undefined",
+      "getTopicReadiness(cardId, cards, connections?): TopicReadiness | undefined",
+      "CaseReadiness includes ready, looseThreadCount, looseNoteCount, looseTopicCount, looseThreads, looseNotes, looseTopics, notes, topics"
+    ],
+    "tests": [
+      "npm test -- tests/domain/readiness.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/domain/readiness.test.ts: 27 passed",
+      "npm run typecheck: exit 0",
+      "npm test -- tests/domain: 133 passed",
+      "npx vitest run tests/domain/readiness.test.ts --coverage --coverage.include=src/domain/readiness.ts: 100% lines, 100% statements, 91.22% branches"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "CLOSE-2 and CLOSE-3 should derive readiness once and index results by cardId rather than calling getTopicReadiness per card in large graphs.",
+      "Loose-thread ordering is title/id order, not the repository's createdAt order; consumers that need case order should re-sort explicitly."
+    ],
+    "validationLimitations": [
+      "No UI or persistence was exercised; CLOSE-1 is intentionally domain-only.",
+      "Topic linked-note semantics use association connections; an invalid provenance row between a note and topic clears topic looseness but does not make the note ready or count as a linked note."
+    ],
+    "taskDescription": "Create readiness.ts with pure functions over cards and connections. A Study Note is ready when it has at least one provenance connection to a Source and at least one association connection to a Topic. A Topic is ready when it has at least one connection. Sources are ignored. Return loose notes and topics with a reason code, a total count, and a per-topic status of orphan, developing, or solved based on distinct linked notes. Reject duplicate counts and never infer status from stored flags. Add tests for empty graphs, partial graphs, wrong connection types, multiple links, and stable ordering."
+  },
+  "nextActions": [],
+  "artifactId": "work-close-1-001",
+  "createdAt": "2026-10-26T16:37:33.376Z"
+}

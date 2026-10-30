@@ -1,0 +1,108 @@
+{
+  "type": "work.a11y-1",
+  "category": "work",
+  "taskId": "A11Y-1",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented A11Y-1 responsive hardening: a shared responsive CSS layer and layout-mode hook, phone bottom sheets for board actions/search/closure/connection detail and card actions/tags, safe-area handling, compact phone board actions, breakpoint-aligned phone styles, 19 component checks including nested-sheet focus behavior, and a Playwright journey covering 390x844, 768x1024, 1280x800, and 1440x900 with overflow, sheet, primary-action, and 44px assertions. Required unit and browser commands, full suite, typecheck, lint, and formatting pass.",
+  "inputs": [
+    "work-demo-3-001",
+    "work-ocr-3-001",
+    "work-backup-4-001",
+    "work-fnd-5-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001",
+    "work-cap-3-001",
+    "work-cap-4-001",
+    "work-board-4-001",
+    "work-board-5-001",
+    "work-link-5-001",
+    "work-link-hr-1-001",
+    "work-close-2-001",
+    "work-close-3-001",
+    "work-recall-2-001",
+    "work-recall-3-001",
+    "work-search-3-001",
+    "work-backup-3-001"
+  ],
+  "filesChanged": [
+    "src/styles/responsive.css",
+    "src/app/AppShell.tsx",
+    "src/app/AppShell.css",
+    "src/features/shelf/CaseShelf.tsx",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/features/cards/CardDetailPage.tsx",
+    "src/features/recall/RecallPage.tsx",
+    "src/features/search/SearchPanel.tsx",
+    "src/features/settings/SettingsPage.tsx",
+    "tests/a11y/responsive.test.tsx",
+    "e2e/responsive.spec.ts",
+    "src/components/Dialog.tsx",
+    "src/components/components.css",
+    "src/features/capture/capture.css",
+    "src/features/cards/CardDetail.css",
+    "src/features/case/CardListPage.css",
+    "src/features/case/CardListPanel.css",
+    "src/features/case/CaseBoardPage.css",
+    "src/features/case/EmptyBoard.css",
+    "src/features/closure/closure.css",
+    "src/features/connections/connections.css",
+    "src/features/ocr/OcrPanel.css",
+    "src/features/onboarding/hints.css",
+    "src/features/recall/recall.css",
+    "src/features/search/SearchPanel.css",
+    "src/features/shelf/shelf.css",
+    "src/main.tsx",
+    "tests/search/SearchPanel.test.tsx",
+    "src/app/useLayoutMode.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented A11Y-1 responsive hardening: a shared responsive CSS layer and layout-mode hook, phone bottom sheets for board actions/search/closure/connection detail and card actions/tags, safe-area handling, compact phone board actions, breakpoint-aligned phone styles, 19 component checks including nested-sheet focus behavior, and a Playwright journey covering 390x844, 768x1024, 1280x800, and 1440x900 with overflow, sheet, primary-action, and 44px assertions. Required unit and browser commands, full suite, typecheck, lint, and formatting pass.",
+    "decisions": [
+      "Reused the Dialog primitive as the phone bottom sheet instead of forking a visual overlay, so focus trap, Escape, aria-modal, inert siblings, and focus restoration stay in one audited component.",
+      "Extended Dialog with a topmost-dialog stack so a confirmation opened from a sheet closes alone and only the topmost overlay handles Escape or redirects focus.",
+      "Resolved return-focus targets at close time so selecting a search result or centring a loose card can land focus on the board heading rather than the sheet trigger.",
+      "Switched entire side panels between inline and sheet rendering in JavaScript using matchMedia rather than rendering duplicate DOM and hiding one copy with CSS.",
+      "Used the existing 1280x800 desktop breakpoint styling for that primary arranging shape; 1280 is above the documented 1200 desktop boundary.",
+      "Aligned phone stylesheets to max-width 37.4375rem so exactly 600px is tablet, matching the documented phone-below-600 rule."
+    ],
+    "interfaces": [
+      "src/app/useLayoutMode.ts exports PHONE_MAX_QUERY, TABLET_MAX_QUERY, LayoutMode, useLayoutMode(), and usePhoneLayout().",
+      "SearchPanel gains an optional variant: 'inline' | 'sheet' prop; inline remains the default.",
+      "Dialog keeps its existing public props and adds nested-dialog topmost behavior plus close-time returnFocusRef resolution.",
+      "CaseBoardPage internal phone surfaces: Case actions, Search and filters, Case closure, and Connection details sheets.",
+      "CardDetailPage internal phone surface: Card actions and tags sheet replacing the inline sidebar below 600px."
+    ],
+    "tests": [
+      "npm test -- tests/a11y/responsive.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/responsive.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/a11y/responsive.test.tsx: exit 0, 19 passed (engine-verified in this task run)",
+      "npm run test:e2e -- e2e/responsive.spec.ts: exit 0, 2 passed and 4 intentionally skipped by project scoping (engine-verified in this task run)",
+      "npm test: exit 0, 1007 passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 with 3 pre-existing RecallSummary react-refresh warnings",
+      "npm run format:check: exit 0",
+      "npm run build (inside test:e2e): exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Lint retains three pre-existing react-refresh advisories in RecallSummary.tsx; no new lint warnings were introduced.",
+      "The 1280x800 tablet-landscape arranging shape deliberately uses desktop tokens because it is above the documented 1200px desktop breakpoint.",
+      "Headless Chromium reports safe-area insets as 0px, so notched-device appearance and final sheet height/feel remain human review items.",
+      "Board spatial gestures remain pointer-only by design and are not claimed as keyboard-operable."
+    ],
+    "validationLimitations": [
+      "Playwright evidence is Chromium-only; Firefox/WebKit smoke remains A11Y-6 scope.",
+      "No axe scans were added, per task exclusion.",
+      "The viewport matrix runs once in the desktop project while setting all four viewports explicitly; the phone sheet journey runs in the phone project, so tablet and desktop projects report the other journey as skipped by design.",
+      "Safe-area presence is verified by a source contract test because the headless browser resolves env() insets to 0px."
+    ],
+    "taskDescription": "Add responsive.css and adjust AppShell, CaseShelf, CaseBoardPage, CardDetailPage, RecallPage, SearchPanel, and SettingsPage for phone below 600px, tablet 600–1199px, and desktop 1200px and up. Use bottom sheets on phone, safe-area insets, a compact board toolbar, and layouts that never cause page-level horizontal scrolling. Preserve every capability at 390x844. Add component and Playwright viewport tests for 390x844, 768x1024, 1280x800, and 1440x900, including sheet open/close and 44px controls. Do not add keyboard shortcuts or axe scans."
+  },
+  "nextActions": [],
+  "artifactId": "work-a11y-1-001",
+  "createdAt": "2026-10-26T18:53:48.286Z"
+}

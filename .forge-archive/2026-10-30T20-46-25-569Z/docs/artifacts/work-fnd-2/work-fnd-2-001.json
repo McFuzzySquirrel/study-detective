@@ -1,0 +1,70 @@
+{
+  "type": "work.fnd-2",
+  "category": "work",
+  "taskId": "FND-2",
+  "producedBy": "foundation-engineer",
+  "status": "complete",
+  "summary": "FND-2 complete: installable PWA manifest with generated 192/512/maskable icons, prompt-mode service worker registration, app-shell precache, and an explicit Refresh/Later update prompt gated by unsaved edits. All required validation commands pass, including the production build and full unit suite.",
+  "inputs": [
+    "work-fnd-1-001"
+  ],
+  "filesChanged": [
+    "vite.config.ts",
+    "src/pwaManifest.ts",
+    "src/pwa.ts",
+    "src/main.tsx",
+    "src/App.tsx",
+    "src/app/UpdatePrompt.tsx",
+    "src/app/UpdatePrompt.css",
+    "public/icons/icon.svg",
+    "public/icons/icon-192.png",
+    "public/icons/icon-512.png",
+    "public/icons/maskable-512.png",
+    "scripts/generate-icons.mjs",
+    "tests/pwa/manifest.test.ts",
+    "tests/pwa/UpdatePrompt.test.tsx",
+    "src/vite-env.d.ts",
+    "vitest.config.ts",
+    "tests/stubs/pwa-register.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "FND-2 complete: installable PWA manifest with generated 192/512/maskable icons, prompt-mode service worker registration, app-shell precache, and an explicit Refresh/Later update prompt gated by unsaved edits. All required validation commands pass, including the production build and full unit suite.",
+    "decisions": [
+      "Kept relative Vite base and relative manifest start_url/scope for GitHub Pages portability.",
+      "Used prompt mode with injectRegister disabled so src/pwa.ts owns registration and activation requires explicit confirmation.",
+      "Added a small unsaved-changes registry in src/pwa.ts for feature forms to gate activation.",
+      "Aliased virtual:pwa-register to a test stub in vitest.config.ts so component tests can drive waiting-worker behavior.",
+      "Set includeManifestIcons false to avoid duplicate precache entries while glob patterns cache the icons once.",
+      "Manifest theme colors are provisional literals; ui-engineer owns final locked tokens in FND-5."
+    ],
+    "interfaces": [
+      "pwaManifest and pwaOptions from src/pwaManifest.ts",
+      "registerPwa, setUnsavedChanges, confirmUpdate, dismissUpdate, subscribeToUpdatePrompt, getUpdatePromptState from src/pwa.ts",
+      "UpdatePrompt mounted by src/App.tsx"
+    ],
+    "tests": [
+      "node scripts/generate-icons.mjs: exit 0 (engine-verified)",
+      "npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx: exit 0 (engine-verified)",
+      "npm run build: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "node scripts/generate-icons.mjs: exit 0",
+      "npm test -- tests/pwa/manifest.test.ts tests/pwa/UpdatePrompt.test.tsx: exit 0 (14 tests)",
+      "npm run build: exit 0",
+      "npm test: exit 0 (15 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run test:e2e -- e2e/smoke.spec.ts: exit 0 (3 viewports)"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Offline reload/install verification is intentionally not claimed in FND-2; that belongs to the later release PWA journey."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Configure vite-plugin-pwa in prompt mode with a same-origin manifest, relative start_url and scope, standalone display, any orientation, and 192px, 512px, and maskable 512px PNG icons generated from public/icons/icon.svg by scripts/generate-icons.mjs using sharp. Register the service worker from src/pwa.ts, import it from src/main.tsx, and mount the UpdatePrompt toast from src/App.tsx with Refresh and Later actions. The prompt must call updateServiceWorker(true) only after explicit confirmation. Precache the app shell and allow future wasm and traineddata assets. Do not enable skipWaiting or claim offline verification yet."
+  },
+  "nextActions": [],
+  "artifactId": "work-fnd-2-001",
+  "createdAt": "2026-10-25T18:53:52.678Z"
+}

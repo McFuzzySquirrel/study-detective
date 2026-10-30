@@ -1,0 +1,62 @@
+{
+  "type": "work.link-1",
+  "category": "work",
+  "taskId": "LINK-1",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented LINK-1 connection domain rules and both Dexie and in-memory repositories with duplicate/self-link/provenance validation, unique pair enforcement, strict reads, retype, cascade, restore, and rollback tests; required test and typecheck commands pass.",
+  "inputs": [
+    "work-board-2-001",
+    "work-cap-4-001",
+    "work-board-4-001",
+    "work-board-5-001"
+  ],
+  "filesChanged": [
+    "src/domain/connections.ts",
+    "src/data/connectionRepository.ts",
+    "tests/domain/connections.test.ts",
+    "tests/data/connectionRepository.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented LINK-1 connection domain rules and both Dexie and in-memory repositories with duplicate/self-link/provenance validation, unique pair enforcement, strict reads, retype, cascade, restore, and rollback tests; required test and typecheck commands pass.",
+    "decisions": [
+      "Duplicate create returns the existing connection with status 'duplicate' so LINK-3 can select it rather than surfacing an error.",
+      "ConnectionRepository owns strict connection reads; CaseRepository.listConnections stays tolerant of corrupt children so card deletion cannot be trapped.",
+      "The v1 unique pairKey index remains the race backstop; no migration was added."
+    ],
+    "interfaces": [
+      "ConnectionRepositoryPort.create(input): Promise<{status:'created'|'duplicate'; connection: ConnectionRecord}>",
+      "ConnectionRepositoryPort.retype(connectionId, type): Promise<ConnectionRecord>",
+      "ConnectionRepositoryPort.restore(connection): Promise<ConnectionRecord>",
+      "ConnectionRepositoryPort.delete(connectionId): Promise<boolean>",
+      "ConnectionRepositoryPort.listByCase(caseId): Promise<ConnectionRecord[]>",
+      "ConnectionRepositoryPort.listByCard(cardId): Promise<ConnectionRecord[]>",
+      "ConnectionRepositoryPort.deleteByCard(cardId): Promise<number>",
+      "InMemoryConnectionRepository({ cards, connections?, idFactory? })",
+      "findConnectionForPair, assertConnectionPairAvailable, planConnectionCascade, findDanglingConnections, missingConnectionEndpoints, DuplicateConnectionError"
+    ],
+    "tests": [
+      "npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts: 41 passed",
+      "npm run typecheck: exit 0",
+      "npm test: 47 files / 651 tests passed",
+      "npm run lint: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "LINK-3/LINK-4 must use ConnectionRepository for strict string reads; CaseRepository.listConnections intentionally does not re-check endpoints.",
+      "The in-memory connection fake does not track case updatedAt."
+    ],
+    "validationLimitations": [
+      "Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.",
+      "No browser or visual board behavior is in scope for LINK-1."
+    ],
+    "taskDescription": "Create connection domain helpers for unordered pair keys, self-link rejection, duplicate rejection, provenance eligibility (note to source only), association eligibility (any two distinct cards), and cascade plans. Create ConnectionRepository with create, retype, delete, list-by-case, and delete-by-card operations. Enforce the unique pairKey index, validate endpoints exist in the same case, use one transaction per mutation, and expose a test-only in-memory path. Add tests for A-B and B-A duplicates, self-links, provenance misuse, retype, cascade, and dangling endpoint rejection. Do not add Pixi or UI code."
+  },
+  "nextActions": [],
+  "artifactId": "work-link-1-001",
+  "createdAt": "2026-10-26T05:18:11.806Z"
+}

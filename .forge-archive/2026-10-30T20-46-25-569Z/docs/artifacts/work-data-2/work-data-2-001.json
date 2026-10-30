@@ -1,0 +1,66 @@
+{
+  "type": "work.data-2",
+  "category": "work",
+  "taskId": "DATA-2",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented the Dexie v1 database, strict row mappers, transactional CaseRepository, AttachmentStore, and in-memory repository fake; added 46 data tests covering migration, round-trips, malformed-row rejection, Blob metadata, unique pair keys, and transaction rollback.",
+  "inputs": [
+    "work-data-1-001",
+    "work-fnd-5-001"
+  ],
+  "filesChanged": [
+    "src/data/db.ts",
+    "src/data/mappers.ts",
+    "src/data/caseRepository.ts",
+    "src/data/attachmentStore.ts",
+    "tests/data/dbMigration.test.ts",
+    "tests/data/caseRepository.test.ts",
+    "tests/data/attachmentStore.test.ts",
+    "package-lock.json",
+    "package.json",
+    "src/data/errors.ts",
+    "src/data/transactions.ts",
+    "tests/data/testDatabase.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented the Dexie v1 database, strict row mappers, transactional CaseRepository, AttachmentStore, and in-memory repository fake; added 46 data tests covering migration, round-trips, malformed-row rejection, Blob metadata, unique pair keys, and transaction rollback.",
+    "decisions": [
+      "Cases store viewport and closure metadata; saveViewport preserves updatedAt so shelf ordering does not churn on pan/zoom.",
+      "Card and connection writes update the owning case's updatedAt in the same transaction.",
+      "Connections use both a globally unique pairKey index and a unique [caseId+pairKey] compound index.",
+      "Attachment writes verify the owning card in the same transaction and reject duplicate kinds in one set.",
+      "Stored-row validation failures surface as StorageReadError with the underlying DomainValidationError as cause."
+    ],
+    "interfaces": [
+      "NotesDetectiveDatabase, createNotesDetectiveDatabase(name?), openNotesDetectiveDatabase(name?), DATABASE_VERSION=1.",
+      "CaseRepository(db, { clock?, idFactory? }) implementing CaseRepositoryPort: createCase, getCase, getCaseSummary, listCaseSummaries, updateCase, saveViewport, createCard, createCardWithAttachments, getCard, listCards, updateCard, deleteCard.",
+      "AttachmentStore(db, { clock?, idFactory? }): addAttachment, addAttachments, getAttachment, getAttachmentByKind, listAttachments, deleteAttachment.",
+      "InMemoryCaseRepository({ clock?, idFactory?, seed? }) implementing CaseRepositoryPort.",
+      "NewAttachment, buildAttachmentRecord, compareCaseSummaries, StorageReadError, RecordNotFoundError."
+    ],
+    "tests": [
+      "npm test -- tests/data/dbMigration.test.ts tests/data/caseRepository.test.ts tests/data/attachmentStore.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/data/dbMigration.test.ts tests/data/caseRepository.test.ts tests/data/attachmentStore.test.ts: exit 0 (46 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0 (222 tests across 13 files)",
+      "npm run test:coverage: exit 0; src/data 95.25% lines, src/domain 97.95% lines"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Added fake-indexeddb 6.2.6 as an exact devDependency because it was not previously installed.",
+      "Data tests use // @vitest-environment node: jsdom's Blob is not preserved by fake-indexeddb's Node structuredClone, while Node's Blob round-trips correctly through IndexedDB.",
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author and did not touch.",
+      "Connection CRUD and cascade case deletion remain intentionally out of scope for LINK-1 and DATA-5."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create a Dexie v1 database with cases, cards, connections, and attachments tables and the indexes needed by the shelf and board: cases by updatedAt and examDate, cards by caseId and caseId+type, connections by caseId and a unique pairKey, attachments by cardId and cardId+kind. Implement mappers between persisted rows and domain records, a CaseRepository for case and card CRUD and case summaries with card and connection counts, and an AttachmentStore for original/display/thumbnail Blobs. Preserve isDemo, backupPromptedAt, tags, OCR fields when present, viewport, and closure metadata. Use one read-write transaction per mutation, validate on read and write, and expose an in-memory fake for tests. Do not import React, fetch, or feature modules."
+  },
+  "nextActions": [],
+  "artifactId": "work-data-2-001",
+  "createdAt": "2026-10-25T20:18:05.467Z"
+}

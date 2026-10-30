@@ -1,0 +1,52 @@
+{
+  "type": "work.fnd-4",
+  "category": "work",
+  "taskId": "FND-4",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "FND-4 complete: standalone three-direction style tile with cork surfaces, three pin finishes, red association and dashed amber provenance strings, period/system type samples, 44 px controls, and a reviewer legend. The file:// Playwright suite passes 15/15 across projects with explicit 1280x800 and 390x844 checks, zero network requests, no overflow, keyboard focus, contrast, and reduced-motion coverage.",
+  "inputs": [
+    "work-fnd-1-001",
+    "work-fnd-2-001",
+    "work-fnd-3-001"
+  ],
+  "filesChanged": [
+    "prototype/style-tile.html",
+    "prototype/style-tile.css",
+    "e2e/style-tile.spec.ts",
+    "tsconfig.node.json"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "FND-4 complete: standalone three-direction style tile with cork surfaces, three pin finishes, red association and dashed amber provenance strings, period/system type samples, 44 px controls, and a reviewer legend. The file:// Playwright suite passes 15/15 across projects with explicit 1280x800 and 390x844 checks, zero network requests, no overflow, keyboard focus, contrast, and reduced-motion coverage.",
+    "decisions": [
+      "Added DOM to tsconfig.node lib so strict Playwright browser-context evaluate assertions typecheck; no app-runtime change.",
+      "Kept the prototype dependency-free with no scripts, images, external fonts, or remote URLs.",
+      "Prototype-only palette/type values are intentionally local; FND-5 owns production tokens after the human direction decision."
+    ],
+    "interfaces": [
+      "prototype/style-tile.html exposes data-direction, data-surface=\"cork\", data-pin, data-string, data-type-sample, and data-control hooks for browser evidence.",
+      "e2e/style-tile.spec.ts resolves the prototype through a file URL rather than the preview server."
+    ],
+    "tests": [
+      "npm run test:e2e -- e2e/style-tile.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm run test:e2e -- e2e/style-tile.spec.ts: 15 passed",
+      "npm run lint: pass",
+      "npm run typecheck: pass",
+      "npm test: 32 passed",
+      "npx prettier --check prototype/style-tile.html prototype/style-tile.css e2e/style-tile.spec.ts tsconfig.node.json: pass"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Direction selection remains human gate FND-HR-1; the tile does not record a chosen direction.",
+      "System font fallback varies by host because external fonts are prohibited.",
+      "docs/EXECUTION-AUDIT.jsonl shows an engine-generated modification that I did not author."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create prototype/style-tile.html and prototype/style-tile.css as a dependency-free, file-URL-openable page with three labeled directions. Each direction shows a cork surface, three pin styles, a red association string, a dashed amber provenance string, a period heading over system body text, and one 44px control. Include a short legend explaining what the reviewer should judge. Use only local CSS, inline SVG, and system or bundled font stacks; no network requests, external images, or external fonts. Add a Playwright test that opens the file URL and asserts the three directions, both string types, the type samples, and no horizontal overflow at 1280x800 and 390x844."
+  },
+  "nextActions": [],
+  "artifactId": "work-fnd-4-001",
+  "createdAt": "2026-10-25T19:08:35.832Z"
+}

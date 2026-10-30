@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T03:45:35.705Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BOARD-3",
+  "attempt": 2,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/board/CardSprite.ts",
+      "src/board/CardLayer.ts",
+      "src/board/BoardScene.ts",
+      "src/board/useCardGestures.ts",
+      "tests/board/useCardGestures.test.ts",
+      "e2e/board-drag.spec.ts",
+      "src/board/BoardCanvas.tsx",
+      "src/board/boardInput.ts",
+      "src/board/usePixiApp.ts",
+      "src/features/case/CaseBoardPage.tsx"
+    ],
+    "stdout": "Implemented BOARD-3: card sprites/layer, thumbnail-first images, pointer gesture disambiguation, tap-to-detail, live drag previews, and 300 ms debounced position persistence.\n\n## Files created\n\n- `src/board/CardSprite.ts`\n- `src/board/CardLayer.ts`\n- `src/board/useCardGestures.ts`\n- `tests/board/useCardGestures.test.ts`\n- `e2e/board-drag.spec.ts`\n\n## Files changed\n\n- `src/board/BoardScene.ts`\n- `src/board/BoardCanvas.tsx`\n- `src/board/usePixiApp.ts`\n- `src/board/boardInput.ts`\n- `src/features/case/CaseBoardPage.tsx`\n\n## Behavior and evidence\n\n- Cards render at the fixed 240 × 320 geometry with pin, title strip, type indicator, and optional thumbnail → display texture upgrade.\n- Mouse/pen drag starts immediately; touch lifts after **500 ms**; **6 px** is the movement tolerance; quick taps and no-movement clicks open `/case/:caseId/card/:cardId`.\n- Touch movement beyond 6 px before lift cancels the card press and hands off to board pan.\n- Drag previews update the board gesture state and Pixi card position at pointer rate. Only the drop position calls `onCardMoved`; the page debounces the repository write for **300 ms**.\n- Reduced motion keeps drag behavior but forces lift scale to `1` instead of `1.04`.\n- Card images are loaded only for culled-visible cards; image URLs are owned and revoked by `CaseBoardPage`.\n- `BoardScene` now mounts `CardLayer`; culling remains 200 px beyond the viewport.\n- Board chunk is separate: `BoardCanvas-*.js` is 323.07 kB, while the initial `index-*.js` is 266.12 kB and contains no `pixi` reference.\n\n## Plain snapshot / intent contract\n\n- `BoardSnapshot { caseId, caseTitle, cards: BoardCardSnapshot[] }`\n- `BoardCardSnapshot { id, title, type, position, image? }`\n- `BoardCanvas` consumes `snapshot`, optional `store`, `onCardMoved(cardId, position)`, and optional `onCardTap`.\n- `BoardScene` exposes `setSnapshot`, `setViewport`, `resize`, `moveCard`, `setCardLifted`, `setSelectedCard`, `cardAt`, `rebuildAfterContextLoss`, and `destroy`.\n- `usePixiApp` additionally exposes optional `moveCard` and `setCardLifted`; no storage access occurs inside the board.\n\n## Shared-file preservation\n\n`CaseBoardPage.tsx` remains the composition boundary and now owns card image URLs and the 300 ms position debounce. `ui-engineer` should preserve the `BoardSnapshot` shape and `onCardMoved` callback when adding BOARD-5 UI. `foundation-engineer` route/lazy-loading behavior and the separate board chunk were preserved.\n\n## Validation\n\n- `npm test -- tests/board/useCardGestures.test.ts` — 12 passed.\n- `npm run test:e2e -- e2e/board-drag.spec.ts` — 6 passed across desktop, tablet-landscape, and phone.\n- `npm test` — 572 passed across 39 files.\n- `npm run typecheck` — passed.\n- `npm run lint` — passed.\n- `npm run build` — passed.\n- Regression checks: `e2e/board.spec.ts` and `e2e/capture.spec.ts` both pass.\n\n## Limitations\n\n- Touch browser evidence uses synthetic Chromium `PointerEvent` dispatch; physical tablet feel still requires the human board-feel review.\n- Thumbnail/display texture upgrade is exercised through the real capture journey without pixel assertions; the visual swap remains a human/QA check.\n- The 150-card FPS floor and 45 FPS tablet target remain BOARD-4/QA work.\n\n```forge-result\n{\"summary\":\"BOARD-3 implemented card sprites, culling layer, thumbnail-first images, mouse/touch gesture disambiguation, tap-to-detail, live drag previews, and 300 ms debounced position persistence; unit, browser, build, typecheck, and lint checks pass.\",\"decisions\":[\"The gesture state machine is a renderer-free controller tested with a fake clock; the React hook is only a DOM listener adapter.\",\"Card drag previews update the board gesture slice and Pixi card layer directly, while only the completed drop is sent to the page for repository persistence.\",\"The page owns card image object URLs and revokes them on route change or unmount; CardSprite destroys its own textures.\",\"Touch movement beyond 6 px before the long press cancels the card gesture and continues as a board pan through the same store action.\",\"A lost-pointer-capture listener was deliberately omitted because releasing capture after pointerup could cancel the tap before it resolved.\"],\"interfaces\":[\"BoardSnapshot { caseId, caseTitle, cards: BoardCardSnapshot[] }\",\"BoardCardSnapshot { id, title, type, position, image? }\",\"BoardCanvas({ snapshot, store?, onCardMoved?, onCardTap? })\",\"BoardScene.setSnapshot/setViewport/resize/moveCard/setCardLifted/setSelectedCard/cardAt/rebuildAfterContextLoss/destroy\",\"usePixiApp -> { ..., moveCard?, setCardLifted? }\",\"CardGestureController.callbacks: getCardAt, getCardPosition, getViewport, isReducedMotion, onPress, onLift, onDragMove, onDrop, onDragCancel, onTap, onPressCancel, onPanBy\",\"CARD_LONG_PRESS_MS=500, CARD_DRAG_TOLERANCE_PX=6, CARD_POSITION_SAVE_DEBOUNCE_MS=300\"],\"tests\":[\"npm test -- tests/board/useCardGestures.test.ts: 12 passed\",\"npm run test:e2e -- e2e/board-drag.spec.ts: 6 passed (desktop, tablet-landscape, phone)\",\"npm test: 572 passed\",\"npm run typecheck: passed\",\"npm run lint: passed\",\"npm run build: passed\",\"npm run test:e2e -- e2e/board.spec.ts: 6 passed\",\"npm run test:e2e -- e2e/capture.spec.ts: 3 passed\"],\"warnings\":[\"Touch Playwright evidence uses synthetic PointerEvents because the configured Chromium projects are not touch-enabled; physical tablet feel remains for human review.\",\"The 150-card 45 FPS tablet floor is not measured here and remains BOARD-4/QA scope.\",\"docs/EXECUTION-AUDIT.jsonl, docs/PROGRESS.md, docs/WORKFLOW-STATE.json, and docs/engine-config.json have pre-existing engine-generated modifications that were not authored or touched.\"],\"validationLimitations\":[\"Thumbnail-to-display texture replacement is implemented and exercised with real attachment loading, but no pixel-level browser assertion proves the visual swap.\",\"Browser evidence covers Chromium-based projects only.\"],\"unresolved\":[]}\n```\n",
+    "stderr": "",
+    "durationMs": 923160
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/board/useCardGestures.test.ts: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/board-drag.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "BOARD-3 implemented card sprites, culling layer, thumbnail-first images, mouse/touch gesture disambiguation, tap-to-detail, live drag previews, and 300 ms debounced position persistence; unit, browser, build, typecheck, and lint checks pass.",
+    "decisions": [
+      "The gesture state machine is a renderer-free controller tested with a fake clock; the React hook is only a DOM listener adapter.",
+      "Card drag previews update the board gesture slice and Pixi card layer directly, while only the completed drop is sent to the page for repository persistence.",
+      "The page owns card image object URLs and revokes them on route change or unmount; CardSprite destroys its own textures.",
+      "Touch movement beyond 6 px before the long press cancels the card gesture and continues as a board pan through the same store action.",
+      "A lost-pointer-capture listener was deliberately omitted because releasing capture after pointerup could cancel the tap before it resolved."
+    ],
+    "interfaces": [
+      "BoardSnapshot { caseId, caseTitle, cards: BoardCardSnapshot[] }",
+      "BoardCardSnapshot { id, title, type, position, image? }",
+      "BoardCanvas({ snapshot, store?, onCardMoved?, onCardTap? })",
+      "BoardScene.setSnapshot/setViewport/resize/moveCard/setCardLifted/setSelectedCard/cardAt/rebuildAfterContextLoss/destroy",
+      "usePixiApp -> { ..., moveCard?, setCardLifted? }",
+      "CardGestureController.callbacks: getCardAt, getCardPosition, getViewport, isReducedMotion, onPress, onLift, onDragMove, onDrop, onDragCancel, onTap, onPressCancel, onPanBy",
+      "CARD_LONG_PRESS_MS=500, CARD_DRAG_TOLERANCE_PX=6, CARD_POSITION_SAVE_DEBOUNCE_MS=300"
+    ],
+    "tests": [
+      "npm test -- tests/board/useCardGestures.test.ts: 12 passed",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: 6 passed (desktop, tablet-landscape, phone)",
+      "npm test: 572 passed",
+      "npm run typecheck: passed",
+      "npm run lint: passed",
+      "npm run build: passed",
+      "npm run test:e2e -- e2e/board.spec.ts: 6 passed",
+      "npm run test:e2e -- e2e/capture.spec.ts: 3 passed"
+    ],
+    "warnings": [
+      "Touch Playwright evidence uses synthetic PointerEvents because the configured Chromium projects are not touch-enabled; physical tablet feel remains for human review.",
+      "The 150-card 45 FPS tablet floor is not measured here and remains BOARD-4/QA scope.",
+      "docs/EXECUTION-AUDIT.jsonl, docs/PROGRESS.md, docs/WORKFLOW-STATE.json, and docs/engine-config.json have pre-existing engine-generated modifications that were not authored or touched."
+    ],
+    "validationLimitations": [
+      "Thumbnail-to-display texture replacement is implemented and exercised with real attachment loading, but no pixel-level browser assertion proves the visual swap.",
+      "Browser evidence covers Chromium-based projects only."
+    ],
+    "unresolved": []
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "type": "work.rel-3",
+  "category": "work",
+  "taskId": "REL-3",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "REL-3 complete: e2e/pwa.spec.ts passes 9/9 across desktop 1440x900, tablet-landscape 1280x800, and phone 390x844, proving served manifest + real 192/512/maskable PNGs, active service worker, offline reload into shelf/demo/board, cached OCR worker/wasm/traineddata fetched offline, and a real waiting-worker prompt with zero controllerchange before confirmation. scripts/check-bundle-budget.mjs reads the generated Workbox precache (67 entries, 10.90 MiB <= 25 MiB) and fails on oversize, missing, external, traversal, duplicate, or malformed entries; tests/release/bundleBudget.test.ts passes 11/11. All three contract validation commands exited 0; lint, typecheck, full unit suite, and coverage also pass.",
+  "inputs": [
+    "work-rel-2-001",
+    "work-rel-1-001"
+  ],
+  "filesChanged": [
+    "e2e/pwa.spec.ts",
+    "scripts/check-bundle-budget.mjs",
+    "tests/release/bundleBudget.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "REL-3 complete: e2e/pwa.spec.ts passes 9/9 across desktop 1440x900, tablet-landscape 1280x800, and phone 390x844, proving served manifest + real 192/512/maskable PNGs, active service worker, offline reload into shelf/demo/board, cached OCR worker/wasm/traineddata fetched offline, and a real waiting-worker prompt with zero controllerchange before confirmation. scripts/check-bundle-budget.mjs reads the generated Workbox precache (67 entries, 10.90 MiB <= 25 MiB) and fails on oversize, missing, external, traversal, duplicate, or malformed entries; tests/release/bundleBudget.test.ts passes 11/11. All three contract validation commands exited 0; lint, typecheck, full unit suite, and coverage also pass.",
+    "decisions": [
+      "Parse the actual generated Workbox precacheAndRoute array rather than scanning dist, so the budget follows what the service worker really caches.",
+      "Use 25 MiB (25*1024*1024 bytes) for the documented 25 MB budget, consistent with pwaOptions.maximumFileSizeToCacheInBytes.",
+      "Prove the waiting-update path by changing real service-worker bytes at the same URL, then assert waiting state, zero controllerchange, and Later leaving it waiting; restore the original file in finally.",
+      "Start every PWA test from an empty browser context so the demo seeds through the real IndexedDB path; pre-set only the hint-seen marker."
+    ],
+    "interfaces": [
+      "scripts/check-bundle-budget.mjs exports DEFAULT_PRECACHE_BUDGET_BYTES, DEFAULT_SW_PATH, parsePrecacheManifest, computePrecacheBudget, formatPrecacheBudgetReport, parseArguments, and main.",
+      "CLI: node scripts/check-bundle-budget.mjs [--sw <path>] [--dist <dir>] [--budget-kb <n> | --budget-bytes <n>] [--json] [--help].",
+      "e2e/pwa.spec.ts defines separate installability, offline reload/OCR, and waiting-update journeys."
+    ],
+    "tests": [
+      "npm run build && node scripts/check-bundle-budget.mjs: exit 0 (engine-verified)",
+      "npm test -- tests/release/bundleBudget.test.ts: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/pwa.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm run build && node scripts/check-bundle-budget.mjs: exit 0; 67 entries, 11,427,556 bytes (10.90 MiB) <= 26,214,400 bytes (25.00 MiB)",
+      "npm test -- tests/release/bundleBudget.test.ts: 11/11 passed",
+      "npm run test:e2e -- e2e/pwa.spec.ts: 9/9 passed on desktop, tablet-landscape, and phone",
+      "npm run lint: 0 errors (3 pre-existing RecallSummary react-refresh warnings)",
+      "npm run typecheck: exit 0",
+      "npm test: 1,176/1,176 passed",
+      "npm run test:coverage: exit 0; src/domain 98.43% lines, src/data 91.04% lines",
+      "node scripts/perf-budget.mjs: initial JavaScript 88.1 KiB <= 300 KiB (existing A11Y-5 gate)"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "The waiting-worker proof transiently appends a comment to dist/sw.js and restores the original bytes in finally; Playwright runs one worker, so no other test observes the temporary file.",
+      "vite preview serves eng.traineddata.gz with Content-Encoding: gzip; the offline fetch reports 5,199,098 decoded bytes while the file on disk is 2,952,873 bytes.",
+      "The update probe simulates a deployment by changing worker bytes, not by running two real deployments."
+    ],
+    "validationLimitations": [
+      "The browser-native install prompt and Add to Home Screen flow require a human reviewer; only installability prerequisites and service-worker control are automated.",
+      "The deployed GitHub Pages URL was not visited; REL-3 uses the production preview and the deployed field journey remains REL-HR-1.",
+      "Firefox and WebKit PWA paths are outside this spec; A11Y-6 owns the compat smoke path.",
+      "Offline OCR proves cached delivery and response bytes, not a completed recognition run."
+    ],
+    "taskDescription": "Add e2e/pwa.spec.ts to load the production preview, assert manifest and icons, wait for service-worker control, switch the context offline, reload the app shell, verify the shelf and demo case still render, and confirm the OCR worker, wasm, and traineddata URLs are present in the service-worker cache. Collect all runtime requests and fail on any non-same-origin request. Add scripts/check-bundle-budget.mjs to read the service-worker precache manifest and fail above 25 MB, and tests/release/bundleBudget.test.ts for its parser. Do not add the human review."
+  },
+  "nextActions": [],
+  "artifactId": "work-rel-3-001",
+  "createdAt": "2026-10-26T21:34:53.950Z"
+}

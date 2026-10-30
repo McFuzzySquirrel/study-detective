@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T17:38:40.345Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "CLOSE-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/case/TopicStatusBadge.tsx",
+      "src/features/case/CardListPanel.tsx",
+      "src/features/cards/CardDetailPage.tsx",
+      "tests/case/TopicStatusBadge.test.tsx",
+      "tests/case/CardListPanel.test.tsx",
+      "src/features/case/TopicStatusBadge.css"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the scope.\nNow I have the full picture. Let me create the badge component and its styles.\nNow wire the derived readiness map in the panel and pass it to the group.\nTask CLOSE-3 is complete. All required validation commands pass.\n\n## Files created or changed\n\n**Created**\n- `src/features/case/TopicStatusBadge.tsx` — derived topic-status chip with text, distinct icon silhouette, tone, and accessible name (`Topic status: Solved, 2 linked notes`). Returns `null` for notes and sources.\n- `src/features/case/TopicStatusBadge.css` — token-only styles for the Orphan/Developing/Solved tones, wrapping at phone widths, reduced-motion override.\n- `tests/case/TopicStatusBadge.test.tsx` — 20 tests: all three states, 0/1/2+/7 notes, icon presence and distinctness, accessible label, Tab skip, notes/sources guard, no score wording, card-list live updates, real picker add/delete on topic detail, note/source detail exclusion, palette/contrast/reduced-motion CSS contract.\n\n**Changed**\n- `src/features/case/CardListPanel.tsx` — derives `deriveReadiness(cards, connections).topics` once per render into a card-id map; topic rows render `TopicStatusBadge`; notes/sources keep the string count and never receive a badge. Removed the old string-count topic status.\n- `src/features/cards/CardDetailPage.tsx` — derives topic readiness for the current card from the in-memory `cards`/`connections` snapshot and renders the badge only for `type === 'topic'`.\n- `tests/case/CardListPanel.test.tsx` — two topic-row assertions updated from `1 string attached` to the derived `Topic status: Developing, 1 linked note` badge. No behavior weakened; notes/sources counts remain asserted.\n\n**Untouched:** `src/board/**` (Pixi sprite), domain selectors, repositories, and `docs/artifacts/`.\n\n## Acceptance results\n\n| Criterion | Result |\n|---|---|\n| Orphan/Developing/Solved render with text and icon at 0/1/2+ | Pass — badge states + 7-note case; each state has a distinct SVG and visible label |\n| Badge updates after a connection is added or removed without reload | Pass — real keyboard picker flow on topic detail: Orphan → add association → Developing → delete → Orphan; card-list prop updates also verified without remount |\n| Notes and sources never render a topic badge | Pass — component guard plus list/detail integration checks on both types |\n| Accessible name includes status and linked-note count | Pass — `role=\"status\"` with `aria-label=\"Topic status: …, N linked note(s)\"`; keyboard Tab skips the non-interactive chip |\n| No points, XP, score, or ranking copy | Pass — regex assertion over visible text and accessible names of all three states |\n\n## Accessibility evidence\n\n- Announcement: `role=\"status\"` live region; label changes in place when a string is added/removed, so the new status is announced politely without moving focus.\n- Keyboard: status chip is not focusable; a Tab harness proves it is skipped between real controls. Picker add/delete path exercised with `user-event` keyboard only.\n- Contrast: Orphan `8.76:1`, Developing `8.54:1`, Solved `6.01:1` (≥ 4.5:1). Colour is never the only signal — text plus distinct icon.\n- No raw hex/rgb/hsl in the component or CSS (asserted); reduced-motion transition removal asserted.\n- `aria-label` is duplicated by visible text, so sighted and screen-reader users get the same words.\n\n## Validation run\n\n- `npm test -- tests/case/TopicStatusBadge.test.tsx` — 20/20 pass.\n- `npm run typecheck` — pass.\n- Additional: full `npm test` 914/914 pass; `npm run lint` clean; `npm run build` succeeds; Prettier clean on changed files.\n\n## Shared-file handoff\n\n`CardListPanel.tsx` and `CardDetailPage.tsx` now require readiness to remain derived from repository/state data on every render. Do not cache `status`/`linkedNoteCount` on `CardRecord`, and keep the badge mounted only for topics. `tests/case/CardListPanel.test.tsx` now expects the badge label instead of the old topic string count.\n\n## Limitations\n\nOnly jsdom component tests were exercised; no Playwright viewport matrix or real-browser visual check was run for this task (not part of the required validation). CSS is token-based, wraps at narrow widths, and adds no fixed widths, but the phone/tablet visual pass remains with responsive hardening.\n\n```forge-result\n{\"summary\":\"Implemented CLOSE-3: derived topic-status badge with text, icon, tone, and linked-note count on topic detail and the card list; notes and sources stay unbadged, statuses update in place after keyboard connection add/delete, and all required checks pass.\",\"unresolved\":[],\"decisions\":[\"TopicStatusBadge accepts the readiness-derived status and count, never computes or stores them; call sites derive via deriveReadiness on each render.\",\"The component itself returns null for notes and sources as a guard in addition to opt-in call-site rendering.\",\"The badge uses a polite status role with an aria-label naming both status and count; it is non-interactive and skipped by Tab.\",\"Replaced the old plain string-count topic line in the card list with the badge, preserving note/source string counts.\"],\"interfaces\":[\"TopicStatusBadge({ cardType, status, linkedNoteCount, className? })\",\"linkedNoteCountLabel formatting: 0 linked notes / 1 linked note / N linked notes\",\"CardListPanelProps.connections now feeds render-time readiness derivation\"],\"tests\":[\"npm test -- tests/case/TopicStatusBadge.test.tsx: exit 0 (20 tests)\",\"npm run typecheck: exit 0\",\"npm test (full suite): exit 0 (914 tests)\",\"npm run lint: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"Only component tests were required; no Playwright journey was run for the badge task.\"],\"validationLimitations\":[\"Responsive visual behavior at 390x844/768x1024/1280x800 was not exercised in a real browser for this task; the CSS uses wrapping and tokens only, and the browser matrix remains with A11Y hardening.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 372784
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/case/TopicStatusBadge.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented CLOSE-3: derived topic-status badge with text, icon, tone, and linked-note count on topic detail and the card list; notes and sources stay unbadged, statuses update in place after keyboard connection add/delete, and all required checks pass.",
+    "unresolved": [],
+    "decisions": [
+      "TopicStatusBadge accepts the readiness-derived status and count, never computes or stores them; call sites derive via deriveReadiness on each render.",
+      "The component itself returns null for notes and sources as a guard in addition to opt-in call-site rendering.",
+      "The badge uses a polite status role with an aria-label naming both status and count; it is non-interactive and skipped by Tab.",
+      "Replaced the old plain string-count topic line in the card list with the badge, preserving note/source string counts."
+    ],
+    "interfaces": [
+      "TopicStatusBadge({ cardType, status, linkedNoteCount, className? })",
+      "linkedNoteCountLabel formatting: 0 linked notes / 1 linked note / N linked notes",
+      "CardListPanelProps.connections now feeds render-time readiness derivation"
+    ],
+    "tests": [
+      "npm test -- tests/case/TopicStatusBadge.test.tsx: exit 0 (20 tests)",
+      "npm run typecheck: exit 0",
+      "npm test (full suite): exit 0 (914 tests)",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "Only component tests were required; no Playwright journey was run for the badge task."
+    ],
+    "validationLimitations": [
+      "Responsive visual behavior at 390x844/768x1024/1280x800 was not exercised in a real browser for this task; the CSS uses wrapping and tokens only, and the browser matrix remains with A11Y hardening."
+    ]
+  }
+}

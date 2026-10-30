@@ -1,0 +1,71 @@
+{
+  "type": "work.link-3",
+  "category": "work",
+  "taskId": "LINK-3",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "Implemented LINK-3 thread-anchor creation with temporary drag thread, target highlighting, duplicate/self/empty feedback, the Association/Provenance type menu, repository-backed create/retype, board-store selection, 12 component tests, and desktop/tablet Playwright journeys including reload persistence and touch-anchor drawing. Required unit, e2e, typecheck, lint, full-suite, and build checks pass.",
+  "inputs": [
+    "work-link-2-001",
+    "work-link-1-001"
+  ],
+  "filesChanged": [
+    "src/board/ThreadAnchor.ts",
+    "src/board/CardSprite.ts",
+    "src/features/connections/ConnectionTypeMenu.tsx",
+    "src/features/connections/useCreateConnection.ts",
+    "tests/connections/useCreateConnection.test.tsx",
+    "e2e/connections.spec.ts",
+    "src/board/BoardCanvas.tsx",
+    "src/board/BoardScene.ts",
+    "src/board/CardLayer.ts",
+    "src/board/boardStore.ts",
+    "src/board/useCardGestures.ts",
+    "src/board/usePixiApp.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/features/connections/connections.css"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented LINK-3 thread-anchor creation with temporary drag thread, target highlighting, duplicate/self/empty feedback, the Association/Provenance type menu, repository-backed create/retype, board-store selection, 12 component tests, and desktop/tablet Playwright journeys including reload persistence and touch-anchor drawing. Required unit, e2e, typecheck, lint, full-suite, and build checks pass.",
+    "decisions": [
+      "Pointer routing stays on the DOM host; ThreadAnchor is a Pixi target with a 44 px screen-space DOM hit radius, so mouse and touch share one gesture state machine.",
+      "Creation always writes association first and the menu retypes the same connection row, so exactly one row exists per unordered pair.",
+      "The menu applies a type change optimistically, reverts on failure, and never reopens after dismissal during an in-flight retype.",
+      "Duplicate repository results teach the page the existing row through the upserting onConnectionChanged callback to survive stale snapshots or another tab."
+    ],
+    "interfaces": [
+      "BoardCanvas onConnectionDrop: { fromCardId, toCardId: string | null, point: { clientX, clientY } }",
+      "BoardStore selectedConnectionId/selectConnection/selectSelectedConnectionId",
+      "usePixiApp setAnchorCard, beginThread, updateThread, endThread",
+      "CardSprite setAnchorVisible/setConnectTarget; CardLayer setAnchorCard/setConnectTarget/getCard",
+      "ThreadAnchor exports threadAnchorScreenPoint, isPointOnThreadAnchor, findThreadAnchorAtPoint, computeDraftThreadGeometry, ThreadAnchor, ThreadAnchorLayer",
+      "ConnectionTypeMenu props type, provenanceEligible, provenanceReason, point, busy, onSelect, onDismiss",
+      "CaseBoardPage connectionRepository/loadConnectionRepository"
+    ],
+    "tests": [
+      "npm test -- tests/connections/useCreateConnection.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/connections.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/connections/useCreateConnection.test.tsx: 12 passed",
+      "npm run test:e2e -- e2e/connections.spec.ts: 3 passed, 3 skipped (desktop + tablet main journey, tablet touch journey)",
+      "npm test: 738 passed across 54 files",
+      "npm run typecheck: pass",
+      "npm run lint: pass",
+      "npm run build (via e2e): pass; separate BoardCanvas/Pixi chunks, no pixi in initial shell"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Tablet 45 FPS at 150 cards remains unmeasured and needs human verification at LINK-HR-1.",
+      "Pre-existing HEAD e2e failures in board-drag.spec.ts and board.spec.ts were confirmed unrelated to LINK-3 in a clean HEAD worktree."
+    ],
+    "validationLimitations": [
+      "Phone projects skip the pointer thread journeys; the canvas remains pointer-only and the accessible non-spatial path is LINK-5.",
+      "Pixel-level string color/pixel verification is covered by LINK-2 geometry tests and browser behavior, not a pixel assertion in this LINK-3 journey."
+    ],
+    "taskDescription": "Implement ThreadAnchor as a Pixi interaction target at the selected card edge, mount it through CardSprite, add a temporary drag thread, target highlighting, drop handling, and a ConnectionTypeMenu with Association and Provenance. Default to association on drop. Disable provenance with an explanation unless the pair is note to source. Reject self-links and duplicates, selecting the existing connection and showing a toast. Wire creation through ConnectionRepository and the board store. Add component tests for the hook and menu, plus a Playwright journey that draws two strings, retypes one to provenance, and verifies persistence after reload."
+  },
+  "nextActions": [],
+  "artifactId": "work-link-3-001",
+  "createdAt": "2026-10-26T06:26:07.881Z"
+}

@@ -1,0 +1,56 @@
+{
+  "type": "work.data-1",
+  "category": "work",
+  "taskId": "DATA-1",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented DATA-1 validated domain records: strict Zod schemas and types for case, card, connection, attachment, viewport, and case summary; canonical unordered pair keys; connection eligibility and endpoint rules; tag normalization; UUID and injectable-clock helpers. Added 78 boundary tests; required tests, typecheck, lint, and the full suite pass.",
+  "inputs": [
+    "work-fnd-1-001",
+    "work-fnd-5-001"
+  ],
+  "filesChanged": [
+    "src/domain/model.ts",
+    "src/domain/validation.ts",
+    "src/domain/ids.ts",
+    "tests/domain/model.test.ts",
+    "tests/domain/validation.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented DATA-1 validated domain records: strict Zod schemas and types for case, card, connection, attachment, viewport, and case summary; canonical unordered pair keys; connection eligibility and endpoint rules; tag normalization; UUID and injectable-clock helpers. Added 78 boundary tests; required tests, typecheck, lint, and the full suite pass.",
+    "decisions": [
+      "Schemas live in src/domain/model.ts with strict unknown-field rejection; parse/validate wrappers and cross-record graph rules live in src/domain/validation.ts.",
+      "Exam dates are date-only ISO strings while createdAt, updatedAt, closedAt, backupPromptedAt, and OCR timestamps are full ISO 8601 datetimes.",
+      "Tags reject case-insensitive duplicates in the schema, while normalizeTags trims and dedupes preserving the first display casing for UI input.",
+      "Added optional flat OCR metadata fields so DATA-2 can preserve them while keeping cards without OCR valid."
+    ],
+    "interfaces": [
+      "Schemas: caseRecordSchema, cardRecordSchema, connectionRecordSchema, attachmentRecordSchema, viewportSchema, caseSummarySchema.",
+      "Types: CaseRecord, CardRecord, ConnectionRecord, AttachmentRecord, Viewport, CaseSummary, CardType, ConnectionType, AttachmentKind, AttachmentMime, plus input type aliases.",
+      "Boundary helpers: parseCaseRecord, parseCardRecord, parseConnectionRecord, parseAttachmentRecord, parseViewport, parseCaseSummary and matching validateX functions returning ValidationResult.",
+      "Graph helpers: buildPairKey, assertCanonicalPairKey, assertConnectionEligible, assertConnectionInCase, isProvenanceEligible, isAssociationEligible.",
+      "Identity/time helpers: createId, systemClock, fixedClock, nowIso, sequenceIdFactory, DEFAULT_VIEWPORT."
+    ],
+    "tests": [
+      "npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/domain/model.test.ts tests/domain/validation.test.ts: exit 0, 78 tests passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0, 176 tests passed",
+      "Targeted domain coverage: 97.95% lines, 98% statements, 97.22% branches"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author.",
+      "DATA-2 must catch DomainValidationError on read and surface a recoverable storage error rather than returning partial data."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Create Zod schemas and TypeScript types for CaseRecord, CardRecord, ConnectionRecord, AttachmentRecord, Viewport, and CaseSummary. Enforce UUID strings, ISO timestamps, title lengths, subject and exam-date rules, card types note/source/topic, connection types association/provenance, canonical unordered connection pair keys, 0.25 to 2.5 viewport scale, and nonnegative card positions. Include optional isDemo defaulting to false and nullable backupPromptedAt on the case so later demo and backup features can use them. Add ID and clock helpers that use crypto.randomUUID and a test-injectable clock. Reject unknown fields and invalid tag arrays. Do not add Dexie or UI code."
+  },
+  "nextActions": [],
+  "artifactId": "work-data-1-001",
+  "createdAt": "2026-10-25T20:08:18.224Z"
+}

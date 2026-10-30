@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T21:35:34.586Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "CAP-4",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/cards/CardDetailPage.tsx",
+      "src/features/cards/CardDetail.css",
+      "src/app/routes.tsx",
+      "tests/cards/CardDetailPage.test.tsx",
+      "e2e/capture.spec.ts",
+      "e2e/fixtures/note.png",
+      "e2e/fixtures/source.png",
+      "src/data/caseRepository.ts",
+      "src/domain/model.ts",
+      "src/features/capture/cardImport.ts",
+      "src/features/cards/cardReplace.ts",
+      "tests/data/caseRepositoryReplace.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the project structure.\n## Result\n\nImplemented **CAP-4** (CAP-FR-03, CAP-FR-05, CAP-CON-01, CAP-CON-03): a routed card-detail screen with title editing, direct photo replacement, non-destructive re-crop/rotation from the retained original, and confirmed deletion. Replacements preserve the card ID, write the new attachment set transactionally, and remove the old rows only after that transaction commits.\n\n### Files created\n\n- `src/features/cards/CardDetailPage.tsx`\n- `src/features/cards/CardDetail.css`\n- `src/features/cards/cardReplace.ts`\n- `tests/cards/CardDetailPage.test.tsx`\n- `tests/data/caseRepositoryReplace.test.ts`\n- `e2e/capture.spec.ts`\n- `e2e/fixtures/note.png`\n- `e2e/fixtures/source.png`\n\n### Files changed\n\n- `src/app/routes.tsx`\n- `src/data/caseRepository.ts`\n- `src/domain/model.ts`\n- `src/features/capture/cardImport.ts`\n\n`docs/artifacts/CAP-4.md` was not modified. `docs/EXECUTION-AUDIT.jsonl` remains a pre-existing engine-generated modification.\n\n## Acceptance evidence\n\n| Criterion | Evidence | Result |\n|---|---|---|\n| Detail reachable by URL, shows display image/title, saves title edits | Route/component tests; Playwright journey at all three viewports | Pass |\n| Replace and re-crop preserve card ID with exactly one original/display/thumbnail | Component tests, repository replacement tests, Playwright IndexedDB assertions | Pass |\n| Old attachments removed only after replacement transaction succeeds | Repository test injects a primary-key conflict; old set survives, metadata rolls back, retry succeeds | Pass |\n| Playwright imports real PNG, rotates/crops, reloads, verifies persistence | `e2e/capture.spec.ts` with real PNGs, real IndexedDB, reloads | Pass — 3/3 projects |\n| Keyboard focus visible; destructive delete requires confirmation | Tab path, computed focus outline, dialog focus/Escape assertions, 44 px browser measurements | Pass |\n\n**Keyboard path exercised:** card heading → Tab to `Edit title` → `Replace photo` → `Crop/rotate` → `Delete card`; title dialog input focus, blank-title error, Escape restore; delete dialog initial focus on Cancel, Escape restore; crop editor open/save/cancel focus return.\n\n**Viewports exercised:** desktop `1440x900`, tablet landscape `1280x800`, phone `390x844`.\n\n**Accessibility evidence:** all four card actions measured at ≥44×44 in the browser; CSS contracts assert 44 px for back/text/action targets, token focus rings, polite live regions, reduced-motion removal, 4.5:1 paper-badge contrast, no raw palette literals, and no `dangerouslySetInnerHTML`.\n\n## Validation\n\n- `npm test -- tests/cards/CardDetailPage.test.tsx` → **13 passed**\n- `npm run test:e2e -- e2e/capture.spec.ts` → **3 passed** (desktop, tablet-landscape, phone; includes production build)\n- `npm test` → **413 passed / 30 files**\n- `npm run typecheck` → pass\n- `npm run lint` → pass\n- `npm run format:check` → pass\n- Production build → pass\n\n## Handoff notes\n\n- `CaseRepositoryPort` now exposes `replaceCardAttachments` and `listAttachments`; `CardWithAttachments` may report `cleanupPending` when post-commit old-row cleanup fails. Data-engineer should review the optional card metadata fields (`crop`, `rotation`, `retainFullResolution`) for backup/archive preservation.\n- `src/app/routes.tsx` now accepts `cardRepository` / `loadCardRepository`; preserve these when adding board/list routes.\n- The case board is still the foundation placeholder, so board-engineer must add the card tap-through to `/case/:caseId/card/:cardId` when replacing it. The route itself and the complete capture→detail journey are verified.\n- No OCR or connection actions were added.\n\n```forge-result\n{\"summary\":\"Implemented CAP-4 card detail with title edit, replace, re-crop, confirmed delete, persisted crop/rotation, transactional attachment replacement, 13 component/route tests, 2 data replacement tests, and a real-PNG Playwright journey passing at desktop, tablet, and phone viewports.\",\"unresolved\":[],\"decisions\":[\"Card crop, rotation, and full-resolution preference are optional persisted card fields; card import now forwards the processed values so re-crop survives reload.\",\"Replacement writes the new original/display/thumbnail and card metadata in one transaction, then removes previous attachment rows after commit; cleanup failure is reported without discarding the new image.\",\"Replace photo processes a newly selected file as full-frame upright; Crop/rotate regenerates derivatives from the retained original using the stored crop and rotation.\"],\"interfaces\":[\"CardDetailPage({ repository?, loadRepository?, replacePhoto? })\",\"CaseRepositoryPort.replaceCardAttachments(cardId, attachments, patch?) and listAttachments(cardId)\",\"replaceCardPhoto(input, { repository, signal?, onProgress?, process? })\"],\"tests\":[\"npm test -- tests/cards/CardDetailPage.test.tsx: 13 passed\",\"npm run test:e2e -- e2e/capture.spec.ts: 3 passed at desktop, tablet-landscape, phone\",\"npm test: 413 passed / 30 files\",\"npm run typecheck: pass\",\"npm run lint: pass\",\"npm run format:check: pass\",\"production build: pass\"],\"warnings\":[\"The case board is still the foundation placeholder; card tap-through must be wired by board-engineer. The route and full capture-to-detail journey are verified.\",\"Playwright evidence uses Chromium-based projects only; Firefox/WebKit card-detail behavior is not covered by this task.\",\"A post-commit cleanup failure can leave unreferenced old attachment rows while reporting cleanupPending; the normal path leaves exactly three current rows.\",\"docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification that was not authored or touched.\"],\"validationLimitations\":[\"Browser rotation/crop behavior was verified in Chromium only.\",\"The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 860606
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/cards/CardDetailPage.test.tsx: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/capture.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented CAP-4 card detail with title edit, replace, re-crop, confirmed delete, persisted crop/rotation, transactional attachment replacement, 13 component/route tests, 2 data replacement tests, and a real-PNG Playwright journey passing at desktop, tablet, and phone viewports.",
+    "unresolved": [],
+    "decisions": [
+      "Card crop, rotation, and full-resolution preference are optional persisted card fields; card import now forwards the processed values so re-crop survives reload.",
+      "Replacement writes the new original/display/thumbnail and card metadata in one transaction, then removes previous attachment rows after commit; cleanup failure is reported without discarding the new image.",
+      "Replace photo processes a newly selected file as full-frame upright; Crop/rotate regenerates derivatives from the retained original using the stored crop and rotation."
+    ],
+    "interfaces": [
+      "CardDetailPage({ repository?, loadRepository?, replacePhoto? })",
+      "CaseRepositoryPort.replaceCardAttachments(cardId, attachments, patch?) and listAttachments(cardId)",
+      "replaceCardPhoto(input, { repository, signal?, onProgress?, process? })"
+    ],
+    "tests": [
+      "npm test -- tests/cards/CardDetailPage.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/capture.spec.ts: 3 passed at desktop, tablet-landscape, phone",
+      "npm test: 413 passed / 30 files",
+      "npm run typecheck: pass",
+      "npm run lint: pass",
+      "npm run format:check: pass",
+      "production build: pass"
+    ],
+    "warnings": [
+      "The case board is still the foundation placeholder; card tap-through must be wired by board-engineer. The route and full capture-to-detail journey are verified.",
+      "Playwright evidence uses Chromium-based projects only; Firefox/WebKit card-detail behavior is not covered by this task.",
+      "A post-commit cleanup failure can leave unreferenced old attachment rows while reporting cleanupPending; the normal path leaves exactly three current rows.",
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification that was not authored or touched."
+    ],
+    "validationLimitations": [
+      "Browser rotation/crop behavior was verified in Chromium only.",
+      "The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey."
+    ]
+  }
+}

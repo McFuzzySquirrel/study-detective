@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T20:48:40.591Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "A11Y-6",
+  "attempt": 2,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/app/BrowserNotice.tsx",
+      "src/app/App.tsx",
+      "playwright.config.ts",
+      "e2e/compat.spec.ts",
+      "tests/app/BrowserNotice.test.tsx",
+      "README.md",
+      "src/App.tsx",
+      "src/app/AppShell.css",
+      "src/main.tsx",
+      "tests/pwa/manifest.test.ts",
+      "src/app/browserSupport.ts"
+    ],
+    "stdout": "## Verification Report — A11Y-6\n\n**Task:** A11Y-6 — Browser capability notice and cross-browser smoke paths  \n**Owner:** qa-engineer  \n**Result:** PASS for all automated acceptance criteria.\n\n### Commands run and real results\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/app/BrowserNotice.test.tsx` | PASS — 1 file, 12 tests |\n| `npx playwright install firefox webkit` | PASS — exit 0, browsers available |\n| `npm run test:e2e -- e2e/compat.spec.ts` | PASS — 5/5 tests across desktop, tablet-landscape, phone, firefox, webkit |\n| `npm test` (full suite) | PASS — 86 files, 1134 tests |\n| `npm run typecheck` | PASS — zero errors |\n| `npm run lint` | PASS — zero errors; 3 pre-existing `react-refresh` warnings in `RecallSummary.tsx` |\n| Prettier check on touched files | PASS |\n\n### Behavior exercised and acceptance criteria\n\n- **Each missing API produces a specific non-blocking notice and the shelf still renders** — `it.each` removes each of IndexedDB, Web Workers, WebAssembly, and service workers from an otherwise supported environment, renders the notice beside the real `CaseShelfPage` with `InMemoryCaseRepository`, and asserts the specific capability message, `data-capability`, visible shelf heading, empty shelf state, and absence of `dialog`/`aria-modal`.\n- **A supported browser shows no notice** — unit test asserts an empty DOM for a fully supported environment; E2E asserts `browser-notice` has count 0 on shelf and settings in every browser project.\n- **Chromium, Firefox, and WebKit smoke the shelf, demo case, board, search, and settings without an unhandled error** — `e2e/compat.spec.ts` starts from empty storage, waits for the production first-run demo seed, opens the demo case, waits for `data-board-scene-status=\"ready\"` and 6 cards, opens the card list and searches “Photosynthesis,” opens Settings, and asserts no `pageerror` and no console errors.\n- **The notice links to a support matrix and is dismissible for the session** — test verifies the link target and that `README.md` contains the `## Browser support` section plus all four API names; dismissal test verifies the banner disappears, stays dismissed on rerender, and returns only after a fresh mount.\n- **Composition proof** — the App composition test removes IndexedDB, Worker, and WebAssembly, renders the real composition root, confirms all four notices, confirms the shelf heading renders, and the recoverable shelf error path remains available rather than a blank screen.\n- **Mutation check** — temporarily removing `<BrowserNotice />` from the composition root made the App composition test fail with “Unable to find `browser-notice`”; the file was restored and the test passed again.\n\n### Browser / viewport / persistence evidence\n\n- Chromium at 1440×900, 1280×800, and 390×844.\n- Firefox at 1440×900.\n- WebKit at 1440×900.\n- E2E uses the built production preview, real IndexedDB, the real first-run demo seeder, and the native search input path. WebKit uses a persistent profile because Playwright’s WebKit embedder cannot write Blob/File values to IndexedDB in an ephemeral session; the same production seed and storage code path is exercised.\n\n### Defects\n\nNo defect found in the implemented behavior. One requirements-path conflict was resolved: the feature document and expected outputs name `src/app/App.tsx`, while the existing repository composition root was `src/App.tsx`. The canonical composition root is now `src/app/App.tsx`, with `src/App.tsx` retained as a compatibility re-export, and the PWA source-contract test was updated to read the canonical path.\n\n### Human gates / residual risk\n\n- Real voice/screen-reader announcement of the live notice remains a human spot check.\n- Firefox and WebKit are intentionally smoke-only, not full journey or axe matrices.\n- The notice is verified in component tests for missing APIs; it is verified absent in supported real browsers. Simulating missing APIs in a real browser is not part of this task.\n- Safe-area, focus-ring appearance, and visual treatment remain human visual review items.\n\n### Files created\n\n- `src/app/App.tsx`\n- `src/app/BrowserNotice.tsx`\n- `src/app/browserSupport.ts`\n- `e2e/compat.spec.ts`\n- `tests/app/BrowserNotice.test.tsx`\n\n### Files changed\n\n- `src/App.tsx` (now compatibility re-export)\n- `src/main.tsx` (imports canonical composition root)\n- `src/app/AppShell.css` (browser-notice styling)\n- `playwright.config.ts` (Firefox and WebKit smoke projects)\n- `README.md` (browser support matrix)\n- `tests/pwa/manifest.test.ts` (follows the composition-root path)\n\nEngine-owned `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already modified and were not touched. `docs/artifacts/` was not modified or committed.\n\n```forge-result\n{\"summary\":\"Implemented A11Y-6: capability notice with specific missing-API messages, README support matrix link, session dismissal, Firefox/WebKit Playwright smoke projects, and a real cross-browser compat journey. All required commands pass: 12/12 notice tests, 5/5 compat E2E across Chromium desktop/tablet/phone, Firefox, and WebKit, full 1134-test suite, typecheck, and lint.\",\"unresolved\":[],\"decisions\":[\"Made src/app/App.tsx the canonical composition root to satisfy the task's expected output path, keeping src/App.tsx as a compatibility re-export and updating the PWA source-contract test.\",\"Feature-detection reads injected environment globals without writing storage or registering workers, so it is safe before first render.\",\"WebKit compat runs through a persistent profile because Playwright WebKit ephemeral sessions cannot persist Blob/File values in IndexedDB; the production seed and storage path are unchanged.\"],\"interfaces\":[\"BrowserNotice({ environment? }) renders a non-blocking labelled section with role=status message list, README support-matrix link, and session dismiss button.\",\"browserSupport exports CoreApiKey, CoreApiSupport, CoreApiEnvironment, CoreApiNotice, CORE_API_NOTICES, SUPPORT_MATRIX_URL, and supportsCoreApis().\",\"playwright.config.ts adds firefox and webkit projects limited to compat.spec.ts at 1440x900.\"],\"tests\":[\"npm test -- tests/app/BrowserNotice.test.tsx: exit 0 (12 tests)\",\"npx playwright install firefox webkit: exit 0\",\"npm run test:e2e -- e2e/compat.spec.ts: exit 0 (5 projects, 5 passed)\",\"npm test: exit 0 (86 files, 1134 tests)\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0 (3 pre-existing warnings)\"],\"warnings\":[\"Firefox and WebKit remain smoke-only by documented decision, not full journey/axe/performance matrices.\",\"Missing-API behavior is component-tested; supported browsers are additionally verified in real E2E.\",\"WebKit E2E uses a persistent profile to work around Playwright's ephemeral-session IndexedDB Blob/File limitation.\"],\"validationLimitations\":[\"Screen-reader announcement and visual notice treatment remain human review items.\",\"Tablet FPS and final field acceptance remain human gates.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 372981
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/app/BrowserNotice.test.tsx: exit 0 (engine-verified)",
+        "npx playwright install firefox webkit: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/compat.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented A11Y-6: capability notice with specific missing-API messages, README support matrix link, session dismissal, Firefox/WebKit Playwright smoke projects, and a real cross-browser compat journey. All required commands pass: 12/12 notice tests, 5/5 compat E2E across Chromium desktop/tablet/phone, Firefox, and WebKit, full 1134-test suite, typecheck, and lint.",
+    "unresolved": [],
+    "decisions": [
+      "Made src/app/App.tsx the canonical composition root to satisfy the task's expected output path, keeping src/App.tsx as a compatibility re-export and updating the PWA source-contract test.",
+      "Feature-detection reads injected environment globals without writing storage or registering workers, so it is safe before first render.",
+      "WebKit compat runs through a persistent profile because Playwright WebKit ephemeral sessions cannot persist Blob/File values in IndexedDB; the production seed and storage path are unchanged."
+    ],
+    "interfaces": [
+      "BrowserNotice({ environment? }) renders a non-blocking labelled section with role=status message list, README support-matrix link, and session dismiss button.",
+      "browserSupport exports CoreApiKey, CoreApiSupport, CoreApiEnvironment, CoreApiNotice, CORE_API_NOTICES, SUPPORT_MATRIX_URL, and supportsCoreApis().",
+      "playwright.config.ts adds firefox and webkit projects limited to compat.spec.ts at 1440x900."
+    ],
+    "tests": [
+      "npm test -- tests/app/BrowserNotice.test.tsx: exit 0 (12 tests)",
+      "npx playwright install firefox webkit: exit 0",
+      "npm run test:e2e -- e2e/compat.spec.ts: exit 0 (5 projects, 5 passed)",
+      "npm test: exit 0 (86 files, 1134 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 (3 pre-existing warnings)"
+    ],
+    "warnings": [
+      "Firefox and WebKit remain smoke-only by documented decision, not full journey/axe/performance matrices.",
+      "Missing-API behavior is component-tested; supported browsers are additionally verified in real E2E.",
+      "WebKit E2E uses a persistent profile to work around Playwright's ephemeral-session IndexedDB Blob/File limitation."
+    ],
+    "validationLimitations": [
+      "Screen-reader announcement and visual notice treatment remain human review items.",
+      "Tablet FPS and final field acceptance remain human gates."
+    ]
+  }
+}

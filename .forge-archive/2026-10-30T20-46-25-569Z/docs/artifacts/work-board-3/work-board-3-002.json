@@ -1,0 +1,75 @@
+{
+  "type": "work.board-3",
+  "category": "work",
+  "taskId": "BOARD-3",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "BOARD-3 implemented card sprites, culling layer, thumbnail-first images, mouse/touch gesture disambiguation, tap-to-detail, live drag previews, and 300 ms debounced position persistence; unit, browser, build, typecheck, and lint checks pass.",
+  "inputs": [
+    "work-board-2-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001",
+    "work-cap-3-001",
+    "work-cap-4-001"
+  ],
+  "filesChanged": [
+    "src/board/CardSprite.ts",
+    "src/board/CardLayer.ts",
+    "src/board/BoardScene.ts",
+    "src/board/useCardGestures.ts",
+    "tests/board/useCardGestures.test.ts",
+    "e2e/board-drag.spec.ts",
+    "src/board/BoardCanvas.tsx",
+    "src/board/boardInput.ts",
+    "src/board/usePixiApp.ts",
+    "src/features/case/CaseBoardPage.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "BOARD-3 implemented card sprites, culling layer, thumbnail-first images, mouse/touch gesture disambiguation, tap-to-detail, live drag previews, and 300 ms debounced position persistence; unit, browser, build, typecheck, and lint checks pass.",
+    "decisions": [
+      "The gesture state machine is a renderer-free controller tested with a fake clock; the React hook is only a DOM listener adapter.",
+      "Card drag previews update the board gesture slice and Pixi card layer directly, while only the completed drop is sent to the page for repository persistence.",
+      "The page owns card image object URLs and revokes them on route change or unmount; CardSprite destroys its own textures.",
+      "Touch movement beyond 6 px before the long press cancels the card gesture and continues as a board pan through the same store action.",
+      "A lost-pointer-capture listener was deliberately omitted because releasing capture after pointerup could cancel the tap before it resolved."
+    ],
+    "interfaces": [
+      "BoardSnapshot { caseId, caseTitle, cards: BoardCardSnapshot[] }",
+      "BoardCardSnapshot { id, title, type, position, image? }",
+      "BoardCanvas({ snapshot, store?, onCardMoved?, onCardTap? })",
+      "BoardScene.setSnapshot/setViewport/resize/moveCard/setCardLifted/setSelectedCard/cardAt/rebuildAfterContextLoss/destroy",
+      "usePixiApp -> { ..., moveCard?, setCardLifted? }",
+      "CardGestureController.callbacks: getCardAt, getCardPosition, getViewport, isReducedMotion, onPress, onLift, onDragMove, onDrop, onDragCancel, onTap, onPressCancel, onPanBy",
+      "CARD_LONG_PRESS_MS=500, CARD_DRAG_TOLERANCE_PX=6, CARD_POSITION_SAVE_DEBOUNCE_MS=300"
+    ],
+    "tests": [
+      "npm test -- tests/board/useCardGestures.test.ts: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/board/useCardGestures.test.ts: 12 passed",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: 6 passed (desktop, tablet-landscape, phone)",
+      "npm test: 572 passed",
+      "npm run typecheck: passed",
+      "npm run lint: passed",
+      "npm run build: passed",
+      "npm run test:e2e -- e2e/board.spec.ts: 6 passed",
+      "npm run test:e2e -- e2e/capture.spec.ts: 3 passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Touch Playwright evidence uses synthetic PointerEvents because the configured Chromium projects are not touch-enabled; physical tablet feel remains for human review.",
+      "The 150-card 45 FPS tablet floor is not measured here and remains BOARD-4/QA scope.",
+      "docs/EXECUTION-AUDIT.jsonl, docs/PROGRESS.md, docs/WORKFLOW-STATE.json, and docs/engine-config.json have pre-existing engine-generated modifications that were not authored or touched."
+    ],
+    "validationLimitations": [
+      "Thumbnail-to-display texture replacement is implemented and exercised with real attachment loading, but no pixel-level browser assertion proves the visual swap.",
+      "Browser evidence covers Chromium-based projects only."
+    ],
+    "taskDescription": "Create CardSprite, CardLayer, and useCardGestures. Render a thumbnail-first texture that upgrades to the display derivative, a pin, a title strip, and a type indicator. Mouse drag starts immediately; touch requires a 500ms long press with a 6px movement tolerance. Taps open the card detail route. Dragging updates the board store at frame rate and persists the final position with a 300ms debounce. Reduced motion removes lift scaling. Mount CardLayer in BoardScene. Do not render strings or selection menus."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-3-002",
+  "createdAt": "2026-10-26T03:45:35.707Z"
+}

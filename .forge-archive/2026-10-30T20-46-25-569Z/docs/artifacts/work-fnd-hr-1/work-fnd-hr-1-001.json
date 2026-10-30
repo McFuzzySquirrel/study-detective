@@ -1,0 +1,18 @@
+{
+  "type": "work.fnd-hr-1",
+  "category": "work",
+  "taskId": "FND-HR-1",
+  "producedBy": "human-reviewer",
+  "status": "complete",
+  "summary": "Operator evidence verified for Review and record the visual direction",
+  "filesChanged": [
+    "docs/reviews/style-direction.json"
+  ],
+  "inputs": [],
+  "payload": {
+    "reviewFile": "docs/reviews/style-direction.json"
+  },
+  "nextActions": [],
+  "artifactId": "work-fnd-hr-1-001",
+  "createdAt": "2026-10-25T19:53:44.758Z"
+}

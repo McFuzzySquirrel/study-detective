@@ -1,0 +1,81 @@
+{
+  "type": "work.board-2",
+  "category": "work",
+  "taskId": "BOARD-2",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "BOARD-2 implemented the lazy PixiJS board route with pan, pinch and wheel zoom, 500 ms viewport persistence, resize and WebGL context-loss recovery, 200 px culling, a bounded texture cache, and complete teardown; targeted unit, Playwright, lint, typecheck, format, and build checks pass.",
+  "inputs": [
+    "work-board-1-001",
+    "work-cap-3-001",
+    "work-data-3-001",
+    "work-data-4-001",
+    "work-data-5-001",
+    "work-cap-4-001"
+  ],
+  "filesChanged": [
+    "src/board/BoardCanvas.tsx",
+    "src/board/BoardScene.ts",
+    "src/board/usePixiApp.ts",
+    "src/board/textureCache.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/features/case/CaseBoardPage.css",
+    "src/data/caseRepository.ts",
+    "src/app/routes.tsx",
+    "tests/board/BoardCanvas.test.tsx",
+    "e2e/board.spec.ts",
+    "src/board/BoardCanvas.css",
+    "src/board/boardInput.ts",
+    "tests/board/textureCache.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "BOARD-2 implemented the lazy PixiJS board route with pan, pinch and wheel zoom, 500 ms viewport persistence, resize and WebGL context-loss recovery, 200 px culling, a bounded texture cache, and complete teardown; targeted unit, Playwright, lint, typecheck, format, and build checks pass.",
+    "decisions": [
+      "CaseBoardPage lazily imports BoardCanvas; only BoardCanvas, usePixiApp, and BoardScene import pixi.js, keeping the initial shell free of PixiJS.",
+      "usePixiApp creates one Application, keeps the ticker stopped, and renders only on camera or snapshot changes through requestAnimationFrame.",
+      "Reset view applies DEFAULT_BOARD_VIEWPORT through applyTemporaryViewport and never schedules a write; a later reload restores the stored camera.",
+      "Viewport writes are debounced 500 ms and serialized through a promise chain so an older async write cannot land after a newer one.",
+      "Card containers are placeholder paper, pin, title, and type art; BOARD-3 owns photo sprites, drag, and lift."
+    ],
+    "interfaces": [
+      "BoardCanvas({ snapshot: BoardSnapshot, store?: BoardStoreApi })",
+      "BoardSnapshot { caseId, caseTitle, cards: { id, title, type, position }[] }",
+      "usePixiApp({ hostRef, snapshot, viewport, canvasLabel }) -> { status, error, contextLost, viewportSize, retry, recover }",
+      "BoardScene(app, { snapshot, viewport }) with setSnapshot, setViewport, resize, rebuildAfterContextLoss, and destroy",
+      "BoardTextureCache<T extends DestroyableTexture>({ maxTextures }) with acquire, touch, setVisible, release, releaseCard, releaseOffscreen, and destroy",
+      "attachBoardInput(host, { onPan, onZoom, onZoomTo, getScale })",
+      "CaseBoardPage({ repository?, loadRepository?, store? })",
+      "AppRoutes gains boardRepository and loadBoardRepository; /case/:caseId lazy-loads CaseBoardPage."
+    ],
+    "tests": [
+      "npm test -- tests/board/BoardCanvas.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/board.spec.ts: exit 0 (engine-verified)",
+      "npm run build: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/board/BoardCanvas.test.tsx: exit 0, 8 tests",
+      "npm test -- tests/board/textureCache.test.ts: exit 0, 5 tests",
+      "npm run test:e2e -- e2e/board.spec.ts: exit 0, 6 tests across desktop, tablet-landscape, and phone",
+      "npm test: exit 0, 505 tests across 35 files",
+      "npm run lint: exit 0",
+      "npm run typecheck: exit 0",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification that was not authored or touched.",
+      "The Open card list link points at /case/:caseId/list, whose dedicated route remains BOARD-5 work.",
+      "Card photos are intentionally placeholders in BOARD-2; texture upgrade and drag belong to BOARD-3."
+    ],
+    "validationLimitations": [
+      "Culling uses the required 200 px viewport margin and the texture cache enforces 200 residents with recovery tests, but the 150-card culling assertion and FPS harness belong to BOARD-4 and QA. Tablet 45 FPS still needs human verification.",
+      "Playwright covers Chromium desktop, tablet, and phone only; Firefox and WebKit are not exercised here.",
+      "The context-loss journey tests the explicit Restore action; the automatic browser-restore branch is implemented but not separately exercised."
+    ],
+    "taskDescription": "Build BoardCanvas, usePixiApp, BoardScene, and textureCache. The case page loads the case and cards, mounts the canvas, renders the cork background and card containers, wires pan/pinch/wheel zoom to the board store, handles resize, WebGL context loss and restore, and destroys the app, ticker, textures, and listeners on unmount. Keep the Pixi import confined to src/board and lazy-load BoardCanvas from CaseBoardPage. Replace the case placeholder in routes and add links to capture and the card list route. Persist viewport changes with a 500ms debounce through CaseRepository; restore the stored viewport on load. Do not implement card drag, fit, minimap, or strings yet."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-2-001",
+  "createdAt": "2026-10-25T22:06:40.080Z"
+}

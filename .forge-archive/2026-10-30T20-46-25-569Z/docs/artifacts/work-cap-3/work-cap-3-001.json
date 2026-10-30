@@ -1,0 +1,67 @@
+{
+  "type": "work.cap-3",
+  "category": "work",
+  "taskId": "CAP-3",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Built the capture route with shared photo validation/crop flow, note/source and text-only topic creation, viewport-derived card placement, import progress with cancel/retry, object URL cleanup, route wiring, and 19 targeted component tests; full suite (398), typecheck, lint, format, and production build pass.",
+  "inputs": [
+    "work-cap-1-001",
+    "work-cap-2-001",
+    "work-data-3-001"
+  ],
+  "filesChanged": [
+    "src/features/capture/CapturePage.tsx",
+    "src/features/capture/CaptureSourcePicker.tsx",
+    "src/features/capture/NoteSourceForm.tsx",
+    "src/features/capture/TopicForm.tsx",
+    "src/features/capture/capture.css",
+    "src/app/routes.tsx",
+    "tests/capture/CaptureFlow.test.tsx",
+    "tests/capture/TopicForm.test.tsx",
+    "src/features/capture/capturePosition.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Built the capture route with shared photo validation/crop flow, note/source and text-only topic creation, viewport-derived card placement, import progress with cancel/retry, object URL cleanup, route wiring, and 19 targeted component tests; full suite (398), typecheck, lint, format, and production build pass.",
+    "decisions": [
+      "Persisted viewport x/y is treated as the visible world top-left corner; placement centers at viewport.x + visibleWidth/(2*scale) with a small existing-card stagger.",
+      "Cancel during photo import is available before the atomic saving stage and returns to the case; once saving starts the control is hidden because IndexedDB writes cannot be interrupted safely.",
+      "Crop cancel returns to the picker, while failure Back returns to the case; both write no card."
+    ],
+    "interfaces": [
+      "CapturePage({ repository?, loadRepository?, validateImage?, importCard?, readViewportSize? })",
+      "CaptureSourcePicker({ disabled?, onFileSelected, onAddTopic })",
+      "NoteSourceForm({ initialType?, initialTitle?, onBack, onSubmit })",
+      "TopicForm({ onBack, onSubmit })",
+      "computeInitialCardPosition(viewport, viewportSize, existingCardCount)",
+      "AppRoutes({ shelfRepository?, loadShelfRepository?, captureRepository?, loadCaptureRepository? })"
+    ],
+    "tests": [
+      "npm test -- tests/capture/CaptureFlow.test.tsx tests/capture/TopicForm.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)",
+      "npm run build: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/capture/CaptureFlow.test.tsx tests/capture/TopicForm.test.tsx: exit 0",
+      "npm run typecheck: exit 0",
+      "npm run build: exit 0",
+      "npm test: exit 0 (398 tests)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.",
+      "Playwright/browser camera, real image decode, and tablet touch crop behavior were not run; component evidence is jsdom-based with injected validation/import functions.",
+      "CAP-3 opens its own cached production repository handle; a later composition pass may want to share the shelf loader."
+    ],
+    "validationLimitations": [
+      "The case board does not exist yet, so viewport placement is validated against an injected 1000x800 visible size rather than a live Pixi board viewport.",
+      "Real EXIF, canvas, and file-input camera behavior remain for CAP-4/QA browser verification."
+    ],
+    "taskDescription": "Create CapturePage at /case/:caseId/capture with separate Take photo, Choose photo, and Add topic actions. The photo inputs accept image/jpeg, image/png, and image/webp; one uses capture=environment and the other does not. After selection, run imageValidation, show progress, open CropRotateEditor, then NoteSourceForm with type, title, and a Keep full resolution toggle that defaults off and warns about storage. TopicForm creates a text-only topic. Compute an initial position from the case viewport center with a small stagger, call card import or repository create, and navigate back to the case. Wire the route in src/app/routes.tsx. Do not implement card detail editing or OCR."
+  },
+  "nextActions": [],
+  "artifactId": "work-cap-3-001",
+  "createdAt": "2026-10-25T21:20:58.500Z"
+}

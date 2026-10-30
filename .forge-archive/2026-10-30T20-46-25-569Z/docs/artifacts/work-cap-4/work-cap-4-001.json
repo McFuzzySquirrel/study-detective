@@ -1,0 +1,68 @@
+{
+  "type": "work.cap-4",
+  "category": "work",
+  "taskId": "CAP-4",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented CAP-4 card detail with title edit, replace, re-crop, confirmed delete, persisted crop/rotation, transactional attachment replacement, 13 component/route tests, 2 data replacement tests, and a real-PNG Playwright journey passing at desktop, tablet, and phone viewports.",
+  "inputs": [
+    "work-cap-3-001",
+    "work-cap-1-001",
+    "work-cap-2-001"
+  ],
+  "filesChanged": [
+    "src/features/cards/CardDetailPage.tsx",
+    "src/features/cards/CardDetail.css",
+    "src/app/routes.tsx",
+    "tests/cards/CardDetailPage.test.tsx",
+    "e2e/capture.spec.ts",
+    "e2e/fixtures/note.png",
+    "e2e/fixtures/source.png",
+    "src/data/caseRepository.ts",
+    "src/domain/model.ts",
+    "src/features/capture/cardImport.ts",
+    "src/features/cards/cardReplace.ts",
+    "tests/data/caseRepositoryReplace.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented CAP-4 card detail with title edit, replace, re-crop, confirmed delete, persisted crop/rotation, transactional attachment replacement, 13 component/route tests, 2 data replacement tests, and a real-PNG Playwright journey passing at desktop, tablet, and phone viewports.",
+    "decisions": [
+      "Card crop, rotation, and full-resolution preference are optional persisted card fields; card import now forwards the processed values so re-crop survives reload.",
+      "Replacement writes the new original/display/thumbnail and card metadata in one transaction, then removes previous attachment rows after commit; cleanup failure is reported without discarding the new image.",
+      "Replace photo processes a newly selected file as full-frame upright; Crop/rotate regenerates derivatives from the retained original using the stored crop and rotation."
+    ],
+    "interfaces": [
+      "CardDetailPage({ repository?, loadRepository?, replacePhoto? })",
+      "CaseRepositoryPort.replaceCardAttachments(cardId, attachments, patch?) and listAttachments(cardId)",
+      "replaceCardPhoto(input, { repository, signal?, onProgress?, process? })"
+    ],
+    "tests": [
+      "npm test -- tests/cards/CardDetailPage.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/capture.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/cards/CardDetailPage.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/capture.spec.ts: 3 passed at desktop, tablet-landscape, phone",
+      "npm test: 413 passed / 30 files",
+      "npm run typecheck: pass",
+      "npm run lint: pass",
+      "npm run format:check: pass",
+      "production build: pass"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "The case board is still the foundation placeholder; card tap-through must be wired by board-engineer. The route and full capture-to-detail journey are verified.",
+      "Playwright evidence uses Chromium-based projects only; Firefox/WebKit card-detail behavior is not covered by this task.",
+      "A post-commit cleanup failure can leave unreferenced old attachment rows while reporting cleanupPending; the normal path leaves exactly three current rows.",
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification that was not authored or touched."
+    ],
+    "validationLimitations": [
+      "Browser rotation/crop behavior was verified in Chromium only.",
+      "The replacement cleanupPending failure branch is handled and typed but not exercised in the browser journey."
+    ],
+    "taskDescription": "Create CardDetailPage at /case/:caseId/card/:cardId showing the display image, type, title, tags slot, and actions Edit title, Replace photo, Crop/rotate, and Delete card. Replacing or re-cropping runs the image pipeline from the retained original and preserves the card ID; remove old attachments only after the new transaction succeeds. Add a Playwright journey that creates a case, imports e2e/fixtures/note.png through the native file input, rotates and crops, saves, reloads, opens card detail, edits the title, replaces the photo with e2e/fixtures/source.png, and verifies the card ID and both images after reload. Do not add OCR or connection actions."
+  },
+  "nextActions": [],
+  "artifactId": "work-cap-4-001",
+  "createdAt": "2026-10-25T21:35:34.588Z"
+}

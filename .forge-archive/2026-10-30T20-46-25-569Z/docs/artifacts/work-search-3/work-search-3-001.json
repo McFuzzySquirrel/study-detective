@@ -1,0 +1,45 @@
+{
+  "type": "work.search-3",
+  "category": "work",
+  "taskId": "SEARCH-3",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "Added e2e/search.spec.ts with a keyboard-only search journey: Tab into search, partial title and OCR matching, keyboard-opened type/tag filters, keyboard Clear all, Arrow/Home/End result navigation, Enter selection, board-centre verification, read-only persistence comparison, and phone-sheet overflow/control checks. All 3 Playwright projects pass at the documented viewports. Mutation checks proved the spec fails when results are empty or centering is removed. No product code changed; no blocking SEARCH-3 defect found.",
+  "inputs": [
+    "work-search-2-001"
+  ],
+  "filesChanged": [
+    "e2e/search.spec.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Added e2e/search.spec.ts with a keyboard-only search journey: Tab into search, partial title and OCR matching, keyboard-opened type/tag filters, keyboard Clear all, Arrow/Home/End result navigation, Enter selection, board-centre verification, read-only persistence comparison, and phone-sheet overflow/control checks. All 3 Playwright projects pass at the documented viewports. Mutation checks proved the spec fails when results are empty or centering is removed. No product code changed; no blocking SEARCH-3 defect found.",
+    "decisions": [
+      "Keyboard-only coverage starts after board load; setup uses the real shelf dialog and the app's IndexedDB schema.",
+      "Centering is measured against the board stage with the contract's 240x320 card geometry and a 2px tolerance.",
+      "Phone assertions are applied when the Playwright project is named phone and its 390x844 viewport is asserted."
+    ],
+    "interfaces": [],
+    "tests": [
+      "npm run test:e2e -- e2e/search.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm run test:e2e -- e2e/search.spec.ts: exit 0, 3 passed (desktop 1440x900, tablet-landscape 1280x800, phone 390x844)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npx prettier --check e2e/search.spec.ts: clean",
+      "Mutation: centering removed -> desktop failed with 484px delta; reverted",
+      "Mutation: search matches removed -> desktop failed at result count 3, received 0; reverted"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "OCR text is seeded through the app's IndexedDB schema because no manual OCR input exists; rows are read through the real CaseRepository.",
+      "The feature prose says selecting a result closes the panel, but the in-flow panel remains visible; SEARCH-3 acceptance does not require closure, so this is a non-blocking observation for the visual/product gate.",
+      "Firefox/WebKit and human screen-reader/visual spot checks remain A11Y-6 and human-review scope."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Add a Playwright spec that creates cards with tags and OCR text, opens search by keyboard, types a partial title, filters by type and tag, clears all, navigates results with the keyboard, and verifies the selected card is centered. Run the same flow in the phone project and assert the sheet is usable with no horizontal page overflow. Do not add new product code beyond test helpers."
+  },
+  "nextActions": [],
+  "artifactId": "work-search-3-001",
+  "createdAt": "2026-10-26T06:34:29.178Z"
+}

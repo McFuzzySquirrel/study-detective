@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T21:44:24.179Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BACKUP-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/backup/archiveFormat.ts",
+      "src/features/backup/exportCase.ts",
+      "tests/backup/exportCase.test.ts",
+      "src/data/caseRepository.ts"
+    ],
+    "stdout": "I'll start by reading the execution file.\nI'll load the required skill and examine the codebase structure in parallel.\nNo CodeGraph index here. Let me explore the source structure and key domain files.\nDependencies aren't installed in this sandbox; I'll install them while implementing.\nNow implementing the archive format.\nNow the test suite. Let me build a realistic seeded graph and unzip the real archive.\nThe data layer needs Node's structured-cloneable Blob; I'll run this suite under Node and keep the DOM fallback verified through an injected downloader.\nTests pass. Let me clean up an unused re-export, then run the full validation set.\nLet me cover the save error paths and the real Blob fallback to raise exporter confidence.\nOne correctness tweak: verify checksums against the raw entry bytes rather than re-encoding them as text.\nImplemented BACKUP-1: the single-case `.ndcase` archive contract, exporter, save paths, and verification tests.\n\n## Files created / changed\n\n**Created**\n- `src/features/backup/archiveFormat.ts`\n- `src/features/backup/exportCase.ts`\n- `tests/backup/exportCase.test.ts`\n\n**Changed**\n- `src/data/caseRepository.ts` — added the read-only `listConnections(caseId)` repository API used by export.\n\n`docs/EXECUTION-AUDIT.jsonl` was already modified by the engine and was left untouched.\n\n## What was implemented\n\n**Archive format (`archiveFormat.ts`)**\n- Strict Zod manifest: `format: \"notes-detective-case\"`, `formatVersion: 1`, `exportedAt`, `appVersion`, `dbSchemaVersion`, full case, cards, connections, and attachment metadata.\n- Reuses the strict domain `caseRecordSchema`, `cardRecordSchema`, and `connectionRecordSchema`, preserving tags, positions, viewport, closure, crop/rotation, OCR fields, `isDemo`, and `backupPromptedAt`.\n- Attachment metadata carries `id`, `cardId`, `kind`, `mime`, dimensions, bytes, lowercase SHA-256, and a derived relative path `images/<attachmentId>.<ext>`.\n- Manifest cross-checks reject duplicate IDs/paths/pairs, foreign-case cards/connections, dangling endpoints, invalid provenance, attachments on missing cards, and duplicate attachment kinds per card.\n- Filename helper produces `<case-slug>-<yyyy-mm-dd>.ndcase` with UTC dating.\n\n**Exporter (`exportCase.ts`)**\n- Loads exactly one case through the repository, re-hashes every Blob rather than trusting the stored digest, and builds the ZIP with fflate (`manifest.json` + only that case's images).\n- Deterministic ZIP metadata via `mtime: exportedAt`; images stored uncompressed, manifest deflated.\n- File System Access save with a Blob URL/anchor download fallback, typed cancellation and save errors, and no network usage.\n- Typed export stages (`reading`, `hashing`, `packaging`) for actionable UI errors.\n\n**Repository addition**\n```ts\nlistConnections(caseId: string): Promise<ConnectionRecord[]>\n```\nImplemented on both `CaseRepository` (Dexie, validated reads, sorted by canonical `pairKey`) and `InMemoryCaseRepository`.\n\n## Test evidence\n\n`tests/backup/exportCase.test.ts` — 23 tests, all passing. Real `fflate` archives and real `fake-indexeddb` data, no mocked archive.\n\nCovers:\n- Unzipping the archive and asserting only `manifest.json` plus selected-case image entries.\n- Full manifest round-trip of case metadata, viewport, closure, tags, positions, OCR, crop/rotation, demo marker, and backup prompt.\n- SHA-256 verification against raw entry bytes, plus recomputation when a stored digest is stale.\n- Proof that another case, card, and image never enter the archive.\n- Traversal, absolute, backslash, duplicate-path, foreign-card, dangling-endpoint, bad-format, and bad-version rejection.\n- File System Access write, global API detection, download fallback, cancellation, picker failure, unwritable destination, refused download, and write-abort behavior.\n- `exportCase` with a stubbed `fetch` proving no network call, and manifest metadata overrides.\n\n## Validation results\n\n| Command | Result |\n|---|---|\n| `npm test -- tests/backup/exportCase.test.ts` | 23 passed |\n| `npm run typecheck` | passed |\n| `npm test` | 436 passed |\n| `npm run lint` | passed |\n| `npm run format:check` | passed |\n| `npm run build` | passed |\n| `npm run test:coverage` | 436 passed; `src/domain` 96.79% lines, `src/data` 94.61% lines, `src/features/backup` 87.3% lines |\n\n## Handoff notes\n\n- `CaseArchiveRepository` is `Pick<CaseRepositoryPort, 'getCase' | 'listCards' | 'listConnections' | 'listAttachments'>`; BACKUP-2 can reuse the same read boundary.\n- Public exporter entry points: `buildCaseArchive(input)`, `saveCaseArchive(archive, options)`, `exportCase(input)`, plus `ArchiveExportError`, `ArchiveSaveError`, and `ArchiveSaveCancelledError`.\n- Preserve `listConnections` ordering and validation when extending the connection repository.\n- Known limitation: `exportCase` hashes before opening the native save picker, so transient user activation may expire for very large archives. BACKUP-3 should consider pre-opening the destination if large-case export is observed failing.\n- `DEFAULT_APP_VERSION` is currently `0.1.0`; release tooling should wire the package/build version if it changes.\n- No browser File System Access/download journey was run here; that remains BACKUP-4.\n\n```forge-result\n{\"summary\":\"Implemented BACKUP-1: strict `.ndcase` manifest, one-case fflate exporter with recomputed SHA-256 and safe image paths, File System Access plus download save paths, and 23 real-archive tests; targeted test, typecheck, full suite, lint, format, build, and coverage pass.\",\"unresolved\":[],\"decisions\":[\"The manifest reuses the strict domain case/card/connection schemas so tags, positions, viewport, closure, OCR, crop/rotation, isDemo, and backupPromptedAt round-trip without a parallel model.\",\"Attachment paths are derived only from UUID plus MIME type (`images/<id>.<ext>`), so titles and tags can never become ZIP paths.\",\"Export recomputes every SHA-256 from Blob bytes instead of trusting the stored digest; image entries are stored uncompressed while the manifest is deflated.\",\"ZIP entry mtimes are set from `exportedAt`, making repeated exports of the same case at the same injected time byte-stable.\",\"The repository gained `listConnections(caseId)` because export needs validated connection reads and no connection repository exists yet.\"],\"interfaces\":[\"CaseRepositoryPort.listConnections(caseId: string): Promise<ConnectionRecord[]>\",\"buildCaseArchive(input: BuildCaseArchiveInput): Promise<CaseArchive>\",\"exportCase(input: ExportCaseInput): Promise<ExportCaseResult>\",\"saveCaseArchive(archive: CaseArchive, options?: SaveCaseArchiveOptions): Promise<SaveCaseArchiveResult>\",\"triggerBlobDownload(blob: Blob, fileName: string): void\",\"parseCaseArchiveManifest(input: unknown): CaseArchiveManifest\",\"buildCaseArchiveManifest(input: BuildCaseArchiveManifestInput): CaseArchiveManifest\",\"buildCaseArchiveFileName(title: string, exportedAt: string): string\",\"ArchiveExportError, ArchiveSaveError, ArchiveSaveCancelledError\"],\"tests\":[\"npm test -- tests/backup/exportCase.test.ts: exit 0 (23 tests)\",\"npm run typecheck: exit 0\",\"npm test: exit 0 (436 tests)\",\"npm run lint: exit 0\",\"npm run format:check: exit 0\",\"npm run build: exit 0\",\"npm run test:coverage: exit 0 (src/domain 96.79% lines, src/data 94.61% lines, src/features/backup 87.3% lines)\"],\"warnings\":[\"`listConnections` is a new shared-file API on `src/data/caseRepository.ts`; future owners must preserve validated reads and pairKey ordering.\",\"The native save picker is opened after hashing in `exportCase`, so transient user activation can expire for very large archives; BACKUP-3 may need a pre-opened destination for such cases.\",\"`DEFAULT_APP_VERSION` is hardcoded to 0.1.0 and should be replaced by build-time version injection if the package version changes.\",\"`docs/EXECUTION-AUDIT.jsonl` has a pre-existing engine-generated modification that was not authored or touched.\"],\"validationLimitations\":[\"Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.\",\"No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 523189
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/backup/exportCase.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented BACKUP-1: strict `.ndcase` manifest, one-case fflate exporter with recomputed SHA-256 and safe image paths, File System Access plus download save paths, and 23 real-archive tests; targeted test, typecheck, full suite, lint, format, build, and coverage pass.",
+    "unresolved": [],
+    "decisions": [
+      "The manifest reuses the strict domain case/card/connection schemas so tags, positions, viewport, closure, OCR, crop/rotation, isDemo, and backupPromptedAt round-trip without a parallel model.",
+      "Attachment paths are derived only from UUID plus MIME type (`images/<id>.<ext>`), so titles and tags can never become ZIP paths.",
+      "Export recomputes every SHA-256 from Blob bytes instead of trusting the stored digest; image entries are stored uncompressed while the manifest is deflated.",
+      "ZIP entry mtimes are set from `exportedAt`, making repeated exports of the same case at the same injected time byte-stable.",
+      "The repository gained `listConnections(caseId)` because export needs validated connection reads and no connection repository exists yet."
+    ],
+    "interfaces": [
+      "CaseRepositoryPort.listConnections(caseId: string): Promise<ConnectionRecord[]>",
+      "buildCaseArchive(input: BuildCaseArchiveInput): Promise<CaseArchive>",
+      "exportCase(input: ExportCaseInput): Promise<ExportCaseResult>",
+      "saveCaseArchive(archive: CaseArchive, options?: SaveCaseArchiveOptions): Promise<SaveCaseArchiveResult>",
+      "triggerBlobDownload(blob: Blob, fileName: string): void",
+      "parseCaseArchiveManifest(input: unknown): CaseArchiveManifest",
+      "buildCaseArchiveManifest(input: BuildCaseArchiveManifestInput): CaseArchiveManifest",
+      "buildCaseArchiveFileName(title: string, exportedAt: string): string",
+      "ArchiveExportError, ArchiveSaveError, ArchiveSaveCancelledError"
+    ],
+    "tests": [
+      "npm test -- tests/backup/exportCase.test.ts: exit 0 (23 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (436 tests)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0",
+      "npm run test:coverage: exit 0 (src/domain 96.79% lines, src/data 94.61% lines, src/features/backup 87.3% lines)"
+    ],
+    "warnings": [
+      "`listConnections` is a new shared-file API on `src/data/caseRepository.ts`; future owners must preserve validated reads and pairKey ordering.",
+      "The native save picker is opened after hashing in `exportCase`, so transient user activation can expire for very large archives; BACKUP-3 may need a pre-opened destination for such cases.",
+      "`DEFAULT_APP_VERSION` is hardcoded to 0.1.0 and should be replaced by build-time version injection if the package version changes.",
+      "`docs/EXECUTION-AUDIT.jsonl` has a pre-existing engine-generated modification that was not authored or touched."
+    ],
+    "validationLimitations": [
+      "Tests run under Node with fake-indexeddb because jsdom Blobs are not structurally cloneable by fake-indexeddb.",
+      "No real-browser File System Access or download behavior was exercised; BACKUP-4 owns that journey."
+    ]
+  }
+}

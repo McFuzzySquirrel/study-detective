@@ -1,0 +1,18 @@
+{
+  "type": "work.rel-hr-1",
+  "category": "work",
+  "taskId": "REL-HR-1",
+  "producedBy": "human-reviewer",
+  "status": "complete",
+  "summary": "Operator evidence verified for Complete the human acceptance journey on tablet, phone, and desktop",
+  "filesChanged": [
+    "docs/reviews/final-acceptance.json"
+  ],
+  "inputs": [],
+  "payload": {
+    "reviewFile": "docs/reviews/final-acceptance.json"
+  },
+  "nextActions": [],
+  "artifactId": "work-rel-hr-1-001",
+  "createdAt": "2026-10-26T21:56:35.750Z"
+}

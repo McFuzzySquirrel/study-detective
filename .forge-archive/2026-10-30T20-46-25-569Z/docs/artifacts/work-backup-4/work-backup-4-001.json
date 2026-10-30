@@ -1,0 +1,45 @@
+{
+  "type": "work.backup-4",
+  "category": "work",
+  "taskId": "BACKUP-4",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "Verified BACKUP-4 with e2e/backup.spec.ts: one real Chromium journey seeds a decoy plus target case with two native-imported images, tags, two typed strings, OCR, viewport, closure, and distinct positions; captures a real .ndcase download through the dialog, validates manifest/checksums/entries, deletes the case, restores the same downloaded bytes as a copy with fresh IDs, then re-exports and replaces with typed confirmation, proving exactly one matching case and identical cards, strings, tags, positions, closure, viewport, OCR, and image bytes. npm run test:e2e -- e2e/backup.spec.ts: exit 0, 3 passed (desktop 1440x900, tablet 1280x800, phone 390x844); lint, typecheck, and prettier clean. Five importCase mutations (tags, position, one string, one card, thumbnail images) each failed the journey and were reverted byte-for-byte before the final green run.",
+  "inputs": [
+    "work-backup-3-001",
+    "work-backup-2-001"
+  ],
+  "filesChanged": [
+    "e2e/backup.spec.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Verified BACKUP-4 with e2e/backup.spec.ts: one real Chromium journey seeds a decoy plus target case with two native-imported images, tags, two typed strings, OCR, viewport, closure, and distinct positions; captures a real .ndcase download through the dialog, validates manifest/checksums/entries, deletes the case, restores the same downloaded bytes as a copy with fresh IDs, then re-exports and replaces with typed confirmation, proving exactly one matching case and identical cards, strings, tags, positions, closure, viewport, OCR, and image bytes. npm run test:e2e -- e2e/backup.spec.ts: exit 0, 3 passed (desktop 1440x900, tablet 1280x800, phone 390x844); lint, typecheck, and prettier clean. Five importCase mutations (tags, position, one string, one card, thumbnail images) each failed the journey and were reverted byte-for-byte before the final green run.",
+    "decisions": [
+      "Replace is exercised with a second real archive generated from the restored case because copy restore remaps the case ID and replace targets the archive's existing case ID, so the first archive no longer names a live case; the typed-confirmation replace path and single-case outcome are unchanged.",
+      "File System Access APIs are forced off so the required real Blob download and hidden file-input fallback run with real bytes; native pickers are not automatable.",
+      "Tags, strings, OCR, viewport, and closure are seeded through the app's exact IndexedDB row shapes because no tag or connection UI exists yet; the production exporter and importer consume them."
+    ],
+    "interfaces": [],
+    "tests": [
+      "npm run test:e2e -- e2e/backup.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm run test:e2e -- e2e/backup.spec.ts: exit 0, 3 passed (desktop, tablet-landscape, phone)",
+      "npm run lint: exit 0",
+      "npm run typecheck: exit 0",
+      "Mutation checks: tags, position, one string, one card, and thumbnail attachments each made the journey fail; importCase.ts restored to its original SHA-256 and the required command re-ran green"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Replace targets a re-exported archive rather than the original bytes because the case ID is remapped on copy restore; resolving the literal same-file flow requires a product decision (replace by a user-selected target case).",
+      "Firefox and WebKit smoke paths belong to A11Y-6; native File System Access pickers and tablet field reopening remain human checks."
+    ],
+    "validationLimitations": [
+      "The literal in-task instruction to import the same first archive in replace mode against the restored case is not achievable without product changes; the replace path is proven with real generated archive bytes from the restored case."
+    ],
+    "taskDescription": "Add a Playwright journey that creates a case with at least two images, tags, and two strings, exports it through the dialog, captures the downloaded file, deletes the case, imports the archive as a copy, and verifies every card, string, tag, position, and image. Then import the same archive in replace mode against the restored case, confirm the title, and verify there is exactly one case with the expected data. Use the generated archive bytes, not a mock. Do not add product code."
+  },
+  "nextActions": [],
+  "artifactId": "work-backup-4-001",
+  "createdAt": "2026-10-26T04:51:03.982Z"
+}

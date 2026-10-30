@@ -1,0 +1,73 @@
+{
+  "type": "work.demo-3",
+  "category": "work",
+  "taskId": "DEMO-3",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented DEMO-3: AppBootstrap seeds the demo once before routes mount with a failure/timeout fallback, the shelf labels and removes only the demo, thread-anchor/long-press/recall hints are contextually wired and replayable, and the fresh-context Playwright journey passes on desktop, tablet, and phone. Required unit and browser checks, full unit suite, typecheck, lint, and formatting pass.",
+  "inputs": [
+    "work-demo-2-001",
+    "work-board-5-001",
+    "work-link-hr-1-001"
+  ],
+  "filesChanged": [
+    "src/app/AppBootstrap.tsx",
+    "src/App.tsx",
+    "src/features/shelf/CaseShelf.tsx",
+    "src/features/shelf/CaseCard.tsx",
+    "src/features/case/CaseBoardPage.tsx",
+    "src/features/recall/RecallPage.tsx",
+    "tests/demo/firstRun.test.tsx",
+    "e2e/demo.spec.ts",
+    "playwright.config.ts",
+    "src/features/onboarding/hints.css",
+    "src/features/shelf/CaseShelfPage.tsx",
+    "src/features/shelf/DeleteCaseDialog.tsx",
+    "src/features/shelf/shelf.css",
+    "tests/pwa/UpdatePrompt.test.tsx",
+    "tests/recall/RecallPage.test.tsx",
+    "e2e/fixtures/no-demo-storage.json"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented DEMO-3: AppBootstrap seeds the demo once before routes mount with a failure/timeout fallback, the shelf labels and removes only the demo, thread-anchor/long-press/recall hints are contextually wired and replayable, and the fresh-context Playwright journey passes on desktop, tablet, and phone. Required unit and browser checks, full unit suite, typecheck, lint, and formatting pass.",
+    "decisions": [
+      "Bootstrap waits for the normal seed so the shelf's single case read includes the demo, but a 5-second grace timeout and swallowed seed failures ensure the shelf is never permanently blocked.",
+      "Only one board hint is shown at a time: thread-anchor at two or more cards, then long-press only on a coarse pointer with a selected card. The recall hint lives on the recall screen and requires at least one real connection.",
+      "Demo deletion uses removeDemoCase so the install-level seed flag is re-asserted; ordinary user cases still use the normal delete path.",
+      "Unrelated Playwright journeys use a storage fixture that pre-sets the demo flag and seen hints, while demo.spec.ts overrides it with empty storage to exercise first-run behavior.",
+      "Contextual hint panels are click-through except their actions so they never block board pointer work."
+    ],
+    "interfaces": [
+      "AppBootstrap({ children, seedFirstRun? }), FirstRunSeed, BOOTSTRAP_MAX_WAIT_MS",
+      "App({ seedFirstRun? })",
+      "CaseBoardPage({ ..., hintStore? }), RecallPage({ ..., hintStore? })",
+      "DeleteCaseDialog({ preview, isDemo?, onClose, onConfirm })",
+      "CaseShelfPage({ ..., demoFlagStore? })"
+    ],
+    "tests": [
+      "npm test -- tests/demo/firstRun.test.tsx: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/demo.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/demo/firstRun.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/demo.spec.ts: 3 passed (desktop, tablet-landscape, phone)",
+      "npm test: 79 files, 988 tests passed",
+      "npm run typecheck: passed",
+      "npm run lint: 0 errors (3 pre-existing warnings)",
+      "npm run format:check: passed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "The full E2E suite still has pre-existing failures in board.spec.ts and connections.spec.ts; both reproduce on a clean HEAD worktree and are unrelated to DEMO-3.",
+      "Blocked localStorage still means the demo seed flag cannot survive a reload; this limitation is inherited from the existing seed store."
+    ],
+    "validationLimitations": [
+      "Long-press hint behavior is component-tested with a mocked coarse-pointer matchMedia; Playwright's configured projects do not emulate touch, so the browser journey exercises the thread-anchor hint instead.",
+      "Contextual hints are fixed near the viewport bottom rather than geometrically anchored to their trigger; their click-through body avoids blocking the board, but final placement is a human style-review matter."
+    ],
+    "taskDescription": "Create AppBootstrap and mount it in src/App.tsx before routes render. On boot, check case count and the demo flag, seed once, and never block the shelf. Add a Demo ribbon and Remove demo wording to CaseShelf/CaseCard. Trigger thread-anchor hints when a case has at least two cards, long-press hints on coarse pointers when a card is selected, and recall hints after the first connection exists; mark each seen when dismissed. Add a Playwright first-run journey in a fresh context: demo appears, opens, shows its graph and readiness, a hint appears and is dismissed, the demo is removed, reload shows the empty shelf, and Settings replays a hint. Do not add new demo content or hint copy."
+  },
+  "nextActions": [],
+  "artifactId": "work-demo-3-001",
+  "createdAt": "2026-10-26T18:36:34.237Z"
+}

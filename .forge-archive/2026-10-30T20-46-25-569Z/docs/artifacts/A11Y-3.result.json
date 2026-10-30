@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T19:34:11.928Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "A11Y-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/styles/tokens.css",
+      "src/styles/base.css",
+      "src/features/settings/SettingsPage.tsx",
+      "tests/a11y/contrast.test.ts",
+      "tests/a11y/targets.test.ts",
+      "tests/a11y/reducedMotion.test.tsx",
+      "src/app/AppShell.tsx",
+      "src/board/BoardCanvas.tsx",
+      "src/features/backup/BackupDialog.css",
+      "src/features/case/CaseBoardPage.tsx",
+      "src/features/case/TopicStatusBadge.tsx",
+      "src/features/connections/connections.css",
+      "src/features/ocr/OcrPanel.css",
+      "src/main.tsx",
+      "tests/ocr/OcrPanel.test.tsx",
+      "src/app/motionPreference.ts",
+      "src/features/settings/settings.css"
+    ],
+    "stdout": "I'll start by reading the execution file and understanding the task scope.\nNow I have a clear picture. Let me implement the motion preference module first.\n## A11Y-3 Implementation Report\n\n### Outcome\n\nImplemented A11Y-3: surface-aware focus tokens, semantic contrast auditing, 44 px target auditing, and an install-level reduced-motion preference with an Appearance toggle in Settings. Reduced motion now suppresses the named animation categories and is propagated to the board scene, while auto-pan remains an instant camera jump.\n\n### Acceptance criteria evidence\n\n| Criterion | Result | Evidence |\n|---|---|---|\n| Every semantic body/control pair ≥ 4.5:1, large headings ≥ 3:1 | **PASS** | `tests/a11y/contrast.test.ts` computes 71 pairs from semantic tokens against every dark surface, the sepia paper surface, and all status/action surfaces. Examples: ink/surface 12.14:1, muted/surface 7.87:1, heading/canvas 15.27:1, paper ink/paper 12.99:1, accent ink/accent 7.77:1. |\n| Every interactive fixture ≥ 44×44 or has an expanded hit area | **PASS** | `tests/a11y/targets.test.ts` renders Button, IconButton, Dialog, Toast, Field, EmptyState, Settings appearance toggle, SearchPanel filters/result/remove controls, and TagInput, then audits the CSS geometry of all primary interactive selectors. |\n| Motion toggle persists, follows system default until changed, applies without reload | **PASS** | `tests/a11y/reducedMotion.test.tsx` covers OS default, explicit persisted choice, remount read-back, live OS change, immediate root attribute update, and keyboard activation with Space. |\n| Reduced motion removes required animation classes and disables auto-pan | **PASS** | CSS contract covers pin drop, string draw, auto-pan, page transition, and pulse under both `prefers-reduced-motion` and `[data-motion='reduced']`; `motionBehavior(true)` returns suppressed/instant, and the board stage exposes `data-motion-auto-pan=\"instant\"`. |\n| Focus rings visible in both themes and on all surfaces | **PASS (with product note)** | The product is the single Midnight Archive dark theme, so “both themes” is implemented as dark surfaces plus the sepia paper reading surface. New `--color-focus-ring-on-paper` and `--color-focus-ring-on-warning` tokens pass 3:1 on their surfaces; the OCR paper textarea and quiet suggestion button now use the paper ring and paper ink. |\n\n### Keyboard and viewport exercise\n\n- **Keyboard:** Settings → Appearance → “Reduce motion” was focused and toggled with `Space`; focus remained on the checkbox, the announcement updated, and the preference persisted. The full component suite, including `tests/a11y/keyboard.test.tsx`, passes.\n- **Viewports:** No new browser viewport matrix was run for A11Y-3. The target/contrast evidence is CSS-contract plus jsdom fixture evidence; live 390×844 / 768×1024 / 1280×800 / 1440×900 geometry remains with the responsive Playwright and axe gates (A11Y-1/A11Y-4/QA).\n\n### Accessibility evidence\n\n- **Focus:** The motion checkbox gets the shared 3 px focus ring (`#8fd3ff` on the sunken control surface, 10.46:1) and the whole 44 px label row is the hit target.\n- **Announcements:** The motion status is a mounted `aria-live=\"polite\"`, `aria-atomic=\"true\"` region; it updates without moving focus. The existing Settings `role=\"status\"` region remains empty initially, so existing announcement tests are unchanged.\n- **Targets:** `.appearance-settings__toggle` has 44 px min block/inline; existing 44 px controls were re-audited, including navigation, board controls, sheets, search chips, tag removal, connection rows, backup choices, capture toggles, and error/skip actions.\n- **Contrast:** Focus ring on canvas 11.20:1; paper focus ring on paper 6.62:1; paper focus ring on paper edge 3.68:1; warning focus ring 8.54:1.\n- **Motion policy:** The OS preference is a hard floor. The toggle can persist an explicit reduction but cannot re-enable full motion against a device that asks for reduced motion; the control is checked and disabled with an explanatory note in that case.\n\n### Shared-file handoffs\n\n- `src/features/case/CaseBoardPage.tsx` — added `useMotionPreference()` / `motionBehavior()` and `data-motion` / `data-motion-auto-pan` on the board stage. Preserve when editing the board composition.\n- `src/board/BoardCanvas.tsx` — replaced the local media-query hook with the shared motion store, added the optional `motionStore` prop, `data-motion`, `data-motion-auto-pan`, and the motion-intent classes. Preserve the `reducedMotion` pass-through to `usePixiApp`.\n- `src/app/AppShell.tsx` — added `motion-page-transition` to the main landmark. Preserve.\n- `src/features/case/TopicStatusBadge.tsx` — added the `motion-pulse` marker class. Preserve.\n- `src/main.tsx` — calls `ensureMotionPreference()` before render. Foundation owner should preserve the pre-render bootstrap.\n- `src/features/ocr/OcrPanel.css` — paper focus ring and paper-surface quiet-button treatment; OCR owner should preserve.\n- `tests/ocr/OcrPanel.test.tsx` — updated the focus-ring assertion to the stricter paper token.\n- `src/features/connections/connections.css`, `src/features/backup/BackupDialog.css` — added explicit 44 px inline floors to full-width labels.\n\n### Files created\n\n- `src/app/motionPreference.ts`\n- `src/features/settings/settings.css`\n- `tests/a11y/contrast.test.ts`\n- `tests/a11y/targets.test.ts`\n- `tests/a11y/reducedMotion.test.tsx`\n\n### Files changed\n\n- `src/styles/tokens.css`\n- `src/styles/base.css`\n- `src/features/settings/SettingsPage.tsx`\n- `src/features/ocr/OcrPanel.css`\n- `src/features/connections/connections.css`\n- `src/features/backup/BackupDialog.css`\n- `src/board/BoardCanvas.tsx`\n- `src/features/case/CaseBoardPage.tsx`\n- `src/features/case/TopicStatusBadge.tsx`\n- `src/app/AppShell.tsx`\n- `src/main.tsx`\n- `tests/ocr/OcrPanel.test.tsx`\n\n### Validation\n\n- `npm test -- tests/a11y/contrast.test.ts tests/a11y/targets.test.ts tests/a11y/reducedMotion.test.tsx` → **exit 0, 98 tests passed**\n- `npm run typecheck` → **exit 0**\n- `npm test` → **exit 0, 1117 tests passed**\n- `npm run lint` → **exit 0, 3 pre-existing `RecallSummary` warnings, no errors**\n- `npm run format:check` → **exit 0**\n- `npm run build` → **exit 0**\n\n### Known limitations / human review\n\n- No new Playwright journey or axe scan was added; A11Y-3 is scoped to component/CSS evidence. Browser viewport geometry, axe, and real focus-ring rendering remain A11Y-4/QA and human review.\n- The sepia paper focus-ring color and OCR quiet-button treatment are new visual choices that meet contrast but should be included in the human style gate.\n- The app is intentionally single-theme (Midnight Archive); the “both themes” criterion was interpreted as dark surfaces plus the sepia paper reading surface, since adding a competing light theme would contradict the locked FND-5 direction.\n- `docs/EXECUTION-AUDIT.jsonl` and `docs/WORKFLOW-STATE.json` were already engine-modified and were not touched.\n\n```forge-result\n{\"summary\":\"Implemented A11Y-3: surface-aware focus tokens, semantic 4.5:1/3:1 contrast auditing, 44 px target auditing, an install-level motion preference with an Appearance toggle that defaults to the OS setting and persists an explicit reduce choice, reduced-motion CSS/board hand-off for pin/string/auto-pan/page/pulse, and 98 targeted tests; full suite, typecheck, lint, format, and build pass.\",\"unresolved\":[],\"decisions\":[\"The OS reduce-motion request is a hard floor; the Appearance toggle can add a persisted reduce choice but cannot re-enable full motion against the platform setting. The control is checked and disabled with an explanatory note when the device asks for reduced motion.\",\"A shared motion store applies data-motion on the document root; base.css contains both a media-query fallback for the pre-hydration frame and a [data-motion='reduced'] rule for immediate in-app changes.\",\"Focus rings are surface-aware: the existing light ring covers dark surfaces and new dark rings cover sepia paper and the amber status chip; the OCR suggestion quiet button now uses paper ink so it is readable on paper.\",\"Named motion-intent classes (pin drop, string draw, auto-pan, page transition, pulse) are applied to the board, route main, and status badge so future animations cannot bypass the reduced-motion rule.\",\"Auto-pan is an instant camera jump in v1; motionBehavior(true).autoPan is 'instant' and the board stage exposes data-motion-auto-pan='instant'.\"],\"interfaces\":[\"src/app/motionPreference.ts exports MOTION_ATTRIBUTE, MOTION_PREFERENCE_ATTRIBUTE, MOTION_STORAGE_KEY, MOTION_ANIMATION_CLASSES, MotionStore, createMotionStore, motionStore, ensureMotionPreference, useMotionPreference, and motionBehavior.\",\"SettingsPage({ hintStore?, motionStore? }) adds the Appearance 'Reduce motion' checkbox.\",\"BoardCanvas({ ..., motionStore? }) forwards the shared preference to usePixiApp and exposes data-motion/data-motion-auto-pan.\",\"CaseBoardPage stage exposes data-motion/data-motion-auto-pan.\"],\"tests\":[\"npm test -- tests/a11y/contrast.test.ts tests/a11y/targets.test.ts tests/a11y/reducedMotion.test.tsx: exit 0 (98 tests)\",\"npm run typecheck: exit 0\",\"npm test: exit 0 (1117 tests)\",\"npm run lint: exit 0 (3 pre-existing RecallSummary warnings)\",\"npm run format:check: exit 0\",\"npm run build: exit 0\"],\"warnings\":[\"No new Playwright journey or axe scan was added; A11Y-3 validation is component/CSS-based, and browser viewport/axe evidence remains A11Y-4/QA and human review.\",\"The product is a single dark theme; the 'both themes' criterion was implemented as dark surfaces plus the sepia paper reading surface, with separate focus-ring tokens for each.\",\"docs/EXECUTION-AUDIT.jsonl and docs/WORKFLOW-STATE.json were already engine-modified and were not touched.\"],\"validationLimitations\":[\"No real-browser geometry measurement of 44 px targets or focus-ring rendering was run; evidence is CSS-contract plus jsdom fixtures, with actual geometry owned by the responsive and axe Playwright gates.\",\"The board camera auto-pan is already an instant jump in v1, so reduced motion removes the category rather than shortening an existing tween.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 1440644
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/a11y/contrast.test.ts tests/a11y/targets.test.ts tests/a11y/reducedMotion.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented A11Y-3: surface-aware focus tokens, semantic 4.5:1/3:1 contrast auditing, 44 px target auditing, an install-level motion preference with an Appearance toggle that defaults to the OS setting and persists an explicit reduce choice, reduced-motion CSS/board hand-off for pin/string/auto-pan/page/pulse, and 98 targeted tests; full suite, typecheck, lint, format, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "The OS reduce-motion request is a hard floor; the Appearance toggle can add a persisted reduce choice but cannot re-enable full motion against the platform setting. The control is checked and disabled with an explanatory note when the device asks for reduced motion.",
+      "A shared motion store applies data-motion on the document root; base.css contains both a media-query fallback for the pre-hydration frame and a [data-motion='reduced'] rule for immediate in-app changes.",
+      "Focus rings are surface-aware: the existing light ring covers dark surfaces and new dark rings cover sepia paper and the amber status chip; the OCR suggestion quiet button now uses paper ink so it is readable on paper.",
+      "Named motion-intent classes (pin drop, string draw, auto-pan, page transition, pulse) are applied to the board, route main, and status badge so future animations cannot bypass the reduced-motion rule.",
+      "Auto-pan is an instant camera jump in v1; motionBehavior(true).autoPan is 'instant' and the board stage exposes data-motion-auto-pan='instant'."
+    ],
+    "interfaces": [
+      "src/app/motionPreference.ts exports MOTION_ATTRIBUTE, MOTION_PREFERENCE_ATTRIBUTE, MOTION_STORAGE_KEY, MOTION_ANIMATION_CLASSES, MotionStore, createMotionStore, motionStore, ensureMotionPreference, useMotionPreference, and motionBehavior.",
+      "SettingsPage({ hintStore?, motionStore? }) adds the Appearance 'Reduce motion' checkbox.",
+      "BoardCanvas({ ..., motionStore? }) forwards the shared preference to usePixiApp and exposes data-motion/data-motion-auto-pan.",
+      "CaseBoardPage stage exposes data-motion/data-motion-auto-pan."
+    ],
+    "tests": [
+      "npm test -- tests/a11y/contrast.test.ts tests/a11y/targets.test.ts tests/a11y/reducedMotion.test.tsx: exit 0 (98 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (1117 tests)",
+      "npm run lint: exit 0 (3 pre-existing RecallSummary warnings)",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0"
+    ],
+    "warnings": [
+      "No new Playwright journey or axe scan was added; A11Y-3 validation is component/CSS-based, and browser viewport/axe evidence remains A11Y-4/QA and human review.",
+      "The product is a single dark theme; the 'both themes' criterion was implemented as dark surfaces plus the sepia paper reading surface, with separate focus-ring tokens for each.",
+      "docs/EXECUTION-AUDIT.jsonl and docs/WORKFLOW-STATE.json were already engine-modified and were not touched."
+    ],
+    "validationLimitations": [
+      "No real-browser geometry measurement of 44 px targets or focus-ring rendering was run; evidence is CSS-contract plus jsdom fixtures, with actual geometry owned by the responsive and axe Playwright gates.",
+      "The board camera auto-pan is already an instant jump in v1, so reduced motion removes the category rather than shortening an existing tween."
+    ]
+  }
+}

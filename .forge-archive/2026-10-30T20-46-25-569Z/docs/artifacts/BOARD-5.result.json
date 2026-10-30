@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T05:06:07.553Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BOARD-5",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/features/case/CardListPage.tsx",
+      "src/features/case/CardListPanel.tsx",
+      "src/features/case/EmptyBoard.tsx",
+      "src/features/case/useUndoDelete.ts",
+      "src/data/deleteCard.ts",
+      "src/features/case/CaseBoardPage.tsx",
+      "src/app/routes.tsx",
+      "tests/case/CardListPanel.test.tsx",
+      "tests/case/useUndoDelete.test.tsx",
+      "e2e/keyboard-cards.spec.ts",
+      "src/data/caseRepository.ts",
+      "src/features/capture/CapturePage.tsx",
+      "src/features/case/CardListPage.css",
+      "src/features/case/CardListPanel.css",
+      "src/features/case/EmptyBoard.css"
+    ],
+    "stdout": "## Result report — BOARD-5\n\n### Outcome\nImplemented the keyboard card-list route, grouped text view, empty-board capture state, confirmed card deletion, and single-level 8-second undo. Deletion removes the card, its strings, and its attachment Blobs immediately; undo restores the exact snapshot, including original IDs and positions.\n\n### Files created\n- `src/data/deleteCard.ts`\n- `src/features/case/CardListPage.tsx`\n- `src/features/case/CardListPage.css`\n- `src/features/case/CardListPanel.tsx`\n- `src/features/case/CardListPanel.css`\n- `src/features/case/EmptyBoard.tsx`\n- `src/features/case/EmptyBoard.css`\n- `src/features/case/useUndoDelete.ts`\n- `tests/case/CardListPanel.test.tsx`\n- `tests/case/useUndoDelete.test.tsx`\n- `e2e/keyboard-cards.spec.ts`\n\n### Files changed\n- `src/app/routes.tsx` — added `/case/:caseId/list` and lazy `CardListScreen`; added optional list repository props.\n- `src/features/case/CaseBoardPage.tsx` — zero-card state now renders `EmptyBoard` instead of the canvas; added “Open card list” link.\n- `src/features/capture/CapturePage.tsx` — `?kind=note|source|topic` support so empty-board/list create actions land on the intended capture path.\n- `src/data/caseRepository.ts` — added `restoreCardDeletion(snapshot)` to the repository port and both Dexie/in-memory implementations, with atomic restore and endpoint validation.\n\n### Acceptance criteria\n| Criterion | Result |\n|---|---|\n| Card list route keyboard reachable; notes/sources/topics grouped without canvas | Pass |\n| Create, edit, delete from list with visible focus and announcements | Pass |\n| Delete confirmation names string count; Undo offered for 8 seconds | Pass |\n| Undo restores card, attachments, connections, positions; timeout/second delete clears snapshot | Pass |\n| Empty board offers note/source/topic capture with no dead canvas control | Pass |\n| Playwright keyboard journey completes deletion and undo without pointer input | Pass |\n\n### Keyboard path exercised\n- Focus Delete → Enter → Cancel focused → Escape returns focus → Enter → Tab to confirm → Enter.\n- Post-delete focus lands on the list heading; Undo focused and activated with Enter.\n- Undo restores focus to the restored card’s “Open detail” link.\n- Edit → Enter → title input → Save with Enter → dialog closes and focus returns to Edit.\n- E2E setup used keyboard-only creation and topic capture; no mouse/tap input.\n\n### Viewports exercised\n- Desktop `1440x900`\n- Tablet landscape `1280x800`\n- Phone `390x844`\n\n### Accessibility evidence\n- Dialogs trap focus, focus Cancel first for destructive prompts, close on Escape, and restore focus to the trigger.\n- Changes are announced through the shared polite `Toast` live region; focus is not stolen by announcements.\n- CSS-contract tests assert `min-block-size`/`min-inline-size` of `44px` for list links/actions and the shared Button primitive.\n- Contrast on the list surface: link `9.29:1`, muted `7.87:1`, heading `12.81:1`, danger text `8.72:1`; primary button ink `7.77:1`.\n- Reduced-motion rules cover the new list/empty-board styles; no raw palette literals in new feature CSS.\n\n### Shared-file handoff\n- `src/data/caseRepository.ts`: preserve `restoreCardDeletion` snapshot semantics, original IDs, atomic writes, and endpoint validation.\n- `src/app/routes.tsx`: preserve the list route and repository fallback to board props.\n- `src/features/case/CaseBoardPage.tsx`: preserve the zero-card `EmptyBoard` branch instead of mounting the canvas.\n- `src/features/capture/CapturePage.tsx`: preserve `?kind=` handling when extending capture.\n\n### Validation\n- `npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx` — **13 tests passed**\n- `npm run test:e2e -- e2e/keyboard-cards.spec.ts` — **3/3 projects passed**, build included\n- Additional checks: `npm run typecheck` exit 0, `npm run lint` exit 0, full suite **610 tests / 45 files passed**\n\n### Limitations\n- Browser evidence is Chromium-based only; Firefox/WebKit are not exercised by this task.\n- No human style or board-feel gate is required for this DOM-only surface.\n\n```forge-result\n{\"summary\":\"Implemented CardListPage, grouped CardListPanel, EmptyBoard, deleteCard snapshot/restore, useUndoDelete, routes, board empty-state wiring, and the keyboard Playwright journey; required unit and browser checks pass.\",\"unresolved\":[],\"decisions\":[\"Undo snapshots are memory-only and single-level; timeout, dismiss, and a second delete clear the slot with no redo stack.\",\"Restore writes the card, strings, and Blob rows in one repository transaction using original IDs; a missing other endpoint aborts atomically rather than creating a dangling string.\",\"The empty case board replaces the canvas with EmptyBoard so no dead pan, zoom, or fit controls remain.\",\"Capture accepts ?kind=note|source|topic so list and empty-board create actions start the intended path.\"],\"interfaces\":[\"CardDeletionSnapshot, CardDeletionPreview, readCardDeletionPreview, deleteCard, restoreDeletedCard in src/data/deleteCard.ts\",\"CaseRepositoryPort.restoreCardDeletion(snapshot)\",\"useUndoDelete({ repository, onDeleted, onRestored }) -> pending, message, deleteWithUndo, undo, dismiss\",\"CardListPage({ repository?, loadRepository? }), CardListPanel({ cards, connections?, onEdit, onDelete }), EmptyBoard({ caseId })\",\"AppRoutes gains cardListRepository/loadCardListRepository and /case/:caseId/list\"],\"tests\":[\"npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx: 13 passed\",\"npm run test:e2e -- e2e/keyboard-cards.spec.ts: 3/3 Chromium viewports passed\",\"npm run typecheck: exit 0\",\"npm run lint: exit 0\",\"npm test: 610 tests, 45 files passed\"],\"warnings\":[\"Browser evidence covers Chromium desktop, tablet, and phone only.\",\"The keyboard journey restores a seeded connection and attachment through real IndexedDB; the seed uses a browser-evaluate fixture, not pointer input.\"],\"validationLimitations\":[\"Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 886131
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/keyboard-cards.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented CardListPage, grouped CardListPanel, EmptyBoard, deleteCard snapshot/restore, useUndoDelete, routes, board empty-state wiring, and the keyboard Playwright journey; required unit and browser checks pass.",
+    "unresolved": [],
+    "decisions": [
+      "Undo snapshots are memory-only and single-level; timeout, dismiss, and a second delete clear the slot with no redo stack.",
+      "Restore writes the card, strings, and Blob rows in one repository transaction using original IDs; a missing other endpoint aborts atomically rather than creating a dangling string.",
+      "The empty case board replaces the canvas with EmptyBoard so no dead pan, zoom, or fit controls remain.",
+      "Capture accepts ?kind=note|source|topic so list and empty-board create actions start the intended path."
+    ],
+    "interfaces": [
+      "CardDeletionSnapshot, CardDeletionPreview, readCardDeletionPreview, deleteCard, restoreDeletedCard in src/data/deleteCard.ts",
+      "CaseRepositoryPort.restoreCardDeletion(snapshot)",
+      "useUndoDelete({ repository, onDeleted, onRestored }) -> pending, message, deleteWithUndo, undo, dismiss",
+      "CardListPage({ repository?, loadRepository? }), CardListPanel({ cards, connections?, onEdit, onDelete }), EmptyBoard({ caseId })",
+      "AppRoutes gains cardListRepository/loadCardListRepository and /case/:caseId/list"
+    ],
+    "tests": [
+      "npm test -- tests/case/CardListPanel.test.tsx tests/case/useUndoDelete.test.tsx: 13 passed",
+      "npm run test:e2e -- e2e/keyboard-cards.spec.ts: 3/3 Chromium viewports passed",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: 610 tests, 45 files passed"
+    ],
+    "warnings": [
+      "Browser evidence covers Chromium desktop, tablet, and phone only.",
+      "The keyboard journey restores a seeded connection and attachment through real IndexedDB; the seed uses a browser-evaluate fixture, not pointer input."
+    ],
+    "validationLimitations": [
+      "Human board-feel review is not applicable to this DOM-only task; spatial placement remains pointer-only by design."
+    ]
+  }
+}

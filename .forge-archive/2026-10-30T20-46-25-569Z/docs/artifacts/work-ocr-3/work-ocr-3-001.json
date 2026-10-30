@@ -1,0 +1,56 @@
+{
+  "type": "work.ocr-3",
+  "category": "work",
+  "taskId": "OCR-3",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented OCR-3: OCR text is a bounded, whitespace-normalized search target alongside title and tags, and OCR text/confidence/engineVersion/updatedAt are explicitly preserved through .ndcase manifest export and copy/replace import, with pre-write rejection of invalid or unknown OCR metadata. Verified with 15 focused real-fflate/fake-indexeddb tests, the full 811-test suite, typecheck, lint, formatting, and coverage above the 85% floor for src/domain and src/data.",
+  "inputs": [
+    "work-ocr-2-001",
+    "work-backup-2-001"
+  ],
+  "filesChanged": [
+    "src/features/search/searchCards.ts",
+    "src/features/backup/archiveFormat.ts",
+    "src/features/backup/exportCase.ts",
+    "src/features/backup/importCase.ts",
+    "tests/search/ocrSearch.test.ts",
+    "tests/backup/ocrRoundTrip.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented OCR-3: OCR text is a bounded, whitespace-normalized search target alongside title and tags, and OCR text/confidence/engineVersion/updatedAt are explicitly preserved through .ndcase manifest export and copy/replace import, with pre-write rejection of invalid or unknown OCR metadata. Verified with 15 focused real-fflate/fake-indexeddb tests, the full 811-test suite, typecheck, lint, formatting, and coverage above the 85% floor for src/domain and src/data.",
+    "decisions": [
+      "OCR fields remain optional members of the existing v1 card schema; no database migration or archive format-version bump was introduced.",
+      "Search collapses whitespace in query and OCR text before matching and caps the snippet body at 160 characters.",
+      "Export and import compare the four OCR fields explicitly and fail rather than silently dropping them; import rejects invalid OCR metadata before opening the write transaction."
+    ],
+    "interfaces": [
+      "searchCards exports OCR_SNIPPET_MAX_LENGTH and normalizes whitespace in queries and OCR text; ocrSnippet stays string | null.",
+      "archiveFormat exports ARCHIVE_CARD_OCR_FIELDS, ArchiveCardOcrField, ArchiveCardOcr, readArchiveCardOcr, archiveCardOcrEquals, and assertArchiveCardOcrPreserved.",
+      "buildCaseArchive, importCase, restoreValidatedCaseArchive, and CaseArchiveManifest are unchanged."
+    ],
+    "tests": [
+      "npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/search/ocrSearch.test.ts tests/backup/ocrRoundTrip.test.ts: exit 0, 15 tests passed",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0, 63 files / 811 tests passed",
+      "npm run test:coverage: exit 0; src/domain 97.81% lines, src/data 90.98% lines",
+      "npm run lint and npx prettier --check: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Archive formatVersion remains 1; an older build whose card schema predates OCR would reject archives containing OCR fields. Release documentation should record this compatibility decision.",
+      "When a future OCR field is added, ARCHIVE_CARD_OCR_FIELDS must be updated or the new field will not be guarded by export/import comparisons."
+    ],
+    "validationLimitations": [
+      "No new browser journey was run; search/archive behavior is validated with pure selectors and real fflate archives over fake-indexeddb, while OCR-2 already covers the visible OCR flow."
+    ],
+    "taskDescription": "Update searchCards to match stored OCR text and return a snippet, and update the archive manifest and export/import paths to include OCR text, confidence, engineVersion, and updatedAt. Add tests proving OCR text is searchable without changing card data, survives export/import in both copy and replace modes, and is absent safely when no OCR has run. Do not add new OCR engine behavior or UI."
+  },
+  "nextActions": [],
+  "artifactId": "work-ocr-3-001",
+  "createdAt": "2026-10-26T07:47:17.924Z"
+}

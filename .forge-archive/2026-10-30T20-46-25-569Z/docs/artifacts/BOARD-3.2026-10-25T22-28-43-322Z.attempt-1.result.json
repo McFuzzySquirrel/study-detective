@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T22:28:43.322Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BOARD-3",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/board/CardSprite.ts",
+      "src/board/CardLayer.ts",
+      "src/board/BoardScene.ts",
+      "src/board/useCardGestures.ts",
+      "tests/board/useCardGestures.test.ts",
+      "e2e/board-drag.spec.ts",
+      "src/board/BoardCanvas.tsx",
+      "src/board/boardInput.ts",
+      "src/board/boardStore.ts",
+      "src/board/usePixiApp.ts",
+      "src/features/case/CaseBoardPage.tsx",
+      "tests/board/BoardCanvas.test.tsx",
+      "tests/board/boardStore.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task.\nNow I have a clear picture. Let me implement the board store card-position slice first.\n## Result report\n\n### Task and files\n\n**BOARD-3** — card lift, drag, tap, and persisted positions. Required validation passed:\n- `npm test -- tests/board/useCardGestures.test.ts` → **16/16 pass**\n- `npm run test:e2e -- e2e/board-drag.spec.ts` → **12/12 pass** across desktop, tablet-landscape, and phone\n- Also ran: full unit suite **557 pass**, full Playwright suite **39 pass**, `typecheck`, `lint`, `format:check`, `build`.\n\n**Created**\n- `src/board/CardSprite.ts` — fixed 240×320 card art: pin, type indicator, title, contained photo frame, lift shadow/scale, teardown.\n- `src/board/CardLayer.ts` — reusable card sprites, thumbnail-first/display upgrade, contain layout, 200 px culling, texture cache accounting/release, live drag positions, lift ordering.\n- `src/board/useCardGestures.ts` — DOM gesture state machine: immediate mouse/pen drag, 500 ms touch long press, 6 px tap tolerance, tap-vs-drag split, 300 ms persistence debounce, reduced-motion lift scale.\n- `tests/board/useCardGestures.test.ts` — 16 tests covering hit testing, mouse/touch gestures, debounce, cancellation, reduced motion, listener teardown, persist errors.\n- `e2e/board-drag.spec.ts` — real browser journeys for mouse drag + reload, touch long press + tap, reduced motion, and photo rendering.\n\n**Changed**\n- `src/board/BoardScene.ts` — mounts `CardLayer`, forwards snapshots, camera, live positions, lift, context-loss rebuild, and teardown.\n- `src/board/BoardCanvas.tsx` — wires gestures, store intents, scene previews, tap navigation, and a card-save error toast.\n- `src/board/usePixiApp.ts` — exposes `moveCardPreview` / `setLiftedCard` and redraw requests for async textures.\n- `src/board/boardInput.ts` — card-owned pointers no longer start pan/pinch.\n- `src/board/boardStore.ts` — added `cardPositions`, `liftedCardId`, `liftScale`, hydration/move/lift actions and selectors.\n- `src/features/case/CaseBoardPage.tsx` — loads thumbnail/display object URLs, owns URL revocation, hydrates live positions, serialises final-position writes through `updateCard`, passes `onCardMove`.\n- `tests/board/BoardCanvas.test.tsx` — updated Pixi hook mock surface.\n- `tests/board/boardStore.test.ts` — added live-position/lift slice tests.\n\n### Behaviour exercised\n\n- Mouse drag lifts on pointerdown, moves at pointer rate, and writes only after the **300 ms** debounce. Mid-drag IndexedDB reads stayed at the original position.\n- Touch released under **500 ms** and inside **6 px** opens card detail; a **600 ms** hold lifts and drags; movement over 6 px before 500 ms cancels the lift and never opens detail.\n- Reload restores the stored position; clicking the card at its new position opens detail, proving the scene uses the persisted location.\n- Reduced motion reports and renders lift scale **1.0000** while drag and persistence still work.\n- Photo card paints a stored thumbnail derivative inside the 208×190 frame; sampled paper/photo pixels were above the bright-paper thresholds.\n- Board background pan/zoom, context loss, viewport persistence, and teardown tests still pass unchanged.\n\n### Contracts consumed / exposed\n\n- Snapshot: `BoardSnapshot { caseId, caseTitle, cards: { id, title, type, position, image?: { thumbnailUrl, displayUrl?, thumbnailAttachmentId?, displayAttachmentId? } }[] }`.\n- `BoardCanvas({ snapshot, store?, onCardMove?, onOpenCard? })`; default tap target is `/case/:caseId/card/:cardId`.\n- Scene intents: select, live move preview, lift/drop, open detail. The scene never opens Dexie and imports no feature form.\n- `usePixiApp` now returns `moveCardPreview(cardId, position)` and `setLiftedCard(cardId, scale)`.\n\n### Shared-file notes\n\n- `CaseBoardPage.tsx`: `ui-engineer`/`foundation-engineer` must preserve `onCardMove`, the image-URL lifecycle, card-position hydration, and the existing viewport debounce.\n- `src/app/routes.tsx` was **not** changed; the existing `/case/:caseId/card/:cardId` route is used.\n\n### Bundle and performance\n\n- Initial shell: `index-mqmFMbkm.js` **266.09 kB / 84.60 kB gzip**, no `pixi.js` (only an unrelated React Router “Application Error” string matched).\n- Separate lazy board chunk: `BoardCanvas-C1O2bIWj.js` **327.23 kB / 96.99 kB gzip**, with PixiJS graphics/render chunks.\n- Card drags update the scene directly and the store per pointer event; no React render is required for the moving card. The 45 FPS tablet target was **not** measured here and still needs human tablet verification (BOARD-4/QA owns the FPS harness).\n\n**Non-blocking notes:** `docs/EXECUTION-AUDIT.jsonl` has a pre-existing engine-generated modification not authored or touched. Playwright evidence is Chromium-based across the three projects.\n\n```forge-result\n{\"summary\":\"BOARD-3 implemented CardSprite, CardLayer, gesture disambiguation, live board-store positions, thumbnail-first photo rendering, and 300 ms final-position persistence; required unit and Playwright checks pass.\",\"unresolved\":[],\"decisions\":[\"Touch lifts only after a 500 ms hold with a 6 px pre-lift tolerance; mouse and pen drag immediately and a no-movement release opens detail.\",\"Card drags update the board store and Pixi scene per pointer event, while only the debounced final position reaches the repository.\",\"Thumbnail and display derivatives decode from page-owned object URLs through Image/Texture rather than Pixi Assets because blob URLs have no extension.\",\"Card layer keeps one visible derivative per card after upgrade and reconciles cache evictions when cards return onscreen.\"],\"interfaces\":[\"BoardSnapshot card image { thumbnailUrl, displayUrl?, thumbnailAttachmentId?, displayAttachmentId? }\",\"BoardCanvas({ snapshot, store?, onCardMove?, onOpenCard? })\",\"usePixiApp returns moveCardPreview(cardId, position) and setLiftedCard(cardId, scale)\",\"boardStore cardPositions, liftedCardId, liftScale with hydrateCardPositions/setCardPosition/setLiftedCard\"],\"tests\":[\"npm test -- tests/board/useCardGestures.test.ts: 16 passed\",\"npm run test:e2e -- e2e/board-drag.spec.ts: 12 passed\",\"npm test: 557 passed\",\"npm run test:e2e: 39 passed\",\"npm run typecheck, lint, format:check, build: passed\"],\"warnings\":[\"Tablet 45 FPS remains a human-review target; no app-level FPS harness was run in this task.\",\"docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification not touched here.\",\"Browser evidence is Chromium-based across desktop, tablet, and phone projects.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 1297988
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/board/useCardGestures.test.ts: exit 0 (engine-verified)",
+        "npm run test:e2e -- e2e/board-drag.spec.ts: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "BOARD-3 implemented CardSprite, CardLayer, gesture disambiguation, live board-store positions, thumbnail-first photo rendering, and 300 ms final-position persistence; required unit and Playwright checks pass.",
+    "unresolved": [],
+    "decisions": [
+      "Touch lifts only after a 500 ms hold with a 6 px pre-lift tolerance; mouse and pen drag immediately and a no-movement release opens detail.",
+      "Card drags update the board store and Pixi scene per pointer event, while only the debounced final position reaches the repository.",
+      "Thumbnail and display derivatives decode from page-owned object URLs through Image/Texture rather than Pixi Assets because blob URLs have no extension.",
+      "Card layer keeps one visible derivative per card after upgrade and reconciles cache evictions when cards return onscreen."
+    ],
+    "interfaces": [
+      "BoardSnapshot card image { thumbnailUrl, displayUrl?, thumbnailAttachmentId?, displayAttachmentId? }",
+      "BoardCanvas({ snapshot, store?, onCardMove?, onOpenCard? })",
+      "usePixiApp returns moveCardPreview(cardId, position) and setLiftedCard(cardId, scale)",
+      "boardStore cardPositions, liftedCardId, liftScale with hydrateCardPositions/setCardPosition/setLiftedCard"
+    ],
+    "tests": [
+      "npm test -- tests/board/useCardGestures.test.ts: 16 passed",
+      "npm run test:e2e -- e2e/board-drag.spec.ts: 12 passed",
+      "npm test: 557 passed",
+      "npm run test:e2e: 39 passed",
+      "npm run typecheck, lint, format:check, build: passed"
+    ],
+    "warnings": [
+      "Tablet 45 FPS remains a human-review target; no app-level FPS harness was run in this task.",
+      "docs/EXECUTION-AUDIT.jsonl has a pre-existing engine-generated modification not touched here.",
+      "Browser evidence is Chromium-based across desktop, tablet, and phone projects."
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "type": "work.backup-2",
+  "category": "work",
+  "taskId": "BACKUP-2",
+  "producedBy": "data-engineer",
+  "status": "complete",
+  "summary": "Implemented BACKUP-2 validated copy and replace restore with pre-write ZIP/path/size/version/checksum validation, atomic ID-remapping restore, transactional replace confirmation, rollback tests, and 32 passing real-archive/fake-indexeddb tests.",
+  "inputs": [
+    "work-backup-1-001"
+  ],
+  "filesChanged": [
+    "src/features/backup/importValidation.ts",
+    "src/features/backup/importCase.ts",
+    "tests/backup/importCase.test.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented BACKUP-2 validated copy and replace restore with pre-write ZIP/path/size/version/checksum validation, atomic ID-remapping restore, transactional replace confirmation, rollback tests, and 32 passing real-archive/fake-indexeddb tests.",
+    "decisions": [
+      "ZIP central-directory parsing rejects duplicate names, local/central header mismatches, ZIP64, encryption, and size ceilings before decompression; fflate then decompresses and SHA-256 is verified against the exact bytes.",
+      "Copy restore allocates fresh case, card, connection, and attachment IDs and recomputes every pairKey; replace restore keeps the confirmed target case ID, allocates fresh child IDs, and deletes plus writes in one transaction.",
+      "Unreferenced image entries are rejected and the default supported dbSchemaVersion is exactly the open database version, which is stricter than the minimum requirement.",
+      "importCase always validates; restoreValidatedCaseArchive is a documented fast path that trusts the output of validateCaseArchive and does not rehash."
+    ],
+    "interfaces": [
+      "validateCaseArchive(input: Uint8Array | ArrayBuffer | Blob, options?: { digest?, supportedDbSchemaVersions? }): Promise<ValidatedCaseArchive>",
+      "inspectCaseArchive(input, options?): Promise<{ archive: ValidatedCaseArchive; summary: CaseArchiveSummary }>",
+      "importCase(input, options: { db, mode?, replaceCaseId?, confirmTitle?, idFactory?, digest?, supportedDbSchemaVersions? }): Promise<RestoreCaseResult>",
+      "importCaseArchive: alias of importCase",
+      "restoreValidatedCaseArchive(archive, options): Promise<RestoreCaseResult>",
+      "ArchiveImportError { stage: 'reading'|'structure'|'integrity'|'writing'; failure: ArchiveImportFailure; cause }",
+      "RestoreCaseResult { caseId, mode, title, cardCount, connectionCount, attachmentCount, exportedAt, summary }"
+    ],
+    "tests": [
+      "npm test -- tests/backup/importCase.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/backup/importCase.test.ts: exit 0 (32 passed)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (524 passed)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run test:coverage: src/domain 96.73% lines, src/data 94.8% lines"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "restoreValidatedCaseArchive does not rehash images; call it only with a ValidatedCaseArchive produced by validateCaseArchive or inspectCaseArchive.",
+      "Replace restore keeps the caller-confirmed target case ID and generates fresh card, connection, and attachment IDs; callers should navigate to the returned caseId.",
+      "Only the exact current dbSchemaVersion is supported by default; importing an older schema requires an explicit migration or supportedDbSchemaVersions entry.",
+      "Archives containing unreferenced images, non-UTF-8 entry names, or legacy CP437 names are rejected.",
+      "A pre-existing modification to docs/EXECUTION-AUDIT.jsonl was left untouched."
+    ],
+    "validationLimitations": [
+      "Tests use Node with fake-indexeddb and real fflate archives; no browser File System Access or real File input journey was run (BACKUP-4 owns that)."
+    ],
+    "taskDescription": "Create importValidation.ts to parse a ZIP, reject unsafe or duplicate paths, enforce at most 500 entries, 250 MB total, 50 MB per entry, require manifest.json, validate the manifest with Zod, check formatVersion and dbSchemaVersion, verify every SHA-256, and require every referenced image. Create importCase.ts with copy mode remapping every case, card, connection, and attachment ID, and replace mode that deletes the existing case and writes the archive in one transaction. Validate and verify everything before the write. Add tests for valid copy, ID remapping, missing/corrupt image, bad checksum, traversal, absolute path, duplicate entry, too many entries, oversized entry, unsupported version, and mid-write rollback."
+  },
+  "nextActions": [],
+  "artifactId": "work-backup-2-001",
+  "createdAt": "2026-10-25T21:55:00.622Z"
+}

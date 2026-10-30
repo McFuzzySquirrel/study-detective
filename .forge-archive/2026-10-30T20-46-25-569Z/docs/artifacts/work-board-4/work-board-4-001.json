@@ -1,0 +1,77 @@
+{
+  "type": "work.board-4",
+  "category": "work",
+  "taskId": "BOARD-4",
+  "producedBy": "board-engineer",
+  "status": "complete",
+  "summary": "BOARD-4 implemented fit-to-view, minimap tap/drag navigation, 200px-margin culling, delayed offscreen texture release, and the shared 120/150/200-card capacity guard across the board and capture routes; required tests, typecheck, lint, full suite, and build pass.",
+  "inputs": [
+    "work-board-3-002",
+    "work-board-1-001",
+    "work-board-2-001"
+  ],
+  "filesChanged": [
+    "src/board/Minimap.tsx",
+    "src/board/useCulling.ts",
+    "src/board/FitToViewButton.tsx",
+    "src/features/case/ScaleWarning.tsx",
+    "src/features/capture/CapturePage.tsx",
+    "src/board/textureCache.ts",
+    "src/features/case/CaseBoardPage.tsx",
+    "tests/board/Minimap.test.tsx",
+    "tests/board/culling.test.ts",
+    "tests/case/ScaleWarning.test.tsx",
+    "src/board/BoardCanvas.css",
+    "src/board/BoardCanvas.tsx",
+    "src/board/CardLayer.ts",
+    "src/board/CardSprite.ts",
+    "tests/board/BoardCanvas.test.tsx",
+    "src/board/boardCapacity.ts",
+    "src/board/fitToView.ts",
+    "src/features/case/ScaleWarning.css",
+    "tests/board/FitToViewButton.test.tsx"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "BOARD-4 implemented fit-to-view, minimap tap/drag navigation, 200px-margin culling, delayed offscreen texture release, and the shared 120/150/200-card capacity guard across the board and capture routes; required tests, typecheck, lint, full suite, and build pass.",
+    "decisions": [
+      "Fit and minimap navigation use existing board-store temporary/movement intents, so fit never persists a camera and minimap navigation does.",
+      "The minimap is DOM/SVG over the same pure viewport projection helpers rather than a second Pixi scene.",
+      "Culling margin is screen-space and divided by zoom when converted to world units; CardLayer and useCulling share one pure implementation.",
+      "Offscreen card images are released after DEFAULT_OFFSCREEN_RELEASE_MS by CardLayer, with timers cleared on delete and destroy."
+    ],
+    "interfaces": [
+      "boardCapacity.ts: SOFT_WARNING_CARD_COUNT=120, PERSISTENT_WARNING_CARD_COUNT=150, MAX_BOARD_CARDS=200, boardCapacityLevel, canAddCard, remainingCardCapacity, SPLIT_CASE_MESSAGE",
+      "useCulling(cards, viewport, size, options) and pure computeCullingWindow/filterVisibleCards/cullCardIds/rectsIntersect",
+      "FitToViewButton({ positions, viewportSize, store?, onFit? }) plus computeFitToCardsViewport in fitToView.ts",
+      "Minimap({ cards, viewport, viewportSize, store?, onNavigate? })",
+      "ScaleWarning({ cardCount })",
+      "BoardCanvas gains cardLimitReached; CaseBoardPage passes it and renders ScaleWarning",
+      "BoardSnapshot/intents unchanged; CardLayer still reads the plain snapshot and emits no storage writes"
+    ],
+    "tests": [
+      "npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/ScaleWarning.test.tsx: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/board/Minimap.test.tsx tests/board/culling.test.ts tests/case/ScaleWarning.test.tsx: exit 0 (21 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm test: exit 0 (597 tests)",
+      "npm run build: exit 0; separate BoardCanvas chunk and clean initial shell confirmed"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "The tablet 45 FPS floor was not measured in this task; culling and texture release are implemented but real-tablet feel still needs human verification.",
+      "The 150-card fixture proves culling returns 12 cards at 1000x800/scale 1.0, but a headless FPS harness is still QA scope."
+    ],
+    "validationLimitations": [
+      "The pre-existing e2e/board.spec.ts pan/zoom pointer-anchor assertion fails by about 0.166 CSS px in this environment even after removing this task's Fit/Minimap controls and rebuilding; the phone run of that test also timed out. It is not one of BOARD-4's required validation commands.",
+      "e2e/board-drag.spec.ts passed for mouse and touch drag, tap, persistence, and context recovery in the combined run.",
+      "Browser evidence covers Chromium-based projects only."
+    ],
+    "taskDescription": "Build FitToViewButton, Minimap, useCulling, ScaleWarning, texture-cache eviction, and a shared board-capacity guard. Fit calculates bounds with padding. The minimap projects cards and the viewport, supports tap and drag navigation, and collapses on phone. Culling renders only visible cards plus a 200px margin. The texture cache keeps at most 200 resident textures and releases offscreen textures after a short delay. Show a dismissible soft warning at 120 cards, a persistent warning at 150, and a hard stop at 200 with a split-case message. Apply the same 200-card guard to the capture route so a direct URL cannot bypass it. Add unit and component tests with synthetic 150-card data and a guard test at 199 and 200."
+  },
+  "nextActions": [],
+  "artifactId": "work-board-4-001",
+  "createdAt": "2026-10-26T04:25:51.975Z"
+}

@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-26T05:18:11.800Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "LINK-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/domain/connections.ts",
+      "src/data/connectionRepository.ts",
+      "tests/domain/connections.test.ts",
+      "tests/data/connectionRepository.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file for LINK-1.\nNow I have the full picture. Let me create the domain connection rules module.\nNow the domain tests.\nI need to raise per-file line coverage above the 85% floor. Let me add edge-case tests for the uncovered branches.\n## LINK-1 Result Report\n\n### Files created\n\n| File | Purpose |\n|---|---|\n| `src/domain/connections.ts` | Unordered pair rules, duplicate/self-link rejection, cascade plans, dangling-endpoint detection, and connection-rule re-exports |\n| `src/data/connectionRepository.ts` | Dexie `ConnectionRepository`, `ConnectionRepositoryPort`, duplicate-return semantics, retype/delete/restore, strict reads, cascade-by-card, and `InMemoryConnectionRepository` |\n| `tests/domain/connections.test.ts` | Domain rule and cascade-plan coverage |\n| `tests/data/connectionRepository.test.ts` | fake-indexeddb uniqueness, validation, retype, cascade, rollback, strict-read, restore, and in-memory parity coverage |\n\nNo schema migration was required. The v1 `connections` table already enforces `&pairKey` and `&[caseId+pairKey]`; LINK-1 exercises that index and relies on it as the race backstop.\n\n### API handed off\n\n- `ConnectionRepositoryPort`: `create(input)`, `retype(id, type)`, `restore(connection)`, `delete(id)`, `listByCase(caseId)`, `listByCard(cardId)`, `deleteByCard(cardId)`.\n- `create` returns `{ status: 'created', connection }` or `{ status: 'duplicate', connection }` so LINK-3 can select the existing string instead of creating another.\n- `DuplicateConnectionError.existingConnectionId`, `assertConnectionPairAvailable`, `findConnectionForPair`, `isConnectionForPair`, `planConnectionCascade`, `missingConnectionEndpoints`, `findDanglingConnections`.\n- `new ConnectionRepository(db, { clock?, idFactory? })` and `new InMemoryConnectionRepository({ cards, connections?, idFactory? })`.\n\n### Invariants and failure evidence\n\n- A-B then B-A returns the existing connection and leaves exactly one row.\n- Self-links are rejected before a write in both repositories.\n- Provenance succeeds for note/source in either orientation and fails for note/topic, note/note, source/topic.\n- Retyping changes only `type`; ID and pair key are preserved. Invalid provenance retype leaves the association unchanged.\n- Card deletion through `CaseRepository.deleteCard` removes both orientations and leaves no dangling endpoint.\n- Injected `db.cases.put` failure during connection creation rolled back the inserted connection; case `updatedAt` stayed unchanged.\n- Injected `db.connections.bulkDelete` failure during card deletion rolled back the card and both connections.\n- Reads reject malformed rows, dangling endpoints, and cross-case endpoints with `StorageReadError`.\n\n### Validation evidence\n\n- `npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts` → **41 passed**\n- `npm run typecheck` → **exit 0**\n- Full suite → **47 files, 651 tests passed**\n- `npm run lint` → **exit 0**\n- Coverage: `src/domain` **97.28% lines**, `src/data` **90.93% lines**; `connections.ts` **100% statements/branches/functions**, `connectionRepository.ts` **94.65% lines**.\n\n### Handoff notes\n\n- LINK-3/LINK-4 should read strings through `ConnectionRepository.listByCase`/`listByCard`; `CaseRepository.listConnections` deliberately remains tolerant of corrupt child rows so deletion can still remove them.\n- `restore` is provided for LINK-4’s connection undo and preserves the original ID.\n- The in-memory fake does not maintain case `updatedAt`; use `InMemoryCaseRepository` when that timestamp matters.\n- The unique-index race fallback and internal pair-lookup fallback are implemented but not directly exercised; normal duplicate and rollback paths are covered.\n\n```forge-result\n{\"summary\":\"Implemented LINK-1 connection domain rules and both Dexie and in-memory repositories with duplicate/self-link/provenance validation, unique pair enforcement, strict reads, retype, cascade, restore, and rollback tests; required test and typecheck commands pass.\",\"unresolved\":[],\"decisions\":[\"Duplicate create returns the existing connection with status 'duplicate' so LINK-3 can select it rather than surfacing an error.\",\"ConnectionRepository owns strict connection reads; CaseRepository.listConnections stays tolerant of corrupt children so card deletion cannot be trapped.\",\"The v1 unique pairKey index remains the race backstop; no migration was added.\"],\"interfaces\":[\"ConnectionRepositoryPort.create(input): Promise<{status:'created'|'duplicate'; connection: ConnectionRecord}>\",\"ConnectionRepositoryPort.retype(connectionId, type): Promise<ConnectionRecord>\",\"ConnectionRepositoryPort.restore(connection): Promise<ConnectionRecord>\",\"ConnectionRepositoryPort.delete(connectionId): Promise<boolean>\",\"ConnectionRepositoryPort.listByCase(caseId): Promise<ConnectionRecord[]>\",\"ConnectionRepositoryPort.listByCard(cardId): Promise<ConnectionRecord[]>\",\"ConnectionRepositoryPort.deleteByCard(cardId): Promise<number>\",\"InMemoryConnectionRepository({ cards, connections?, idFactory? })\",\"findConnectionForPair, assertConnectionPairAvailable, planConnectionCascade, findDanglingConnections, missingConnectionEndpoints, DuplicateConnectionError\"],\"tests\":[\"npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts: 41 passed\",\"npm run typecheck: exit 0\",\"npm test: 47 files / 651 tests passed\",\"npm run lint: exit 0\"],\"warnings\":[\"LINK-3/LINK-4 must use ConnectionRepository for strict string reads; CaseRepository.listConnections intentionally does not re-check endpoints.\",\"The in-memory connection fake does not track case updatedAt.\"],\"validationLimitations\":[\"Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.\",\"No browser or visual board behavior is in scope for LINK-1.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 714622
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented LINK-1 connection domain rules and both Dexie and in-memory repositories with duplicate/self-link/provenance validation, unique pair enforcement, strict reads, retype, cascade, restore, and rollback tests; required test and typecheck commands pass.",
+    "unresolved": [],
+    "decisions": [
+      "Duplicate create returns the existing connection with status 'duplicate' so LINK-3 can select it rather than surfacing an error.",
+      "ConnectionRepository owns strict connection reads; CaseRepository.listConnections stays tolerant of corrupt children so card deletion cannot be trapped.",
+      "The v1 unique pairKey index remains the race backstop; no migration was added."
+    ],
+    "interfaces": [
+      "ConnectionRepositoryPort.create(input): Promise<{status:'created'|'duplicate'; connection: ConnectionRecord}>",
+      "ConnectionRepositoryPort.retype(connectionId, type): Promise<ConnectionRecord>",
+      "ConnectionRepositoryPort.restore(connection): Promise<ConnectionRecord>",
+      "ConnectionRepositoryPort.delete(connectionId): Promise<boolean>",
+      "ConnectionRepositoryPort.listByCase(caseId): Promise<ConnectionRecord[]>",
+      "ConnectionRepositoryPort.listByCard(cardId): Promise<ConnectionRecord[]>",
+      "ConnectionRepositoryPort.deleteByCard(cardId): Promise<number>",
+      "InMemoryConnectionRepository({ cards, connections?, idFactory? })",
+      "findConnectionForPair, assertConnectionPairAvailable, planConnectionCascade, findDanglingConnections, missingConnectionEndpoints, DuplicateConnectionError"
+    ],
+    "tests": [
+      "npm test -- tests/domain/connections.test.ts tests/data/connectionRepository.test.ts: 41 passed",
+      "npm run typecheck: exit 0",
+      "npm test: 47 files / 651 tests passed",
+      "npm run lint: exit 0"
+    ],
+    "warnings": [
+      "LINK-3/LINK-4 must use ConnectionRepository for strict string reads; CaseRepository.listConnections intentionally does not re-check endpoints.",
+      "The in-memory connection fake does not track case updatedAt."
+    ],
+    "validationLimitations": [
+      "Unique-index race fallback and the internal constraint-recovery lookup are implemented but not directly exercised.",
+      "No browser or visual board behavior is in scope for LINK-1."
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "work.link-hr-1",
+  "category": "work",
+  "taskId": "LINK-HR-1",
+  "producedBy": "human-reviewer",
+  "status": "complete",
+  "summary": "Operator evidence verified for Review board, pin, and string feel on tablet and desktop",
+  "filesChanged": [
+    "docs/reviews/board-feel.json"
+  ],
+  "inputs": [],
+  "payload": {
+    "reviewFile": "docs/reviews/board-feel.json"
+  },
+  "nextActions": [],
+  "artifactId": "work-link-hr-1-001",
+  "createdAt": "2026-10-26T16:33:22.717Z"
+}

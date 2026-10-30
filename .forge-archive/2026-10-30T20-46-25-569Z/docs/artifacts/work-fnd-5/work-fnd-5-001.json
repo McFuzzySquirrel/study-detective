@@ -1,0 +1,66 @@
+{
+  "type": "work.fnd-5",
+  "category": "work",
+  "taskId": "FND-5",
+  "producedBy": "ui-engineer",
+  "status": "complete",
+  "summary": "Implemented locked Midnight Archive tokens, base styles, Button/IconButton/Dialog/Toast/Field/EmptyState primitives, token contrast and keyboard/focus test suites; all required tests, typecheck, and lint pass.",
+  "inputs": [
+    "work-fnd-3-001",
+    "work-fnd-hr-1-001",
+    "work-fnd-4-001"
+  ],
+  "filesChanged": [
+    "src/styles/tokens.css",
+    "src/styles/base.css",
+    "src/components/Button.tsx",
+    "src/components/IconButton.tsx",
+    "src/components/Dialog.tsx",
+    "src/components/Toast.tsx",
+    "src/components/Field.tsx",
+    "src/components/EmptyState.tsx",
+    "src/components/components.css",
+    "tests/components/primitives.test.tsx",
+    "tests/styles/tokens.test.ts",
+    "package-lock.json",
+    "package.json",
+    "src/app/AppShell.css",
+    "src/app/UpdatePrompt.css",
+    "tests/helpers/css-contract.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented locked Midnight Archive tokens, base styles, Button/IconButton/Dialog/Toast/Field/EmptyState primitives, token contrast and keyboard/focus test suites; all required tests, typecheck, and lint pass.",
+    "decisions": [
+      "Applied Direction B (Midnight Archive) as the single dark theme with period headings limited to headings and case-file chrome.",
+      "Used a render-prop Field API so input/textarea/select keeps correct label, hint, and error wiring without duplicating ID logic.",
+      "Kept Toast timers in feature owners while the primitive always renders a polite live region and optional keyboard-operable action."
+    ],
+    "interfaces": [
+      "Dialog: open, onClose, title, description, children, actions, size, dismissible, closeOnBackdrop, initialFocusRef, returnFocusRef.",
+      "Toast: message (nullable to keep the live region mounted), tone, actionLabel/onAction, onDismiss.",
+      "Field: label, hint, error, required and a render-prop control props object."
+    ],
+    "tests": [
+      "npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts: exit 0 (engine-verified)",
+      "npm run typecheck: exit 0 (engine-verified)",
+      "npm run lint: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/components/primitives.test.tsx tests/styles/tokens.test.ts: exit 0, 66/66",
+      "npm test: exit 0, 98/98",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0",
+      "npm run build: exit 0"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains an engine-generated change I did not author.",
+      "No Playwright viewport evidence was required or run for this task."
+    ],
+    "validationLimitations": [],
+    "taskDescription": "Apply the chosen visual direction as semantic CSS custom properties in src/styles/tokens.css and update base.css. Add Button, IconButton, Dialog, Toast, Field, and EmptyState with variants needed by later features. Enforce 44x44 targets, visible focus rings, dialog focus trapping and restoration, toast aria-live, label and error associations in Field, and reduced-motion fallbacks. Add a token contract test that rejects low-contrast body/control pairs and a component test suite for keyboard and focus behavior. Do not add feature-specific components or Pixi styles."
+  },
+  "nextActions": [],
+  "artifactId": "work-fnd-5-001",
+  "createdAt": "2026-10-25T20:02:32.366Z"
+}

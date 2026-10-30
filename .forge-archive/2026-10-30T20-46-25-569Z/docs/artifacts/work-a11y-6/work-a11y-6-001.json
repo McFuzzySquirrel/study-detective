@@ -1,0 +1,67 @@
+{
+  "type": "work.a11y-6",
+  "category": "work",
+  "taskId": "A11Y-6",
+  "producedBy": "qa-engineer",
+  "status": "complete",
+  "summary": "Implemented A11Y-6: capability notice with specific missing-API messages, README support matrix link, session dismissal, Firefox/WebKit Playwright smoke projects, and a real cross-browser compat journey. All required commands pass: 12/12 notice tests, 5/5 compat E2E across Chromium desktop/tablet/phone, Firefox, and WebKit, full 1134-test suite, typecheck, and lint.",
+  "inputs": [
+    "work-a11y-5-001",
+    "work-a11y-1-001",
+    "work-a11y-2-001",
+    "work-a11y-3-001"
+  ],
+  "filesChanged": [
+    "src/app/BrowserNotice.tsx",
+    "src/app/App.tsx",
+    "playwright.config.ts",
+    "e2e/compat.spec.ts",
+    "tests/app/BrowserNotice.test.tsx",
+    "README.md",
+    "src/App.tsx",
+    "src/app/AppShell.css",
+    "src/main.tsx",
+    "tests/pwa/manifest.test.ts",
+    "src/app/browserSupport.ts"
+  ],
+  "payload": {
+    "agentOutputExcerpt": "Implemented A11Y-6: capability notice with specific missing-API messages, README support matrix link, session dismissal, Firefox/WebKit Playwright smoke projects, and a real cross-browser compat journey. All required commands pass: 12/12 notice tests, 5/5 compat E2E across Chromium desktop/tablet/phone, Firefox, and WebKit, full 1134-test suite, typecheck, and lint.",
+    "decisions": [
+      "Made src/app/App.tsx the canonical composition root to satisfy the task's expected output path, keeping src/App.tsx as a compatibility re-export and updating the PWA source-contract test.",
+      "Feature-detection reads injected environment globals without writing storage or registering workers, so it is safe before first render.",
+      "WebKit compat runs through a persistent profile because Playwright WebKit ephemeral sessions cannot persist Blob/File values in IndexedDB; the production seed and storage path are unchanged."
+    ],
+    "interfaces": [
+      "BrowserNotice({ environment? }) renders a non-blocking labelled section with role=status message list, README support-matrix link, and session dismiss button.",
+      "browserSupport exports CoreApiKey, CoreApiSupport, CoreApiEnvironment, CoreApiNotice, CORE_API_NOTICES, SUPPORT_MATRIX_URL, and supportsCoreApis().",
+      "playwright.config.ts adds firefox and webkit projects limited to compat.spec.ts at 1440x900."
+    ],
+    "tests": [
+      "npm test -- tests/app/BrowserNotice.test.tsx: exit 0 (engine-verified)",
+      "npx playwright install firefox webkit: exit 0 (engine-verified)",
+      "npm run test:e2e -- e2e/compat.spec.ts: exit 0 (engine-verified)"
+    ],
+    "agentReportedTests": [
+      "npm test -- tests/app/BrowserNotice.test.tsx: exit 0 (12 tests)",
+      "npx playwright install firefox webkit: exit 0",
+      "npm run test:e2e -- e2e/compat.spec.ts: exit 0 (5 projects, 5 passed)",
+      "npm test: exit 0 (86 files, 1134 tests)",
+      "npm run typecheck: exit 0",
+      "npm run lint: exit 0 (3 pre-existing warnings)"
+    ],
+    "unresolved": [],
+    "warnings": [
+      "Firefox and WebKit remain smoke-only by documented decision, not full journey/axe/performance matrices.",
+      "Missing-API behavior is component-tested; supported browsers are additionally verified in real E2E.",
+      "WebKit E2E uses a persistent profile to work around Playwright's ephemeral-session IndexedDB Blob/File limitation."
+    ],
+    "validationLimitations": [
+      "Screen-reader announcement and visual notice treatment remain human review items.",
+      "Tablet FPS and final field acceptance remain human gates."
+    ],
+    "taskDescription": "Create BrowserNotice and a supportsCoreApis helper for IndexedDB, Web Workers, WebAssembly, and service workers. Mount it in App.tsx as a non-blocking banner that names the reduced capability and links to the support matrix in README. Add firefox and webkit projects to playwright.config.ts alongside the existing Chromium projects. Add e2e/compat.spec.ts to smoke the shelf, demo case, board, search, and settings in Chromium, Firefox, and WebKit without a crash. Add component tests for each missing API and the no-warning path. Do not add new product features."
+  },
+  "nextActions": [],
+  "artifactId": "work-a11y-6-001",
+  "createdAt": "2026-10-26T20:48:40.598Z"
+}

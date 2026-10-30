@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T20:37:11.064Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "DATA-4",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/data/persistence.ts",
+      "src/data/storageEstimate.ts",
+      "src/data/useBroadcastSync.ts",
+      "src/features/shelf/StorageStatus.tsx",
+      "src/features/shelf/CaseFormDialog.tsx",
+      "src/features/shelf/CaseShelf.tsx",
+      "tests/data/persistence.test.ts",
+      "tests/data/storageEstimate.test.ts",
+      "tests/data/useBroadcastSync.test.tsx",
+      "tests/shelf/StorageStatus.test.tsx",
+      "src/features/shelf/CaseShelfPage.tsx",
+      "src/features/shelf/shelf.css",
+      "src/features/shelf/useBroadcastSync.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task.\nNow I have the full context. Let me create the persistence and storage estimate modules.\nNow let me write the test suites.\nThe full suite caught the existing data-layer boundary test: `src/data` must not import React. I'll split the pure broadcast channel (in `src/data/useBroadcastSync.ts`) from the React adapter (feature-level), keeping both the boundary and the hook contract intact.\nAll 262 tests pass. Let me run the exact required validation commands on the final tree, plus coverage and a production build for handoff evidence.\nLet me harden one race: a remote refresh that started before a local commit must not overwrite the newer persisted summary.\nImplemented DATA-4.\n\n## What changed\n\n- Added `src/data/persistence.ts` — reads `navigator.storage.persisted()`, requests persistence once per `PersistenceClient`, and maps granted/denied/unsupported/thrown paths to `persistent` or `best-effort` without throwing.\n- Added `src/data/storageEstimate.ts` — reads `navigator.storage.estimate()`, derives usage/quota/ratio/percentage, warns strictly above 80%, safely handles invalid/zero/missing estimates, and formats byte counts.\n- Added `src/data/useBroadcastSync.ts` — renderer-neutral BroadcastChannel event schema, payload validation, channel wrapper, echo suppression, and close/unsubscribe lifecycle. No React or network access.\n- Added `src/features/shelf/useBroadcastSync.ts` — the React hook adapter, deliberately outside `src/data` because the existing data-layer boundary test forbids React there. It leaves the pure sync module at the expected `src/data/useBroadcastSync.ts` path.\n- Added `src/features/shelf/StorageStatus.tsx` — persistent/best-effort badge, usage/quota/percentage, accessible progress meter, >80% warning, unsupported-API fallback, and a `backupAction` slot.\n- Updated `CaseShelfPage.tsx` — loads persistence/estimate state, requests persistence on first case creation only, broadcasts committed creates/updates, re-reads the repository on remote mutations, cancels stale in-flight refreshes after a newer local write, and never touches dialog draft state.\n- Updated `CaseShelf.tsx`/`shelf.css` — renders the storage strip above the grid and styles it with existing tokens.\n- Added 26 tests across the four required test files.\n\n## Validation evidence\n\n- Required test command: **26 passed** across 4 files.\n- `npm run typecheck`: **pass**\n- `npm run lint`: **pass**\n- `npm run format:check`: **pass**\n- `npm test`: **262 passed** across 19 files.\n- `npm run build`: **pass**\n- `npm run test:coverage`: `src/data` **94.56% lines**, `src/domain` **97.95% lines**, overall **92.41% lines**.\n\nFailure paths exercised: granted/denied/rejected/unsupported persistence, rejected and invalid storage estimates, malformed or self-sourced broadcast events, unsupported BroadcastChannel, remote invalidation with an open form draft, and stale remote refresh suppression after a newer local write.\n\n## Files created\n\n- `src/data/persistence.ts`\n- `src/data/storageEstimate.ts`\n- `src/data/useBroadcastSync.ts`\n- `src/features/shelf/StorageStatus.tsx`\n- `src/features/shelf/useBroadcastSync.ts`\n- `tests/data/persistence.test.ts`\n- `tests/data/storageEstimate.test.ts`\n- `tests/data/useBroadcastSync.test.tsx`\n- `tests/shelf/StorageStatus.test.tsx`\n\n## Files changed\n\n- `src/features/shelf/CaseShelf.tsx`\n- `src/features/shelf/CaseShelfPage.tsx`\n- `src/features/shelf/shelf.css`\n\n## Handoff interfaces\n\n- `createPersistenceClient(storage?): PersistenceClient` with `read()`, `request()`, `snapshot()`.\n- `readPersistenceState(storage?)`, `requestPersistentStorage(storage?)`, `PersistenceResult`.\n- `readStorageEstimate(storage?)`, `summarizeStorageEstimate(estimate)`, `formatStorageBytes(bytes)`, `StorageEstimateSnapshot`.\n- `useBroadcastSync({ onMutation, channelName?, createChannel? })` from `src/features/shelf/useBroadcastSync`; returns `{ broadcastMutation(caseId, mutation) }`.\n- `StorageStatusProps { persistence, estimate, backupAction? }`.\n\n```forge-result\n{\"summary\":\"Implemented persistent-storage requests, usage/quota warnings, and cross-tab case invalidation; required tests, typecheck, full suite, lint, formatting, coverage, and build pass.\",\"unresolved\":[],\"decisions\":[\"The pure BroadcastChannel/event layer stays in src/data/useBroadcastSync.ts to preserve the data-layer no-React boundary; the React hook lives in src/features/shelf/useBroadcastSync.ts.\",\"Persistence is requested only after the first successful case creation and cached once per PersistenceClient.\",\"Remote mutations trigger an authoritative repository re-read; dialog state is untouched so unsaved drafts survive, and local writes invalidate stale in-flight remote refreshes.\",\"StorageStatus exposes a backupAction slot but does not implement backup export/import, which remains out of scope.\"],\"interfaces\":[\"PersistenceClient.read()/request()/snapshot(); readPersistenceState(), requestPersistentStorage(), PersistenceResult.\",\"readStorageEstimate(), summarizeStorageEstimate(), formatStorageBytes(), StorageEstimateSnapshot.\",\"useBroadcastSync({ onMutation, channelName?, createChannel? }) from src/features/shelf/useBroadcastSync returns { broadcastMutation(caseId, mutation) }.\",\"StorageStatus({ persistence, estimate, backupAction? }).\"],\"tests\":[\"npm test -- tests/data/persistence.test.ts tests/data/storageEstimate.test.ts tests/data/useBroadcastSync.test.tsx tests/shelf/StorageStatus.test.tsx: exit 0 (26 tests)\",\"npm run typecheck: exit 0\",\"npm test: exit 0 (262 tests)\",\"npm run lint: exit 0\",\"npm run format:check: exit 0\",\"npm run build: exit 0\",\"npm run test:coverage: exit 0; src/data 94.56% lines, src/domain 97.95% lines\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.\",\"Storage and BroadcastChannel tests use injected structural fakes in jsdom; real browser eviction/BroadcastChannel behavior is not exercised here.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 544895
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/data/persistence.test.ts tests/data/storageEstimate.test.ts tests/data/useBroadcastSync.test.tsx tests/shelf/StorageStatus.test.tsx: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented persistent-storage requests, usage/quota warnings, and cross-tab case invalidation; required tests, typecheck, full suite, lint, formatting, coverage, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "The pure BroadcastChannel/event layer stays in src/data/useBroadcastSync.ts to preserve the data-layer no-React boundary; the React hook lives in src/features/shelf/useBroadcastSync.ts.",
+      "Persistence is requested only after the first successful case creation and cached once per PersistenceClient.",
+      "Remote mutations trigger an authoritative repository re-read; dialog state is untouched so unsaved drafts survive, and local writes invalidate stale in-flight remote refreshes.",
+      "StorageStatus exposes a backupAction slot but does not implement backup export/import, which remains out of scope."
+    ],
+    "interfaces": [
+      "PersistenceClient.read()/request()/snapshot(); readPersistenceState(), requestPersistentStorage(), PersistenceResult.",
+      "readStorageEstimate(), summarizeStorageEstimate(), formatStorageBytes(), StorageEstimateSnapshot.",
+      "useBroadcastSync({ onMutation, channelName?, createChannel? }) from src/features/shelf/useBroadcastSync returns { broadcastMutation(caseId, mutation) }.",
+      "StorageStatus({ persistence, estimate, backupAction? })."
+    ],
+    "tests": [
+      "npm test -- tests/data/persistence.test.ts tests/data/storageEstimate.test.ts tests/data/useBroadcastSync.test.tsx tests/shelf/StorageStatus.test.tsx: exit 0 (26 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (262 tests)",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0",
+      "npm run build: exit 0",
+      "npm run test:coverage: exit 0; src/data 94.56% lines, src/domain 97.95% lines"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl contains a pre-existing engine-generated modification I did not author or touch.",
+      "Storage and BroadcastChannel tests use injected structural fakes in jsdom; real browser eviction/BroadcastChannel behavior is not exercised here."
+    ]
+  }
+}

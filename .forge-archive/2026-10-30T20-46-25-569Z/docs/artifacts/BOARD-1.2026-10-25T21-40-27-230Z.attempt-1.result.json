@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "timestamp": "2026-10-25T21:40:27.230Z",
+  "runId": "d2be3a1e-ee48-4d3b-aa16-87811c2b0532",
+  "taskId": "BOARD-1",
+  "attempt": 1,
+  "outcome": "passed",
+  "result": {
+    "success": true,
+    "outputFiles": [
+      "src/board/viewport.ts",
+      "src/board/boardStore.ts",
+      "tests/board/viewport.test.ts",
+      "tests/board/boardStore.test.ts"
+    ],
+    "stdout": "I'll start by reading the execution file to understand the task.\nNow I'll implement the pure viewport math module.\n## BOARD-1 Result\n\n**Files created**\n- `src/board/viewport.ts`\n- `src/board/boardStore.ts`\n- `tests/board/viewport.test.ts`\n- `tests/board/boardStore.test.ts`\n\nNo shared or documentation files were changed.\n\n**Implementation**\n- Pure viewport math: screen/world round-trip, screen-space pan, pointer-anchored multiplicative and absolute zoom, 0.25–2.5 clamps, fit-to-bounds/cards, visible-world bounds, aspect-preserving minimap projection/unprojection, viewport union, and object/JSON serialization with per-component fallback.\n- Vanilla Zustand board store: live viewport, stored viewport, temporary `pendingViewport`, dirty flag, selected/hovered card, mode, and gesture state machine; slice-specific actions and reference-preserving selectors.\n- Fit/recall semantics: `applyTemporaryViewport` shows a temporary camera without touching `storedViewport`; `markViewportPersisted` is a no-op while clean and keeps the camera dirty if it moved again during the async save.\n\n**Verification**\n- Targeted tests: 56 passed across 2 files.\n- Full suite: 469 passed across 32 files.\n- `npm run typecheck`, `npm run lint`, `npm run format:check`, and `npm run build` pass.\n- Measured acceptance values: round-trips within 1e-9 at scales 0.25, 0.4, 1, 1.75, 2.5; zoom anchors fixed at all four canvas corners under 1000× and 0.0001× factors; huge cases clamp to 0.25 and remain centered; fit padding honored at 64 px; minimap letterboxing verified at 10 px padding.\n\n**Bundle / performance**\n- No route imports `src/board` yet, so the production build contains no PixiJS or board chunk. The lazy board chunk is introduced by BOARD-2; the initial shell remains clean. Tablet 45 FPS verification remains for BOARD-2/BOARD-3 and human review.\n\n**Handoff contract**\n- `BoardState` exposes `viewport`, `storedViewport`, `pendingViewport`, `viewportDirty`, `selectedCardId`, `hoveredCardId`, `mode`, `gesture`.\n- Actions: `hydrateViewport`, `moveViewport`, `panBy`, `zoomAt`, `zoomTo`, `applyTemporaryViewport`, `restoreStoredViewport`, `markViewportPersisted`, `selectCard`, `setHoveredCard`, `setMode`, `setGesture`, `resetGesture`, `resetBoard`.\n- Selectors are primitive/reference preserving; React binds via `useStore(boardStore, selector)` in BOARD-2.\n\n```forge-result\n{\"summary\":\"Implemented pure viewport math and a vanilla Zustand board store with slice-only actions, reference-preserving selectors, temporary fit/recall viewport semantics, and 56 targeted tests; targeted tests, typecheck, full suite (469), lint, formatting, and build pass.\",\"unresolved\":[],\"decisions\":[\"Viewport x/y is the world point at the top-left screen corner; round-trip transforms stay within 1e-9.\",\"Fit defaults to a maximum scale of 1, reserves 64px padding, clamps to 0.25-2.5, and centers the content.\",\"Fit and recall use applyTemporaryViewport so storedViewport and viewportDirty stay untouched until a real pan or zoom.\",\"The store is vanilla Zustand so board math and state remain free of PixiJS, Dexie, and React component imports.\"],\"interfaces\":[\"viewport.ts exports clampScale, normalizeViewport, worldToScreen, screenToWorld, panViewport, zoomViewportAt, zoomViewportToScale, computeVisibleWorldRect, fitViewportToBounds, computeCardsBounds, fitViewportToCards, unionWorldRects, computeMinimapProjection, projectWorldToMinimap, projectWorldRectToMinimap, unprojectMinimapPoint, projectViewportToMinimap, serializeViewport, deserializeViewport, and viewportsEqual.\",\"boardStore.ts exports createBoardStore(initialViewport?), boardStore, createInitialBoardState, BoardState, BoardActions, BoardStore, BoardGesture, and selectors such as selectViewport, selectViewportDirty, selectSelectedCardId, selectMode, and selectGesture.\",\"markViewportPersisted(saved?) accepts the exact persisted snapshot and keeps viewportDirty true if the live camera moved again during the async save.\"],\"tests\":[\"npm test -- tests/board/viewport.test.ts tests/board/boardStore.test.ts: exit 0 (56 tests)\",\"npm run typecheck: exit 0\",\"npm test: exit 0 (469 tests)\",\"npm run build: exit 0\",\"npm run lint: exit 0\",\"npm run format:check: exit 0\"],\"warnings\":[\"docs/EXECUTION-AUDIT.jsonl and docs/WORKFLOW-STATE.json have pre-existing engine-generated modifications that were not authored or touched.\",\"The build does not yet emit a separate board chunk because no route imports src/board; BOARD-2 owns the lazy route integration and bundle evidence.\",\"Tablet 45 FPS and real pointer gesture feel require the Pixi scene and browser/human verification in later board tasks.\"]}\n```\n",
+    "stderr": "",
+    "durationMs": 286165
+  },
+  "gates": [
+    {
+      "gate": "harness",
+      "status": "passed"
+    },
+    {
+      "gate": "outputs",
+      "status": "passed"
+    },
+    {
+      "gate": "handoff",
+      "status": "passed"
+    },
+    {
+      "gate": "requirements",
+      "status": "passed"
+    },
+    {
+      "gate": "validation",
+      "status": "passed",
+      "evidence": [
+        "npm test -- tests/board/viewport.test.ts tests/board/boardStore.test.ts: exit 0 (engine-verified)",
+        "npm run typecheck: exit 0 (engine-verified)"
+      ]
+    }
+  ],
+  "handoff": {
+    "summary": "Implemented pure viewport math and a vanilla Zustand board store with slice-only actions, reference-preserving selectors, temporary fit/recall viewport semantics, and 56 targeted tests; targeted tests, typecheck, full suite (469), lint, formatting, and build pass.",
+    "unresolved": [],
+    "decisions": [
+      "Viewport x/y is the world point at the top-left screen corner; round-trip transforms stay within 1e-9.",
+      "Fit defaults to a maximum scale of 1, reserves 64px padding, clamps to 0.25-2.5, and centers the content.",
+      "Fit and recall use applyTemporaryViewport so storedViewport and viewportDirty stay untouched until a real pan or zoom.",
+      "The store is vanilla Zustand so board math and state remain free of PixiJS, Dexie, and React component imports."
+    ],
+    "interfaces": [
+      "viewport.ts exports clampScale, normalizeViewport, worldToScreen, screenToWorld, panViewport, zoomViewportAt, zoomViewportToScale, computeVisibleWorldRect, fitViewportToBounds, computeCardsBounds, fitViewportToCards, unionWorldRects, computeMinimapProjection, projectWorldToMinimap, projectWorldRectToMinimap, unprojectMinimapPoint, projectViewportToMinimap, serializeViewport, deserializeViewport, and viewportsEqual.",
+      "boardStore.ts exports createBoardStore(initialViewport?), boardStore, createInitialBoardState, BoardState, BoardActions, BoardStore, BoardGesture, and selectors such as selectViewport, selectViewportDirty, selectSelectedCardId, selectMode, and selectGesture.",
+      "markViewportPersisted(saved?) accepts the exact persisted snapshot and keeps viewportDirty true if the live camera moved again during the async save."
+    ],
+    "tests": [
+      "npm test -- tests/board/viewport.test.ts tests/board/boardStore.test.ts: exit 0 (56 tests)",
+      "npm run typecheck: exit 0",
+      "npm test: exit 0 (469 tests)",
+      "npm run build: exit 0",
+      "npm run lint: exit 0",
+      "npm run format:check: exit 0"
+    ],
+    "warnings": [
+      "docs/EXECUTION-AUDIT.jsonl and docs/WORKFLOW-STATE.json have pre-existing engine-generated modifications that were not authored or touched.",
+      "The build does not yet emit a separate board chunk because no route imports src/board; BOARD-2 owns the lazy route integration and bundle evidence.",
+      "Tablet 45 FPS and real pointer gesture feel require the Pixi scene and browser/human verification in later board tasks."
+    ]
+  }
+}

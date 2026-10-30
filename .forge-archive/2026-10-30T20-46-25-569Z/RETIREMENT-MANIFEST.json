@@ -1,0 +1,729 @@
+{
+  "retiredAt": "2026-10-30T20:46:25.572Z",
+  "repository": "/home/mcfuzzysquirrel/Projects/testing/notes-detective",
+  "paths": [
+    {
+      "path": ".opencode/agents/forge-team-builder.md",
+      "group": "forge-agent"
+    },
+    {
+      "path": ".opencode/agents/workflow-orchestrator.md",
+      "group": "forge-agent"
+    },
+    {
+      "path": ".opencode/skills/forge-assign-models",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-auto-build",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-auto-build-prd",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-build-agent-team",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-build-feature-prd",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-build-prd",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-build-project-skills",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-decompose-prd",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-execution-adapter",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-grill-idea",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-optimize-skills",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-orchestrate-build",
+      "group": "forge-skill"
+    },
+    {
+      "path": ".opencode/skills/forge-workflow-engine",
+      "group": "forge-skill"
+    },
+    {
+      "path": "docs/agent-responsibility-matrix.md",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/artifacts",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/authoring-config.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/AUTHORING-EVENTS.jsonl",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/authoring-state.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/engine-config.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/engine-run.log",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/EXECUTION-AUDIT.jsonl",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/EXECUTION-MANIFEST.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/features",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/IDEA.md",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/model-overrides.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/PRD.md",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/PROGRESS.md",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/prompt-playbook.md",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/research/model-inventory.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/SKILL-CANDIDATES.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "docs/WORKFLOW-STATE.json",
+      "group": "forge-artifact"
+    },
+    {
+      "path": "IDEA.md",
+      "group": "forge-artifact"
+    }
+  ],
+  "rewrites": {
+    "supportLead": ".opencode/agents/project-orchestrator.md",
+    "agents": [
+      ".opencode/agents/board-engineer.md",
+      ".opencode/agents/capture-engineer.md",
+      ".opencode/agents/data-engineer.md",
+      ".opencode/agents/foundation-engineer.md",
+      ".opencode/agents/qa-engineer.md",
+      ".opencode/agents/release-engineer.md",
+      ".opencode/agents/ui-engineer.md"
+    ],
+    "skills": [
+      {
+        "name": "accessible-case-ui",
+        "path": ".opencode/skills/accessible-case-ui",
+        "protected": true
+      },
+      {
+        "name": "atomic-media-storage",
+        "path": ".opencode/skills/atomic-media-storage",
+        "protected": true
+      },
+      {
+        "name": "browser-evidence-journeys",
+        "path": ".opencode/skills/browser-evidence-journeys",
+        "protected": true
+      },
+      {
+        "name": "case-domain-integrity",
+        "path": ".opencode/skills/case-domain-integrity",
+        "protected": true
+      },
+      {
+        "name": "local-first-backup-archive",
+        "path": ".opencode/skills/local-first-backup-archive",
+        "protected": true
+      },
+      {
+        "name": "ocr-worker-lifecycle",
+        "path": ".opencode/skills/ocr-worker-lifecycle",
+        "protected": true
+      },
+      {
+        "name": "offline-pwa-release",
+        "path": ".opencode/skills/offline-pwa-release",
+        "protected": true
+      },
+      {
+        "name": "pixi-case-board",
+        "path": ".opencode/skills/pixi-case-board",
+        "protected": true
+      },
+      {
+        "name": "skill-creator",
+        "path": ".opencode/skills/skill-creator",
+        "protected": false
+      },
+      {
+        "name": "skill-review",
+        "path": ".opencode/skills/skill-review",
+        "protected": false
+      },
+      {
+        "name": "skill-review-updater",
+        "path": ".opencode/skills/skill-review-updater",
+        "protected": false
+      }
+    ],
+    "docs": [
+      {
+        "path": ".scratch/board-first-gameplay-ui/issues/07-write-the-redesign-spec.md",
+        "markers": [
+          "feature documents"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": ".scratch/board-first-gameplay-ui/research/08-canvas-headroom.md",
+        "markers": [
+          "feature documents"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": ".scratch/board-first-gameplay-ui/spec.md",
+        "markers": [
+          "feature documents"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "IDEA.md",
+        "markers": [
+          "forge skill"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "README.md",
+        "markers": [
+          "PRD",
+          "feature documents"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/IDEA.md",
+        "markers": [
+          "forge skill"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/PRD.md",
+        "markers": [
+          "feature documents"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/agent-responsibility-matrix.md",
+        "markers": [
+          "PRD",
+          "execution manifest",
+          "forge skill"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-4.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "workflow state",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-5.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "workflow state",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/A11Y-6.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "workflow state",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/BACKUP-4.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/BOARD-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/BOARD-4.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "progress file",
+          "workflow state",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/BOARD-5.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "progress file",
+          "workflow state",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/CLOSE-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/CLOSE-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/CLOSE-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/DEMO-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/DEMO-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/DEMO-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/LINK-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/LINK-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/LINK-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/LINK-4.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/LINK-5.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/OCR-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/OCR-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/OCR-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/RECALL-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/RECALL-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/RECALL-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/REL-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/REL-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/REL-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/REL-4.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/SEARCH-1.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/SEARCH-2.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/artifacts/SEARCH-3.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "result report"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/app-foundation.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/backup-and-restore.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/case-board.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/case-closure.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/connections-and-provenance.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/evidence-capture.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/first-run-demo-and-hints.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/local-data-and-case-shelf.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/optional-ocr.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/recall-mode.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/release-and-field-review.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/responsive-and-accessibility-hardening.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/features/search-tags-and-filters.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "task contract"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/prompt-playbook.md",
+        "markers": [
+          "PRD",
+          "feature documents",
+          "progress file",
+          "execution manifest",
+          "workflow state",
+          "skill candidates",
+          "responsibility matrix",
+          "authoring state",
+          "forge skill",
+          "workflow orchestrator"
+        ],
+        "reason": "References removed Forge artifacts"
+      },
+      {
+        "path": "docs/skill-review/skills-stage-review.md",
+        "markers": [
+          "execution manifest",
+          "skill candidates",
+          "forge skill"
+        ],
+        "reason": "References removed Forge artifacts"
+      }
+    ],
+    "config": []
+  },
+  "reviews": []
+}
