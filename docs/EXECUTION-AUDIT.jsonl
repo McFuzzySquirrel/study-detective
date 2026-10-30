@@ -397,3 +397,5 @@
 {"timestamp":"2026-10-26T21:56:35.661Z","action":"run.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","note":"harness=opencode"}
 {"timestamp":"2026-10-26T21:56:35.744Z","action":"phase.started","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","phaseId":"RELEASE-AND-FIELD-REVIEW-3"}
 {"timestamp":"2026-10-26T21:56:35.751Z","action":"task.complete","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"REL-HR-1","note":"Human attestation: docs/reviews/final-acceptance.json"}
+{"timestamp":"2026-10-26T21:56:35.842Z","action":"task.committed","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532","taskId":"REL-HR-1","commitSha":"853147f7ac942fb385060df9fd2f013e9f671511"}
+{"timestamp":"2026-10-26T21:56:35.842Z","action":"run.complete","runId":"d2be3a1e-ee48-4d3b-aa16-87811c2b0532"}
