@@ -67,9 +67,9 @@ can only be completed by the reviewer on real devices.
 The release is **not accepted** while any human item is unchecked. Automated evidence cannot check
 those boxes.
 
-Source documents for this release: [PRD](PRD.md),
-[Release and Field Review](features/release-and-field-review.md), and
-[Deployment](DEPLOYMENT.md).
+Maintenance documents for this release: [Support team and ownership](SUPPORT.md),
+[Deployment](DEPLOYMENT.md), and the [README](../README.md). The human acceptance
+record lives in `docs/reviews/final-acceptance.json`.
 
 ## CI gates
 

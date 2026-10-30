@@ -12,6 +12,9 @@ export default tseslint.config(
       'node_modules',
       'playwright-report',
       'test-results',
+      // Retired build artifacts keep their own historical sources; they are not
+      // part of this project's toolchain.
+      '.forge-archive',
       // Generated from pinned tesseract.js packages by scripts/copy-ocr-assets.mjs.
       'public/ocr',
       '.opencode',
