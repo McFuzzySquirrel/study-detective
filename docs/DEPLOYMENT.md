@@ -8,8 +8,8 @@ browser on the device.
 This document covers the deploy workflow, the single base-path input, the exact local production
 preview commands, and the failures that look like app bugs but are really hosting configuration.
 
-Related documents: [PRD](PRD.md), [Release and Field Review](features/release-and-field-review.md),
-and [README](../README.md).
+Related documents: [Support team and ownership](SUPPORT.md),
+[Release notes and checklist](RELEASE.md), and [README](../README.md).
 
 ## Deployed URL
 

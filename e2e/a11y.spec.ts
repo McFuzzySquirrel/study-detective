@@ -21,7 +21,9 @@ import type { AxeOverlaySurface, AxePrimaryScreen } from '../tests/a11y/axeConfi
  * Every test starts from a truly fresh install, so the real first-run demo
  * seeder writes a case, six cards, five strings, and four images through the
  * production IndexedDB path. The scans then read that graph through the normal
- * routes; nothing is mocked and no fixture is injected into the page.
+ * routes; nothing is mocked and no fixture is injected into the page. The one
+ * pre-set localStorage key is the welcome flag, so these scans start on the
+ * prepared shelf; the welcome screen has its own browser journey.
  *
  * The primary-screen journey runs in the desktop (1440x900) and
  * tablet-landscape (1280x800) projects. The overlay journey runs in the same
@@ -38,7 +40,7 @@ const NOTE_TITLE = 'Photosynthesis lecture notes';
 
 const TABLET_OR_DESKTOP_PROJECTS = ['desktop', 'tablet-landscape'];
 
-test.use({ storageState: { cookies: [], origins: [] } });
+test.use({ storageState: './e2e/fixtures/welcome-seen-storage.json' });
 
 type StoredCard = {
   readonly id: string;
@@ -381,9 +383,9 @@ test.describe('open dialogs and sheets', () => {
     await expect(contextHint).toBeHidden();
 
     await page.keyboard.type('?');
-    const shortcutHelp = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
+    const shortcutHelp = page.getByRole('dialog', { name: 'How Notes Detective works' });
     await expect(shortcutHelp).toBeVisible();
-    await expect(shortcutHelp.locator('[data-shortcut-id="help"]')).toContainText('Shortcut help');
+    await expect(shortcutHelp.locator('[data-shortcut-id="help"]')).toContainText('Help');
     await scanSurface(page, 'board-shortcut-help-dialog', testInfo, scanned);
     await page.keyboard.press('Escape');
     await expect(shortcutHelp).toBeHidden();

@@ -684,42 +684,5 @@
 }
 
 /* ------------------------------------------------------------------------- */
-/* Board gestures (help dialog)                                              */
+/* Board gestures live with the shared help dialog (src/app/help.css).       */
 /* ------------------------------------------------------------------------- */
-
-.board-gestures {
-  display: grid;
-  gap: var(--space-2);
-  margin-block-start: var(--space-5);
-}
-
-.board-gestures__title {
-  margin: 0;
-  color: var(--color-heading-ink);
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-lg);
-}
-
-.board-gestures__list {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-}
-
-.board-gestures__row {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.board-gestures__row dt {
-  color: var(--color-ink);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
-.board-gestures__row dd {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-body);
-}

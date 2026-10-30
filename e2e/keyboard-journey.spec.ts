@@ -191,7 +191,7 @@ test('completes the non-spatial case workflow with the keyboard only', async ({ 
   await openNote.focus();
   await expect(openNote).toBeFocused();
   await page.keyboard.type('?');
-  const help = page.getByRole('dialog', { name: 'Keyboard shortcuts' });
+  const help = page.getByRole('dialog', { name: 'How Notes Detective works' });
   await expect(help).toBeVisible();
   await expect(help.getByText('Connect the focused card')).toBeVisible();
   await page.keyboard.press('Escape');

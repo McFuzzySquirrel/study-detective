@@ -100,7 +100,13 @@ test('a fresh install seeds, explains, removes, and replays the demo without res
   });
 
   // A new Playwright context has no IndexedDB rows and no localStorage keys.
+  // The first visit lands on the welcome screen; Enter is the one action this
+  // journey needs from it before the seeded demo can be inspected.
   await page.goto('/');
+  await expect(
+    page.getByRole('heading', { level: 2, name: 'Welcome to Notes Detective' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Enter the case files' }).click();
 
   const demoLink = page.getByRole('link', { name: DEMO_TITLE });
   await expect(demoLink).toBeVisible({ timeout: 30_000 });

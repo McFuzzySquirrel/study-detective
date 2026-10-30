@@ -102,17 +102,8 @@ export const REQUIRED_COMMANDS = Object.freeze({
 
 /** Local documents every release doc must link to. */
 export const REQUIRED_LINKS = Object.freeze({
-  'README.md': Object.freeze([
-    'docs/PRD.md',
-    'docs/features/release-and-field-review.md',
-    'docs/DEPLOYMENT.md',
-    'docs/RELEASE.md',
-  ]),
-  'docs/RELEASE.md': Object.freeze([
-    'docs/PRD.md',
-    'docs/features/release-and-field-review.md',
-    'docs/DEPLOYMENT.md',
-  ]),
+  'README.md': Object.freeze(['docs/DEPLOYMENT.md', 'docs/RELEASE.md', 'docs/SUPPORT.md']),
+  'docs/RELEASE.md': Object.freeze(['docs/DEPLOYMENT.md', 'docs/SUPPORT.md']),
 });
 
 /** Placeholder text that must never ship in a release document. */

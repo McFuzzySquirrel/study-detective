@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Route, Routes, useLocation } from 'react-router';
 
 import type { CaseRepositoryPort } from '../data/caseRepository';
+import type { WelcomeSeenStore } from '../features/welcome/welcomeSeen';
 import type { CardDetailRepositoryLoader } from '../features/cards/CardDetailPage';
 import type { CardListRepositoryLoader } from '../features/case/CardListPage';
 import type { CaseBoardRepositoryLoader } from '../features/case/CaseBoardPage';
@@ -14,6 +15,11 @@ import ErrorBoundary from './ErrorBoundary';
 const ShelfScreen = lazy(() =>
   import('../features/shelf/CaseShelfPage').then((module) => ({
     default: module.CaseShelfPage,
+  })),
+);
+const WelcomeScreen = lazy(() =>
+  import('../features/welcome/WelcomePage').then((module) => ({
+    default: module.WelcomePage,
   })),
 );
 const CaseBoardScreen = lazy(() =>
@@ -73,6 +79,8 @@ export interface AppRoutesProps {
   readonly recallRepository?: CaseRepositoryPort | undefined;
   /** Replaces the recall route's repository opener, including its failure path. */
   readonly loadRecallRepository?: RecallRepositoryLoader | undefined;
+  /** Injected welcome flag store for tests and composition. */
+  readonly welcomeSeenStore?: WelcomeSeenStore | undefined;
 }
 
 /**
@@ -93,6 +101,7 @@ export function AppRoutes({
   loadCardListRepository,
   recallRepository,
   loadRecallRepository,
+  welcomeSeenStore,
 }: AppRoutesProps = {}) {
   const location = useLocation();
 
@@ -106,6 +115,14 @@ export function AppRoutes({
         }
       >
         <Routes>
+          <Route
+            path="/welcome"
+            element={
+              <WelcomeScreen
+                {...(welcomeSeenStore !== undefined ? { seenStore: welcomeSeenStore } : {})}
+              />
+            }
+          />
           <Route
             path="/"
             element={

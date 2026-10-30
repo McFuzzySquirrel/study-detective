@@ -121,6 +121,32 @@
   text-decoration: underline;
 }
 
+.app-frame__help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--target-min);
+  min-inline-size: var(--target-min);
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-muted);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.app-frame__help:hover {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+
+.app-frame__help:focus-visible {
+  color: var(--color-ink);
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
 /* The conditional shell notice: a text chip, never a full-width strip. */
 .app-frame__status-chip {
   display: inline-flex;

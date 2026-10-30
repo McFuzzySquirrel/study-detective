@@ -45,7 +45,7 @@ const OCR_ASSETS = [
 
 const PNG_SIGNATURE = '89504e470d0a1a0a';
 
-test.use({ storageState: { cookies: [], origins: [] } });
+test.use({ storageState: './e2e/fixtures/welcome-seen-storage.json' });
 
 test.beforeEach(async ({ page }) => {
   // The demo must seed (no demo flag), but the contextual board hint is not

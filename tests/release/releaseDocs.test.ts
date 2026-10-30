@@ -118,8 +118,8 @@ Spatial editing is pointer-only.
 
 ## Documentation
 
-[PRD](docs/PRD.md), [feature](docs/features/release-and-field-review.md),
-[deployment](docs/DEPLOYMENT.md), and [release](docs/RELEASE.md).
+[deployment](docs/DEPLOYMENT.md), [release](docs/RELEASE.md), and
+[support](docs/SUPPORT.md).
 `;
 
 const RELEASE = `# Notes Detective v1 Release
@@ -178,8 +178,7 @@ First release.
 
 The human gate is still open.
 
-[PRD](PRD.md), [feature](features/release-and-field-review.md), and
-[deployment](DEPLOYMENT.md).
+[deployment](DEPLOYMENT.md) and [support](SUPPORT.md).
 `;
 
 const DEFAULT_PACKAGE_SCRIPTS: Record<string, string> = {
@@ -218,18 +217,13 @@ function createFixture(options: FixtureOptions = {}): string {
   temporaryRoots.push(root);
 
   const docsDirectory = join(root, 'docs');
-  mkdirSync(join(docsDirectory, 'features'), { recursive: true });
+  mkdirSync(docsDirectory, { recursive: true });
   mkdirSync(join(root, 'scripts'), { recursive: true });
 
   writeFileSync(join(root, 'README.md'), options.readme ?? README, 'utf8');
   writeFileSync(join(docsDirectory, 'RELEASE.md'), options.release ?? RELEASE, 'utf8');
-  writeFileSync(join(docsDirectory, 'PRD.md'), '# PRD\n\n## 14. Features\n', 'utf8');
+  writeFileSync(join(docsDirectory, 'SUPPORT.md'), '# Support\n', 'utf8');
   writeFileSync(join(docsDirectory, 'DEPLOYMENT.md'), '# Deployment\n', 'utf8');
-  writeFileSync(
-    join(docsDirectory, 'features', 'release-and-field-review.md'),
-    '# Release and Field Review\n\n## Traceability\n',
-    'utf8',
-  );
 
   writeFileSync(
     join(root, 'package.json'),
@@ -291,11 +285,11 @@ describe('release documentation checker', () => {
   });
 
   it('fails when a required local link is removed', () => {
-    const readme = README.replace('[PRD](docs/PRD.md)', 'PRD');
+    const readme = README.replace('[support](docs/SUPPORT.md)', 'support');
     const result = runChecker(['--root', createFixture({ readme })]);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('missing required link to "docs/PRD.md"');
+    expect(result.stderr).toContain('missing required link to "docs/SUPPORT.md"');
   });
 
   it('fails when a local link points at a missing heading anchor', () => {
